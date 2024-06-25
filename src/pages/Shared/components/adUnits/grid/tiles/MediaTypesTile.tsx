@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import StateContext from '../../../../contexts/appStateContext';
 import JSONViewerComponent from '../../../JSONViewerComponent';
 import MediaTypeChipComponent from '../../chips/MediaTypeChipComponent';
-import { IPrebidAdUnit } from '../../../../../Content/scripts/prebid';
+import { IPrebidAdUnit } from '../../../../../Injected/prebid';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -57,6 +57,11 @@ const MediaTypesTile = ({ adUnit: { mediaTypes, code: adUnitCode } }: IMediaType
         </Box>
         <Box onClick={(e) => e.stopPropagation()}>
           <Box sx={{ p: 0.5 }}>
+            {(JSON.stringify(mediaTypes) === '{}' || mediaTypes === undefined || !mediaTypes) && (
+              <Box>
+                <Typography variant="caption">Media Types Object: {JSON.stringify(mediaTypes)}</Typography>
+              </Box>
+            )}
             {Object.keys(mediaTypes).map((mediaType, index) => (
               <React.Fragment key={index}>
                 {mediaType === 'banner' && mediaTypes['banner'].sizes && (

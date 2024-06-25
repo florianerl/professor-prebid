@@ -1,21 +1,24 @@
 import React, { useEffect, useContext } from 'react';
 import { sendChromeTabsMessage } from '../Shared/utils';
-import { PBJS_NAMESPACE_CHANGE } from '../Shared/constants';
+import { PBJS_NAMESPACE_CHANGE, POPUP_LOADED } from '../Shared/constants';
 import Box from '@mui/material/Box';
 import { BrowserRouter } from 'react-router-dom';
 import AppStateContext from '../Shared/contexts/appStateContext';
-import InspectedPageContext from '../Shared/contexts/inspectedPageContext';
 import NoPrebidCardComponent from '../Shared/components/NoPrebidCardComponent';
 import RoutesComponent from '../Shared/components/RoutesComponent';
-import { NavBar } from './Navbar';
+import { NavBar } from '../Shared/components/navBar/Navbar';
 
 export const Popup = (): JSX.Element => {
-  const { pbjsNamespace } = useContext(AppStateContext);
-  const { prebids } = useContext(InspectedPageContext);
+  const { pbjsNamespace, prebids } = useContext(AppStateContext);
 
   useEffect(() => {
     sendChromeTabsMessage(PBJS_NAMESPACE_CHANGE, pbjsNamespace);
   }, [pbjsNamespace]);
+
+  useEffect(() => {
+    // console.log('popup POPUP_LOADED', );  
+    sendChromeTabsMessage(POPUP_LOADED, {});
+  }, []);
 
   return (
     <BrowserRouter>

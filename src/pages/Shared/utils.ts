@@ -31,6 +31,7 @@ export const sendWindowPostMessage = (type: string, payload: object): void => {
   // in window.postMessage
   // payload = JSON.parse(JSON.stringify(payload));
   payload = JSON.parse(decylce(payload));
+  // console.log('sendWindowPostMessage', type, payload);
   window.top.postMessage(
     {
       profPrebid: true,
@@ -75,3 +76,13 @@ export const sendChromeTabsMessage = async (type: string, payload: object | stri
   const tabId = await getTabId();
   chrome.tabs.sendMessage(tabId, { type, payload });
 };
+
+export const detectIframe = (): boolean => {
+  try {
+    return window.self !== window.top;
+  } catch (e) {
+    return true;
+  }
+};
+
+export const generateUniqueId = () => new Date().getTime() + '-' + Math.random().toString(36).substr(2, 9);

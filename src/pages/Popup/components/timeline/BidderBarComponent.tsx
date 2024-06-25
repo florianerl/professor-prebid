@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import JSONViewerComponent from '../../../Shared/components/JSONViewerComponent';
-import { IPrebidAuctionEndEventData, IPrebidBidderRequest } from '../../../Content/scripts/prebid';
+import { IPrebidAuctionEndEventData, IPrebidBidderRequest } from '../../../Injected/prebid';
 import ListItem from '@mui/material/ListItem';
 import Typography from '@mui/material/Typography';
 import Popover from '@mui/material/Popover';
@@ -38,7 +38,8 @@ const PopoverWithJSONViewer = ({ anchorEl, bidderRequest, open, handlePopoverOpe
       onClick={(e) => e.stopPropagation()}
     >
       <JSONViewerComponent
-        src={bidderRequest}
+        src={{ bidderRequest, topics }}
+
         name={false}
         collapsed={3}
         displayObjectSize={false}

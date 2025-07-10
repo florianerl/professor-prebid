@@ -14,13 +14,12 @@ var excludeEntriesToHotReload = options.notHotReload || [];
 
 for (var entryName in config.entry) {
   if (excludeEntriesToHotReload.indexOf(entryName) === -1) {
-    config.entry[entryName] = ['webpack/hot/dev-server', `webpack-dev-server/client?hot=true&hostname=localhost&port=${env.PORT}`].concat(
-      config.entry[entryName]
-    );
+    config.entry[entryName] = [
+      'webpack/hot/dev-server',
+      `webpack-dev-server/client?hot=true&hostname=localhost&port=${env.PORT}`,
+    ].concat(config.entry[entryName]);
   }
 }
-
-config.plugins = [new webpack.HotModuleReplacementPlugin()].concat(config.plugins || []);
 
 delete config.chromeExtensionBoilerplate;
 
@@ -29,8 +28,12 @@ var compiler = webpack(config);
 var server = new WebpackDevServer(
   {
     https: false,
-    hot: false,
-    client: false,
+    hot: true,
+    liveReload: false,
+    client: {
+      webSocketTransport: 'sockjs',
+    },
+    webSocketServer: 'sockjs',
     host: 'localhost',
     port: env.PORT,
     static: {
@@ -47,10 +50,6 @@ var server = new WebpackDevServer(
   },
   compiler
 );
-
-if (process.env.NODE_ENV === 'development' && module.hot) {
-  module.hot.accept();
-}
 
 (async () => {
   await server.start();

@@ -12,19 +12,19 @@ const args2string = (input: any): string => {
   return `${Object.values(input).join(' ')}${['.', '?', '!', ';', ':'].includes(Object.values(input).join(' ').slice(-1)) ? '' : '.'}`;
 };
 
-const Args2Typo = ({ input }: any): JSX.Element => {
+interface Args2TypoProps {
+  input: any;
+}
+
+const Args2Typo = ({ input }: Args2TypoProps): JSX.Element => {
   return (
     <React.Fragment>
       {Object.values(input).map((value, index, arr) => {
         return (
           <React.Fragment key={index}>
-            <Typography component={'span'}>{typeof value === 'object' ? JSON.stringify(value) : value}</Typography>
+            <Typography component="span">{String(typeof value === 'object' ? JSON.stringify(value) : value)}</Typography>
             {index + 1 < arr.length && <Typography component={'span'}> </Typography>}
-            {index + 1 === arr.length && (
-              <Typography component={'span'}>
-                {['.', '?', '!', ';', ':'].includes(Object.values(input).join(' ').trim().slice(-1)) ? '' : '.'}
-              </Typography>
-            )}
+            {index + 1 === arr.length && <Typography component={'span'}>{['.', '?', '!', ';', ':'].includes(Object.values(input).join(' ').trim().slice(-1)) ? '' : '.'}</Typography>}
           </React.Fragment>
         );
       })}
@@ -72,15 +72,20 @@ const getEventIcon = (type: string) => {
   return null;
 };
 
+interface EventMessage {
+  type: string;
+  arguments: any;
+  elapsedTime: number;
+  count: number;
+}
+
 const EventsMessages = ({ state, search }: IEventsMessagesProps): JSX.Element => {
   const { prebid } = useContext(StateContext);
   const { events } = prebid;
-  const [messages, setMessages] = React.useState<any[]>([]);
+  const [messages, setMessages] = React.useState<EventMessage[]>([]);
 
   useEffect(() => {
-    const filteredEvents = ((events || []) as IPrebidAuctionDebugEventData[])
-      .filter(({ eventType }) => eventType === 'auctionDebug')
-      .map(({ args, elapsedTime }: IPrebidAuctionDebugEventData) => ({ args, elapsedTime }));
+    const filteredEvents = ((events || []) as IPrebidAuctionDebugEventData[]).filter(({ eventType }) => eventType === 'auctionDebug').map(({ args, elapsedTime }: IPrebidAuctionDebugEventData) => ({ args, elapsedTime }));
     const searchedEvents = filterEventsBySearch(filteredEvents, search);
     const stateFilteredEvents = filterEventsByState(searchedEvents, state);
     const sortedEvents = sortEventsByElapsedTime(stateFilteredEvents);
@@ -89,32 +94,37 @@ const EventsMessages = ({ state, search }: IEventsMessagesProps): JSX.Element =>
   }, [events, search, state]);
 
   return (
-    <>
+    <Grid container spacing={1}>
       {messages.length > 0 &&
         messages.map((event, index, arr) => (
           <React.Fragment key={index}>
-            <Grid item xs={0.5}>
-              {getEventIcon(event.type)}
-            </Grid>
-            <Grid item>
-              <Typography>{Math.round(event.elapsedTime)} ms:</Typography>
-            </Grid>
-            <Grid item xs={10}>
-              <Args2Typo input={event.arguments}></Args2Typo>
+            <Grid container spacing={1} alignItems="center">
+              <Grid size={{ xs: 0.5 }}>{getEventIcon(event.type)}</Grid>
+              <Grid>
+                <Typography>{Math.round(event.elapsedTime)} ms:</Typography>
+              </Grid>
+              <Grid size={{ xs: 10 }}>
+                <Args2Typo input={event.arguments}></Args2Typo>
+                {event.count > 1 && (
+                  <Typography component="span" sx={{ ml: 1 }}>
+                    (x{event.count})
+                  </Typography>
+                )}
+              </Grid>
             </Grid>
             {index + 1 < arr.length && (
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Divider></Divider>
               </Grid>
             )}
           </React.Fragment>
         ))}
       {messages.length === 0 && (
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Typography sx={{ p: 0.5 }}>no messages found</Typography>
         </Grid>
       )}
-    </>
+    </Grid>
   );
 };
 interface IEventsMessagesProps {

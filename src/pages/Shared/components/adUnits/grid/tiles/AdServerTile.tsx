@@ -24,11 +24,7 @@ const AdServerTile = ({ adUnit }: IAdServerTileProps): JSX.Element => {
 
   useEffect(() => {
     const slot = googleAdManager?.slots?.find(
-      ({ name, elementId }: { name: string; elementId: string }) =>
-        name === adUnit.code ||
-        elementId === adUnit.code ||
-        name.toLowerCase() === adUnit.code.toLowerCase() ||
-        elementId.toLowerCase() === adUnit.code.toLowerCase()
+      ({ name, elementId }: { name: string; elementId: string }) => name === adUnit.code || elementId === adUnit.code || name.toLowerCase() === adUnit.code.toLowerCase() || elementId.toLowerCase() === adUnit.code.toLowerCase()
     );
     const fallbackSlot = googleAdManager?.slots?.length === 1 ? googleAdManager?.slots[0] : undefined;
     setSlot(slot || fallbackSlot);
@@ -36,9 +32,7 @@ const AdServerTile = ({ adUnit }: IAdServerTileProps): JSX.Element => {
 
   return (
     <Grid
-      item
-      xs={4}
-      md={4}
+      size={{ xs: 4, md: 4 }}
       sx={{
         overflow: 'hidden',
         position: 'relative', // Ensure relative positioning for the overlay
@@ -73,9 +67,7 @@ const AdServerTile = ({ adUnit }: IAdServerTileProps): JSX.Element => {
         {!slot && (
           <Box sx={{ p: 0.5 }}>
             <Typography variant="caption">Unable to match Prebid AdUnit with ad-server slot. </Typography>
-            {googleAdManager?.slots?.length > 0 && (
-              <JSONViewerComponent style={{ padding: 0 }} name="All detected ad-server slots:" src={googleAdManager.slots} collapsed={2} />
-            )}
+            {googleAdManager?.slots?.length > 0 && <JSONViewerComponent style={{ padding: 0 }} name="All detected ad-server slots:" src={googleAdManager.slots} collapsed={2} />}
           </Box>
         )}
         {slot && (

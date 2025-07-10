@@ -10,11 +10,11 @@ import Grid from '@mui/material/Grid';
 const ExpandedRowComponent = ({ bid }: IRowComponentProps) => {
   return (
     <React.Fragment>
-      <Grid item xs={0.62}></Grid>
-      <Grid item xs={5.38}>
+      <Grid size={{ xs: 0.62 }}></Grid>
+      <Grid size={{ xs: 5.38 }}>
         <Grid container spacing={0.5} sx={{ p: 0.5, '& > div > div': { justifyContent: 'flex-start !important' } }}>
           {bid.bidder && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Paper sx={{ height: 1, width: 1 }}>
                 <Typography variant="body1" sx={{ p: 0.5 }}>
                   <strong>Bidder: </strong>
@@ -24,7 +24,7 @@ const ExpandedRowComponent = ({ bid }: IRowComponentProps) => {
             </Grid>
           )}
           {bid.width && bid.height && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Paper sx={{ height: 1 }}>
                 <Typography variant="body1" sx={{ p: 0.5 }}>
                   <strong>Size: </strong>
@@ -34,7 +34,7 @@ const ExpandedRowComponent = ({ bid }: IRowComponentProps) => {
             </Grid>
           )}
           {bid.originalCpm && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Paper sx={{ height: 1 }}>
                 <Typography variant="body1" sx={{ p: 0.5 }}>
                   <strong>Org. CPM: </strong> {Math.floor(bid.originalCpm * 100) / 100}
@@ -43,7 +43,7 @@ const ExpandedRowComponent = ({ bid }: IRowComponentProps) => {
             </Grid>
           )}
           {bid.originalCurrency && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Paper sx={{ height: 1 }}>
                 <Typography variant="body1" sx={{ p: 0.5 }}>
                   <strong>Org. Currency: </strong>
@@ -53,7 +53,7 @@ const ExpandedRowComponent = ({ bid }: IRowComponentProps) => {
             </Grid>
           )}
           {bid.timeToRespond && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Paper sx={{ height: 1 }}>
                 <Typography variant="body1" sx={{ p: 0.5 }}>
                   <strong>Time to Respond: </strong>
@@ -63,7 +63,7 @@ const ExpandedRowComponent = ({ bid }: IRowComponentProps) => {
             </Grid>
           )}
           {bid.statusMessage && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Paper sx={{ height: 1 }}>
                 <Typography variant="body1" sx={{ p: 0.5 }}>
                   <strong>Status Message: </strong>
@@ -73,7 +73,7 @@ const ExpandedRowComponent = ({ bid }: IRowComponentProps) => {
             </Grid>
           )}
           {bid.adUnitCode && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Paper sx={{ height: 1 }}>
                 <Typography variant="body1" sx={{ p: 0.5 }}>
                   <strong>AdUnit Code: </strong>
@@ -83,7 +83,7 @@ const ExpandedRowComponent = ({ bid }: IRowComponentProps) => {
             </Grid>
           )}
           {bid.source && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Paper sx={{ height: 1 }}>
                 <Typography variant="body1" sx={{ p: 0.5 }}>
                   <strong>Source: </strong>
@@ -93,7 +93,7 @@ const ExpandedRowComponent = ({ bid }: IRowComponentProps) => {
             </Grid>
           )}
           {bid.ttl && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Paper sx={{ height: 1 }}>
                 <Typography variant="body1" sx={{ p: 0.5 }}>
                   <strong>Bid Cache Period (seconds): </strong> {bid.ttl}
@@ -103,10 +103,10 @@ const ExpandedRowComponent = ({ bid }: IRowComponentProps) => {
           )}
         </Grid>
       </Grid>
-      <Grid item xs={6}>
+      <Grid size={{ xs: 6 }}>
         <Grid container spacing={0.5} sx={{ p: 0.5, '& > div > div': { justifyContent: 'flex-start !important' } }}>
           {bid.adserverTargeting && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Paper sx={{ height: 1, flexDirection: 'row' }}>
                 <Typography variant="body1" sx={{ p: 0.5 }}>
                   <strong>Adserver Targeting: </strong>
@@ -131,7 +131,7 @@ const ExpandedRowComponent = ({ bid }: IRowComponentProps) => {
             </Grid>
           )}
           {bid.params && JSON.stringify(bid.params) !== '{}' && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Paper sx={{ height: 1 }}>
                 <Typography variant="body1" sx={{ p: 0.5 }}>
                   <strong>Params: </strong>

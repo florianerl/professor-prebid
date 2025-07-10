@@ -11,7 +11,7 @@ const EventsComponent = ({ close }: IEventsComponentProps): JSX.Element => {
 
   return (
     <Grid container spacing={1} sx={{ p: 0.5 }}>
-      <Grid item xs={12}>
+      <Grid size={{ xs: 12 }}>
         <Paper>
           <Grid container spacing={1} sx={{ p: 0.5 }}>
             <EventsHeader search={search} setSearch={setSearch} state={state} setState={setState} close={close}></EventsHeader>

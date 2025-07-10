@@ -15,21 +15,21 @@ const TimeLineComponent = (): JSX.Element => {
       {auctionEndEvents.map((auctionEndEvent, index) => {
         return (
           <React.Fragment key={index}>
-            <Grid item>
+            <Grid >
               <Paper sx={{ p: 1 }} elevation={1}>
                 <Typography variant="h2" component="span">
                   Auction ID: {auctionEndEvent.args?.auctionId}
                 </Typography>
               </Paper>
             </Grid>
-            <Grid item>
+            <Grid >
               <Paper sx={{ p: 1 }} elevation={1}>
                 <Typography variant="h2" component="span">
                   Auction Start: {new Date(auctionEndEvent.args.timestamp).toLocaleTimeString()}
                 </Typography>
               </Paper>
             </Grid>
-            <Grid item>
+            <Grid >
               <Paper sx={{ p: 1 }} elevation={1}>
                 <Typography variant="h2" component="span">
                   Auction Time: {auctionEndEvent.args.auctionEnd - auctionEndEvent.args.timestamp} ms

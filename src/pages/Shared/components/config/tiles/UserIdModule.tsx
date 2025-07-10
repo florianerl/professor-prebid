@@ -34,7 +34,7 @@ const UserIdModuleComponent = (): JSX.Element => {
   };
   if (!userSync) return null;
   return (
-    <Grid item sm={maxWidth} xs={12} ref={ref}>
+    <Grid size={{ xs: 12, sm: maxWidth }} ref={ref}>
       <Card sx={{ width: 1, minHeight: tileHeight }}>
         <CardHeader
           avatar={
@@ -43,13 +43,7 @@ const UserIdModuleComponent = (): JSX.Element => {
             </Avatar>
           }
           title={<Typography variant="h3">UserIds</Typography>}
-          subheader={
-            <Typography variant="subtitle1">
-              {userSync.userIds?.length > 0
-                ? `${userSync.userIds?.length} UserId${userSync.userIds?.length > 1 ? 's' : ''} detected:`
-                : 'No UserIds detected!'}
-            </Typography>
-          }
+          subheader={<Typography variant="subtitle1">{userSync.userIds?.length > 0 ? `${userSync.userIds?.length} UserId${userSync.userIds?.length > 1 ? 's' : ''} detected:` : 'No UserIds detected!'}</Typography>}
           action={
             <ExpandMoreIcon
               sx={{
@@ -65,19 +59,19 @@ const UserIdModuleComponent = (): JSX.Element => {
             {!expanded &&
               userSync.userIds?.length > 0 &&
               userSync.userIds.slice(0, 6).map((userId, index) => (
-                <Grid item xs={12} sm={expanded ? 3 : 6} key={index}>
+                <Grid size={{ xs: 12, sm: expanded ? 3 : 6 }} key={index}>
                   <Typography variant="body1">
                     <strong>#{index}: </strong> {userId.name}
                   </Typography>
                 </Grid>
               ))}
             {!expanded && userSync.userIds?.length > 5 && (
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Typography variant="body2">+ {userSync.userIds?.length - 5} more user ids...</Typography>
               </Grid>
             )}
             {expanded && (
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TableContainer>
                   <Table>
                     <TableHead>
@@ -99,17 +93,7 @@ const UserIdModuleComponent = (): JSX.Element => {
                           <TableCell>{userId.storage?.expires}</TableCell>
                           <TableCell>{userId.storage?.name}</TableCell>
                           <TableCell>
-                            {userId.params && JSON.stringify(userId.params) !== '{}' && (
-                              <JSONViewerComponent
-                                src={userId.params}
-                                name={false}
-                                collapsed={1}
-                                displayObjectSize={false}
-                                displayDataTypes={false}
-                                sortKeys={false}
-                                quotesOnKeys={false}
-                              />
-                            )}
+                            {userId.params && JSON.stringify(userId.params) !== '{}' && <JSONViewerComponent src={userId.params} name={false} collapsed={1} displayObjectSize={false} displayDataTypes={false} sortKeys={false} quotesOnKeys={false} />}
                           </TableCell>
                         </TableRow>
                       ))}

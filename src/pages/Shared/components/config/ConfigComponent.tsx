@@ -7,14 +7,10 @@ import BidderSettingsComponent from './tiles/BidderSettingsComponent';
 import PrebidConfigComponent from '../../../Popup/components/config/PrebidConfigComponent';
 import FloorsModuleComponent from './tiles/FloorsModuleComponent';
 import GptPreAuctionComponent from './tiles/GptPreAuctionComponent';
-import FledgeForGPTComponent from './tiles/FledgeForGPTComponent';
 import Grid from '@mui/material/Grid';
 import { ErrorBoundary } from 'react-error-boundary';
-import PaapiComponent from './tiles/PaapiComponent';
 import InstalledModulesComponent from './tiles/InstalledModules';
 import UserSyncComponent from './tiles/UserSyncComponent';
-;
-
 export const tileHeight = 255;
 
 const ConfigComponent = (): JSX.Element => {
@@ -54,14 +50,6 @@ const ConfigComponent = (): JSX.Element => {
 
       <ErrorBoundary FallbackComponent={ErrorFallback}>
         <GptPreAuctionComponent />
-      </ErrorBoundary>
-
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <FledgeForGPTComponent />
-      </ErrorBoundary>
-
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <PaapiComponent />
       </ErrorBoundary>
 
       <ErrorBoundary FallbackComponent={ErrorFallback}>

@@ -1,22 +1,22 @@
-var webpack = require('webpack'),
+const webpack = require('webpack'),
   path = require('path'),
   fileSystem = require('fs-extra'),
   env = require('./utils/env'),
   CopyWebpackPlugin = require('copy-webpack-plugin'),
   HtmlWebpackPlugin = require('html-webpack-plugin'),
   TerserPlugin = require('terser-webpack-plugin');
-var { CleanWebpackPlugin } = require('clean-webpack-plugin');
-var ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
-var ReactRefreshTypeScript = require('react-refresh-typescript');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const ReactRefreshTypeScript = require('react-refresh-typescript').default;
 
 const ASSET_PATH = process.env.ASSET_PATH || '/';
 
-var alias = {};
+const alias = {};
 
 // load the secrets
-var secretsPath = path.join(__dirname, 'secrets.' + env.NODE_ENV + '.js');
+const secretsPath = path.join(__dirname, 'secrets.' + env.NODE_ENV + '.js');
 
-var fileExtensions = [
+const fileExtensions = [
   'jpg',
   'jpeg',
   'png',
@@ -35,7 +35,7 @@ if (fileSystem.existsSync(secretsPath)) {
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-var options = {
+const options = {
   mode: process.env.NODE_ENV || 'development',
   entry: {
     app: path.join(__dirname, 'src', 'pages', 'App', 'index.tsx'),
@@ -137,54 +137,53 @@ var options = {
   },
   plugins: [
     isDevelopment && new ReactRefreshWebpackPlugin(),
-    new CleanWebpackPlugin({ verbose: false }),
+    new CleanWebpackPlugin({ verbose: true }),
     new webpack.ProgressPlugin(),
-    // expose and write the allowed env vars on the compiled bundle
+    // expose and write the allowed env consts on the compiled bundle
     new webpack.EnvironmentPlugin(['NODE_ENV']),
     new CopyWebpackPlugin({
       patterns: [
         {
           from: 'src/manifest.json',
-          to: path.join(__dirname, 'build'),
+          // to: path.join(__dirname, 'build'),
+          to: 'manifest.json',
           force: true,
           transform: function (content, path) {
-            // generates the manifest file using the package.json informations
+            const manifest = JSON.parse(content.toString());
+
             return Buffer.from(
               JSON.stringify({
+                ...manifest,
                 description: process.env.npm_package_description,
                 version: process.env.npm_package_version,
-                ...JSON.parse(content.toString()),
-              })
+                action: {
+                  ...manifest.action,
+                  default_icon: 'assets/img/icon-34.png',
+                },
+                icons: {
+                  ...manifest.icons,
+                  128: 'assets/img/icon-128.png',
+                }
+              }, null, 2)
             );
-          },
+          }
         },
-      ],
-    }),
-    new CopyWebpackPlugin({
-      patterns: [
         {
           from: 'src/pages/Content/content.styles.css',
           to: path.join(__dirname, 'build'),
           force: true,
         },
-      ],
-    }),
-    new CopyWebpackPlugin({
-      patterns: [
         {
           from: 'src/assets/img/icon-128.png',
-          to: path.join(__dirname, 'build'),
+          to: 'assets/img/icon-128.png',
           force: true,
-        },
-      ],
-    }),
-    new CopyWebpackPlugin({
-      patterns: [
-        {
+          noErrorOnMissing: false,
+        }, {
           from: 'src/assets/img/icon-34.png',
-          to: path.join(__dirname, 'build'),
+          to: 'assets/img/icon-34.png',
           force: true,
-        },
+          noErrorOnMissing: false,
+        }
       ],
     }),
     new HtmlWebpackPlugin({

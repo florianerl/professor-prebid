@@ -13,13 +13,13 @@ const AdUnitsComponent = (): JSX.Element => {
       <AdUnitsHeaderComponent />
 
       {!isSmallScreen && (
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <AdUnitsGridComponent />
         </Grid>
       )}
 
       {isSmallScreen && (
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <AdUnitCardsComponent />
         </Grid>
       )}

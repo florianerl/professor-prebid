@@ -16,11 +16,7 @@ const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement | HTMLText
   setSearch(event.target.value.trim());
 };
 
-const handleSwitchChange = (
-  event: React.ChangeEvent<HTMLInputElement>,
-  state: { error: boolean; warning: boolean },
-  setState: (newVal: { error: boolean; warning: boolean }) => void
-): void => {
+const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>, state: { error: boolean; warning: boolean }, setState: (newVal: { error: boolean; warning: boolean }) => void): void => {
   setState({ ...state, [event.target.name]: event.target.checked });
 };
 
@@ -29,7 +25,7 @@ const EventsHeader = ({ close, search, setSearch, state, setState }: IEventsHead
     <React.Fragment>
       {close && (
         <Grid
-          item
+          size={{ xs: 12 }}
           sx={{
             display: 'flex',
             flexDirection: 'row',
@@ -37,7 +33,6 @@ const EventsHeader = ({ close, search, setSearch, state, setState }: IEventsHead
             alignItems: 'flex-end',
             color: 'text.secondary',
           }}
-          xs={12}
         >
           <IconButton sx={{ p: 0 }} onClick={() => close()}>
             <Close sx={{ fontSize: 14 }} />
@@ -45,7 +40,7 @@ const EventsHeader = ({ close, search, setSearch, state, setState }: IEventsHead
         </Grid>
       )}
 
-      <Grid item xs={9.5}>
+      <Grid size={{ xs: 9.5 }}>
         <TextField
           color="primary"
           focused
@@ -64,8 +59,7 @@ const EventsHeader = ({ close, search, setSearch, state, setState }: IEventsHead
         />
       </Grid>
       <Grid
-        item
-        xs={2.5}
+        size={{ xs: 2.5 }}
         sx={{
           display: 'flex',
           flexDirection: 'row',
@@ -78,9 +72,7 @@ const EventsHeader = ({ close, search, setSearch, state, setState }: IEventsHead
           <FormGroup sx={{ flexDirection: 'row' }}>
             <FormControlLabel
               labelPlacement="start"
-              control={
-                <Switch checked={state.warning} onChange={(event) => handleSwitchChange(event, state, setState)} name="warning" size="small" />
-              }
+              control={<Switch checked={state.warning} onChange={(event) => handleSwitchChange(event, state, setState)} name="warning" size="small" />}
               label={<WarningAmberOutlinedIcon color={state.warning ? 'primary' : 'secondary'} fontSize="small" />}
             />
             <FormControlLabel

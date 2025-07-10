@@ -27,7 +27,7 @@ const UserSyncComponent = (): JSX.Element => {
   };
 
   return (
-    <Grid item sm={maxWidth} xs={12} ref={ref}>
+    <Grid size={{ xs: 12, sm: maxWidth }} ref={ref}>
       <Card sx={{ width: 1, minHeight: tileHeight, maxHeight: expanded ? 'unset' : tileHeight }}>
         <CardHeader
           avatar={
@@ -36,11 +36,7 @@ const UserSyncComponent = (): JSX.Element => {
             </Avatar>
           }
           title={<Typography variant="h3">User Sync</Typography>}
-          subheader={
-            <Typography variant="subtitle1">
-              {/* {!expanded && <RenderKeyValueComponent label="Enabled" value={fledgeForGpt.enabled} columns={[12, 12]} expanded={expanded} />} */}
-            </Typography>
-          }
+          subheader={<Typography variant="subtitle1">{/* {!expanded && <RenderKeyValueComponent label="Enabled" value={fledgeForGpt.enabled} columns={[12, 12]} expanded={expanded} />} */}</Typography>}
           action={
             <ExpandMoreIcon
               sx={{
@@ -53,12 +49,7 @@ const UserSyncComponent = (): JSX.Element => {
         />
         <CardContent>
           <Grid container spacing={2}>
-            <RenderKeyValueComponent
-              label="User Sync"
-              value={config?.userSync}
-              columns={[12, 12]}
-              expanded={expanded}
-            />
+            <RenderKeyValueComponent label="User Sync" value={config?.userSync} columns={[12, 12]} expanded={expanded} />
           </Grid>
         </CardContent>
       </Card>

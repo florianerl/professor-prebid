@@ -25,7 +25,7 @@ const tabsStyle = { minHeight: 0, '& > div > div > button': { minHeight: 0 }, '&
 const tabStyle = { p: 0, justifyContent: 'flex-start' };
 
 const RenderGridPaperItem = ({ children, cols }: { children: React.ReactNode; cols: number }): JSX.Element => (
-  <Grid item xs={cols}>
+  <Grid size={{ xs: cols }}>
     <Paper sx={{ height: '100%' }}>{children}</Paper>
   </Grid>
 );
@@ -46,7 +46,7 @@ const BidsComponent = (): JSX.Element => {
 
   return (
     <Grid container direction="row" justifyContent="start" spacing={0.25} sx={gridStyle}>
-      <Grid item xs={12} sx={{ paddingBottom: 0.5 }}>
+      <Grid size={{ xs: 12 }} sx={{ paddingBottom: 0.5 }}>
         <Tabs
           value={tab}
           onChange={(_event, newValue) => {

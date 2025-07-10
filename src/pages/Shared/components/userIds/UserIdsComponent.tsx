@@ -17,7 +17,7 @@ const UserIdsComponent = (): JSX.Element => {
   if (prebid.eids && prebid.eids[0]) {
     return (
       <Grid container direction="row" justifyContent="space-between" spacing={0.25} sx={{ p: 1 }}>
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Tabs
             value={tab}
             onChange={handleTabChange}
@@ -54,7 +54,7 @@ const UserIdsComponent = (): JSX.Element => {
   } else {
     return (
       <Grid container direction="row" justifyContent="space-evenly">
-        <Grid item sx={{ p: 1 }}>
+        <Grid sx={{ p: 1 }}>
           <Paper elevation={1}>
             <Typography variant="h1" sx={{ p: 1 }}>
               No User IDs detected

@@ -1,0 +1,82 @@
+"use strict";
+exports.__esModule = true;
+var react_1 = require("react");
+var Typography_1 = require("@mui/material/Typography");
+var Stack_1 = require("@mui/material/Stack");
+var Chip_1 = require("@mui/material/Chip");
+var Paper_1 = require("@mui/material/Paper");
+var JSONViewerComponent_1 = require("../../../Shared/components/JSONViewerComponent");
+var Grid_1 = require("@mui/material/Grid");
+var ExpandedRowComponent = function (_a) {
+    var bid = _a.bid;
+    return (react_1["default"].createElement(react_1["default"].Fragment, null,
+        react_1["default"].createElement(Grid_1["default"], { size: { xs: 0.62 } }),
+        react_1["default"].createElement(Grid_1["default"], { size: { xs: 5.38 } },
+            react_1["default"].createElement(Grid_1["default"], { container: true, spacing: 0.5, sx: { p: 0.5, '& > div > div': { justifyContent: 'flex-start !important' } } },
+                bid.bidder && (react_1["default"].createElement(Grid_1["default"], { size: { xs: 12 } },
+                    react_1["default"].createElement(Paper_1["default"], { sx: { height: 1, width: 1 } },
+                        react_1["default"].createElement(Typography_1["default"], { variant: "body1", sx: { p: 0.5 } },
+                            react_1["default"].createElement("strong", null, "Bidder: "),
+                            bid.bidder)))),
+                bid.width && bid.height && (react_1["default"].createElement(Grid_1["default"], { size: { xs: 12 } },
+                    react_1["default"].createElement(Paper_1["default"], { sx: { height: 1 } },
+                        react_1["default"].createElement(Typography_1["default"], { variant: "body1", sx: { p: 0.5 } },
+                            react_1["default"].createElement("strong", null, "Size: "),
+                            bid.width,
+                            " x ",
+                            bid.height)))),
+                bid.originalCpm && (react_1["default"].createElement(Grid_1["default"], { size: { xs: 12 } },
+                    react_1["default"].createElement(Paper_1["default"], { sx: { height: 1 } },
+                        react_1["default"].createElement(Typography_1["default"], { variant: "body1", sx: { p: 0.5 } },
+                            react_1["default"].createElement("strong", null, "Org. CPM: "),
+                            " ",
+                            Math.floor(bid.originalCpm * 100) / 100)))),
+                bid.originalCurrency && (react_1["default"].createElement(Grid_1["default"], { size: { xs: 12 } },
+                    react_1["default"].createElement(Paper_1["default"], { sx: { height: 1 } },
+                        react_1["default"].createElement(Typography_1["default"], { variant: "body1", sx: { p: 0.5 } },
+                            react_1["default"].createElement("strong", null, "Org. Currency: "),
+                            bid.originalCurrency)))),
+                bid.timeToRespond && (react_1["default"].createElement(Grid_1["default"], { size: { xs: 12 } },
+                    react_1["default"].createElement(Paper_1["default"], { sx: { height: 1 } },
+                        react_1["default"].createElement(Typography_1["default"], { variant: "body1", sx: { p: 0.5 } },
+                            react_1["default"].createElement("strong", null, "Time to Respond: "),
+                            bid.timeToRespond)))),
+                bid.statusMessage && (react_1["default"].createElement(Grid_1["default"], { size: { xs: 12 } },
+                    react_1["default"].createElement(Paper_1["default"], { sx: { height: 1 } },
+                        react_1["default"].createElement(Typography_1["default"], { variant: "body1", sx: { p: 0.5 } },
+                            react_1["default"].createElement("strong", null, "Status Message: "),
+                            bid.statusMessage)))),
+                bid.adUnitCode && (react_1["default"].createElement(Grid_1["default"], { size: { xs: 12 } },
+                    react_1["default"].createElement(Paper_1["default"], { sx: { height: 1 } },
+                        react_1["default"].createElement(Typography_1["default"], { variant: "body1", sx: { p: 0.5 } },
+                            react_1["default"].createElement("strong", null, "AdUnit Code: "),
+                            bid.adUnitCode)))),
+                bid.source && (react_1["default"].createElement(Grid_1["default"], { size: { xs: 12 } },
+                    react_1["default"].createElement(Paper_1["default"], { sx: { height: 1 } },
+                        react_1["default"].createElement(Typography_1["default"], { variant: "body1", sx: { p: 0.5 } },
+                            react_1["default"].createElement("strong", null, "Source: "),
+                            bid.source)))),
+                bid.ttl && (react_1["default"].createElement(Grid_1["default"], { size: { xs: 12 } },
+                    react_1["default"].createElement(Paper_1["default"], { sx: { height: 1 } },
+                        react_1["default"].createElement(Typography_1["default"], { variant: "body1", sx: { p: 0.5 } },
+                            react_1["default"].createElement("strong", null, "Bid Cache Period (seconds): "),
+                            " ",
+                            bid.ttl)))))),
+        react_1["default"].createElement(Grid_1["default"], { size: { xs: 6 } },
+            react_1["default"].createElement(Grid_1["default"], { container: true, spacing: 0.5, sx: { p: 0.5, '& > div > div': { justifyContent: 'flex-start !important' } } },
+                bid.adserverTargeting && (react_1["default"].createElement(Grid_1["default"], { size: { xs: 12 } },
+                    react_1["default"].createElement(Paper_1["default"], { sx: { height: 1, flexDirection: 'row' } },
+                        react_1["default"].createElement(Typography_1["default"], { variant: "body1", sx: { p: 0.5 } },
+                            react_1["default"].createElement("strong", null, "Adserver Targeting: ")),
+                        react_1["default"].createElement(Stack_1["default"], { direction: "row", sx: { flexWrap: 'wrap', gap: 0.5, p: 0.5 } }, bid.adserverTargeting &&
+                            Object.keys(bid.adserverTargeting).map(function (key) { return (react_1["default"].createElement(Chip_1["default"], { variant: "outlined", key: key, label: react_1["default"].createElement(Typography_1["default"], { variant: "body1" },
+                                    key,
+                                    ": ",
+                                    bid.adserverTargeting[key]), size: "small", sx: { maxWidth: '300px' } })); }))))),
+                bid.params && JSON.stringify(bid.params) !== '{}' && (react_1["default"].createElement(Grid_1["default"], { size: { xs: 12 } },
+                    react_1["default"].createElement(Paper_1["default"], { sx: { height: 1 } },
+                        react_1["default"].createElement(Typography_1["default"], { variant: "body1", sx: { p: 0.5 } },
+                            react_1["default"].createElement("strong", null, "Params: ")),
+                        bid.params && (react_1["default"].createElement(JSONViewerComponent_1["default"], { src: bid.params, name: false, collapsed: 3, displayObjectSize: false, displayDataTypes: false, sortKeys: false, quotesOnKeys: false, indentWidth: 2, collapseStringsAfterLength: 100, style: { fontSize: '12px', fontFamily: 'roboto', padding: '5px' } })))))))));
+};
+exports["default"] = ExpandedRowComponent;

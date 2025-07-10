@@ -14,7 +14,7 @@ interface HeaderGridItemProps {
 }
 
 const HeaderGridItem = ({ children, onClick }: HeaderGridItemProps): JSX.Element => (
-  <Grid item onClick={onClick}>
+  <Grid onClick={onClick}>
     <Paper sx={{ p: 1 }} elevation={1}>
       <Typography variant="h2">{children}</Typography>
     </Paper>

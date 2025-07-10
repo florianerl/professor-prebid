@@ -43,7 +43,7 @@ const openDebugTab = async () => {
 };
 
 const GridItemButton = ({ clickHandler, label, icon }: IGridItemButtonProps): JSX.Element => (
-  <Grid item sx={{ height: 36 }}>
+  <Grid sx={{ height: 36 }}>
     <Paper elevation={1} sx={{ alignItems: 'center' }}>
       <Button size="small" variant="outlined" onClick={clickHandler} startIcon={icon}>
         <Typography variant="h3">{label}</Typography>

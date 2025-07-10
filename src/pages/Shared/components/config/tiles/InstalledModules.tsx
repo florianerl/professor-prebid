@@ -23,9 +23,7 @@ const InstalledModulesComponent = (): JSX.Element => {
   const bidAdapters = installedModules.filter((module) => module.includes('BidAdapter')).sort();
   const analyticsAdapters = installedModules.filter((module) => module.includes('AnalyticsAdapter')).sort();
   const idSystems = installedModules.filter((module) => module.includes('IdSystem') || module.includes('UserID')).sort();
-  const miscellaneous = installedModules
-    .filter((module) => !module.includes('BidAdapter') && !module.includes('AnalyticsAdapter') && !module.includes('IdSystem'))
-    .sort();
+  const miscellaneous = installedModules.filter((module) => !module.includes('BidAdapter') && !module.includes('AnalyticsAdapter') && !module.includes('IdSystem')).sort();
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -34,7 +32,7 @@ const InstalledModulesComponent = (): JSX.Element => {
   };
 
   return (
-    <Grid item sm={maxWidth} xs={12} ref={ref}>
+    <Grid size={{ xs: 12, sm: maxWidth }} ref={ref}>
       <Card sx={{ width: 1, minHeight: tileHeight, maxHeight: expanded ? 'unset' : tileHeight }}>
         <CardHeader
           avatar={
@@ -43,11 +41,7 @@ const InstalledModulesComponent = (): JSX.Element => {
             </Avatar>
           }
           title={<Typography variant="h3">Installed Modules</Typography>}
-          subheader={
-            <Typography variant="subtitle1">
-              {/* {!expanded && <RenderKeyValueComponent label="Enabled" value={fledgeForGpt.enabled} columns={[12, 12]} expanded={expanded} />} */}
-            </Typography>
-          }
+          subheader={<Typography variant="subtitle1">{/* {!expanded && <RenderKeyValueComponent label="Enabled" value={fledgeForGpt.enabled} columns={[12, 12]} expanded={expanded} />} */}</Typography>}
           action={
             <ExpandMoreIcon
               sx={{
@@ -60,20 +54,11 @@ const InstalledModulesComponent = (): JSX.Element => {
         />
         <CardContent>
           <Grid container spacing={2}>
-            {!expanded && (
-              <RenderKeyValueComponent
-                label="Bid Adapters"
-                value={bidAdapters.length > 4 ? [...bidAdapters.slice(0, 4), '...'] : bidAdapters}
-                columns={[12, 12]}
-                expanded={expanded}
-              />
-            )}
+            {!expanded && <RenderKeyValueComponent label="Bid Adapters" value={bidAdapters.length > 4 ? [...bidAdapters.slice(0, 4), '...'] : bidAdapters} columns={[12, 12]} expanded={expanded} />}
             {expanded && (
               <>
                 {bidAdapters && <RenderKeyValueComponent label="Bid Adapters" value={bidAdapters} columns={[12, 12]} expanded={expanded} />}
-                {analyticsAdapters && (
-                  <RenderKeyValueComponent label="Analytics Adapters" value={analyticsAdapters} columns={[12, 12]} expanded={expanded} />
-                )}
+                {analyticsAdapters && <RenderKeyValueComponent label="Analytics Adapters" value={analyticsAdapters} columns={[12, 12]} expanded={expanded} />}
                 {idSystems && <RenderKeyValueComponent label="Id Systems" value={idSystems} columns={[12, 12]} expanded={expanded} />}
                 {miscellaneous && <RenderKeyValueComponent label="Miscellaneous" value={miscellaneous} columns={[12, 12]} expanded={expanded} />}
               </>

@@ -18,9 +18,7 @@ const Ortb2ImpTile = ({ adUnit }: IOrtb2ImpTileProps): JSX.Element => {
   if (!adUnit?.ortb2Imp) return null;
   return (
     <Grid
-      item
-      xs={4}
-      md={4}
+      size={{ xs: 4, md: 4 }}
       sx={{
         overflow: 'hidden',
         position: 'relative', // Ensure relative positioning for the overlay

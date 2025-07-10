@@ -29,7 +29,7 @@ const GptPreAuctionComponent = (): JSX.Element => {
 
   if (!gptPreAuction) return null;
   return (
-    <Grid item sm={maxWidth} xs={12} ref={ref}>
+    <Grid size={{ xs: 12, sm: maxWidth }} ref={ref}>
       <Card sx={{ width: 1, minHeight: tileHeight }}>
         <CardHeader
           avatar={

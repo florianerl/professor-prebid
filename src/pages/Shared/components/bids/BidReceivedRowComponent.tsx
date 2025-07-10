@@ -15,40 +15,40 @@ const BidReceivedRowComponent = ({ bid, globalOpen }: IBidReceivedRowComponentPr
   }, [globalOpen]);
   return (
     <React.Fragment>
-      <Grid item xs={0.62}>
+      <Grid size={{ xs: 0.62 }}>
         <Paper sx={{ height: 1 }}>
           <IconButton size="small" onClick={() => setOpen(!open)}>
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </Paper>
       </Grid>
-      <Grid item xs={2.38}>
+      <Grid size={{ xs: 2.38 }}>
         <Paper sx={{ height: 1 }}>
           <Typography variant="body1">{bid.bidder} </Typography>
         </Paper>
       </Grid>
-      <Grid item xs={1}>
+      <Grid size={{ xs: 1 }}>
         <Paper sx={{ height: 1 }}>
           <Typography variant="body1">{bid.cpm ? Math.floor(bid.cpm * 100) / 100 : bid.cpm}</Typography>
         </Paper>
       </Grid>
-      <Grid item xs={2}>
+      <Grid size={{ xs: 2 }}>
         <Paper sx={{ height: 1 }}>
           <Typography variant="body1">{bid.currency}</Typography>
         </Paper>
       </Grid>
-      <Grid item xs={3}>
+      <Grid size={{ xs: 3 }}>
         <Paper sx={{ height: 1 }}>
           <Typography variant="body1">{bid.adUnitCode?.length > 15 ? bid.adUnitCode.substring(0, 15) + '...' : bid.adUnitCode}</Typography>
         </Paper>
       </Grid>
-      <Grid item xs={1}>
+      <Grid size={{ xs: 1 }}>
         <Paper sx={{ height: 1 }}>
           <Typography variant="body1">{bid.size}</Typography>
         </Paper>
       </Grid>
 
-      <Grid item xs={2}>
+      <Grid size={{ xs: 2 }}>
         <Paper sx={{ height: 1 }}>
           <Typography variant="body1"> {bid.mediaType} </Typography>
         </Paper>

@@ -1,7 +1,20 @@
 import { useEffect, useState, useContext } from 'react';
 import { IPrebidAdUnit } from '../../../Injected/prebid';
-import merge from 'lodash/merge';
 import StateContext from '../../contexts/appStateContext';
+
+const merge = (target: any, source: any) => {
+  for (const key in source) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      if (!target[key] || typeof target[key] !== 'object') {
+        target[key] = {};
+      }
+      merge(target[key], source[key]);
+    } else {
+      target[key] = source[key];
+    }
+  }
+  return target;
+};
 
 const AdUnitsComponentState = () => {
   const { auctionInitEvents } = useContext(StateContext);
@@ -30,7 +43,7 @@ const AdUnitsComponentState = () => {
         } else {
           return [...previousValue, currentValue];
         }
-      }, [])
+      }, []);
     // "fix" https://github.com/prebid/professor-prebid/issues/104 ?
     // .sort((a, b) => a.code.localeCompare(b.code));
 

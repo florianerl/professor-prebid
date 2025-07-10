@@ -32,7 +32,7 @@ const PrivacyComponent = (): JSX.Element => {
 
   if (!consentManagement) return null;
   return (
-    <Grid item sm={maxWidth} xs={12} ref={ref}>
+    <Grid size={{ xs: 12, sm: maxWidth }} ref={ref}>
       <Card sx={{ width: 1, minHeight: tileHeight, maxHeight: expanded ? 'unset' : tileHeight }}>
         <CardHeader
           avatar={
@@ -54,12 +54,7 @@ const PrivacyComponent = (): JSX.Element => {
         />
         <CardContent>
           <Grid container spacing={2}>
-            <RenderKeyValueComponent
-              columns={[4, 12]}
-              label="Allow Auction Without Consent"
-              value={allowAuctionWithoutConsent || gdpr?.allowAuctionWithoutConsent}
-              expanded={expanded}
-            />
+            <RenderKeyValueComponent columns={[4, 12]} label="Allow Auction Without Consent" value={allowAuctionWithoutConsent || gdpr?.allowAuctionWithoutConsent} expanded={expanded} />
             <RenderKeyValueComponent columns={[4, 12]} label="CMP API" value={cmpApi} expanded={expanded} />
             <RenderKeyValueComponent columns={[4, 12]} label="Timeout" value={timeout} expanded={expanded} />
             <RenderKeyValueComponent columns={[4, 12]} label="Default GDPR Scope" value={defaultGdprScope} expanded={expanded} />
@@ -69,7 +64,7 @@ const PrivacyComponent = (): JSX.Element => {
             <RenderKeyValueComponent columns={[4, 12]} label="GDPR Enforcement" value={gdpr?.rules?.length} expanded={expanded} />
             <RenderKeyValueComponent columns={[4, 12]} label="USP API" value={usp?.cmpApi} expanded={expanded} />
             <RenderKeyValueComponent columns={[4, 12]} label="Timeout" value={usp?.timeout} expanded={expanded} />
-            <Grid item xs={12} />
+            <Grid size={{ xs: 12 }} />
             {gdpr?.rules?.map((rule, index) => (
               <RenderKeyValueComponent
                 key={index}
@@ -87,7 +82,7 @@ const PrivacyComponent = (): JSX.Element => {
                 expanded={expanded}
               />
             ))}
-            <Grid item xs={12} />
+            <Grid size={{ xs: 12 }} />
             {tcf && Object.keys(tcf).map((key, index) => <TcfComponent key={index} tcf={tcf} tcfKey={key} expanded={expanded} />)}
           </Grid>
         </CardContent>
@@ -110,14 +105,9 @@ const TcfComponent = ({ tcf, tcfKey, expanded }: TcfComponentProps): JSX.Element
     <React.Fragment>
       <RenderKeyValueComponent columns={[4, 12]} label="TCF Version" value={tcfKey} expanded={expanded} />
       <RenderKeyValueComponent columns={[4, 12]} label="CMP Loaded" value={tcf[tcfKey]?.cmpLoaded} expanded={expanded} />
-      <Grid item xs={12} />
-      <RenderKeyValueComponent
-        columns={[4, 12]}
-        label="Consent Data"
-        value={tcf[tcfKey]?.consentData ? tcf[tcfKey].consentData : 'no consent string found'}
-        expanded={expanded}
-      />
-      <Grid item xs={12} />
+      <Grid size={{ xs: 12 }} />
+      <RenderKeyValueComponent columns={[4, 12]} label="Consent Data" value={tcf[tcfKey]?.consentData ? tcf[tcfKey].consentData : 'no consent string found'} expanded={expanded} />
+      <Grid size={{ xs: 12 }} />
       <RenderKeyValueComponent columns={[4, 12]} label="Decoded Consent String" value={decodedTcfString} expanded={expanded} />
     </React.Fragment>
   );

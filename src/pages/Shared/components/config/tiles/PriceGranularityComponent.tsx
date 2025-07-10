@@ -45,7 +45,7 @@ const PriceGranularityComponent = () => {
   };
 
   return (
-    <Grid item xs={12} sm={maxWidth} ref={ref}>
+    <Grid size={{ xs: 12, sm: maxWidth }} ref={ref}>
       <Card sx={{ width: 1, minHeight: tileHeight }}>
         <CardHeader
           avatar={
@@ -76,41 +76,37 @@ const PriceGranularityComponent = () => {
                 if (['auto', 'dense', 'custom', 'medium', 'high'].includes(priceGranularity)) {
                   return (
                     <React.Fragment>
-                      <Grid item xs={12} sm={expanded ? 3 : 6}>
+                      <Grid size={{ xs: 12, sm: expanded ? 3 : 6 }}>
                         <Typography variant="body1">
                           <strong>Min: </strong> {(defaultBuckets[priceGranularity] || customPriceBucket?.buckets)[0].min}
                         </Typography>
                       </Grid>
-                      <Grid item xs={12} sm={expanded ? 3 : 6}>
+                      <Grid size={{ xs: 12, sm: expanded ? 3 : 6 }}>
                         <Typography variant="body1">
                           <strong>Max: </strong> {(defaultBuckets[priceGranularity] || customPriceBucket?.buckets)[0].max}
                         </Typography>
                       </Grid>
-                      <Grid item xs={12} sm={expanded ? 3 : 6}>
+                      <Grid size={{ xs: 12, sm: expanded ? 3 : 6 }}>
                         <Typography variant="body1">
                           <strong>Precision: </strong>
                           {(defaultBuckets[priceGranularity] || customPriceBucket?.buckets)[0].precision || 2}
                         </Typography>
                       </Grid>
-                      <Grid item xs={12} sm={expanded ? 3 : 6}>
+                      <Grid size={{ xs: 12, sm: expanded ? 3 : 6 }}>
                         <Typography variant="body1">
                           <strong>Increment: </strong> {(defaultBuckets[priceGranularity] || customPriceBucket?.buckets)[0].increment}
                         </Typography>
                       </Grid>
                       {(defaultBuckets[priceGranularity] || customPriceBucket?.buckets)?.length > 1 && (
-                        <Grid item xs={12} sm={expanded ? 4 : 12}>
-                          <Typography variant="body2">
-                            + {(defaultBuckets[priceGranularity] || customPriceBucket?.buckets)?.length - 1} more price buckets...
-                          </Typography>
+                        <Grid size={{ xs: 12, sm: expanded ? 4 : 12 }}>
+                          <Typography variant="body2">+ {(defaultBuckets[priceGranularity] || customPriceBucket?.buckets)?.length - 1} more price buckets...</Typography>
                         </Grid>
                       )}
                     </React.Fragment>
                   );
                 }
               })()}
-            <Grid item xs={12}>
-              {expanded && <PriceGranularityTable priceGranularity={priceGranularity} customPriceBucket={customPriceBucket}></PriceGranularityTable>}
-            </Grid>
+            <Grid size={{ xs: 12 }}>{expanded && <PriceGranularityTable priceGranularity={priceGranularity} customPriceBucket={customPriceBucket}></PriceGranularityTable>}</Grid>
           </Grid>
         </CardContent>
       </Card>
@@ -131,27 +127,27 @@ const PriceGranularityTable = ({ priceGranularity, customPriceBucket }: IPriceGr
   return (
     <Box sx={{ backgroundColor: 'text.disabled', p: 0.25, borderRadius: 1 }}>
       <Grid container spacing={0.2}>
-        <Grid item xs={3}>
+        <Grid size={{ xs: 3 }}>
           <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
             <Typography variant="h3">Bucket</Typography>
           </Paper>
         </Grid>
-        <Grid item xs={3}>
+        <Grid size={{ xs: 3 }}>
           <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
             <Typography variant="h3">Precision</Typography>
           </Paper>
         </Grid>
-        <Grid item xs={2}>
+        <Grid size={{ xs: 2 }}>
           <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
             <Typography variant="h3">Min</Typography>
           </Paper>
         </Grid>
-        <Grid item xs={2}>
+        <Grid size={{ xs: 2 }}>
           <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
             <Typography variant="h3">Max</Typography>
           </Paper>
         </Grid>
-        <Grid item xs={2}>
+        <Grid size={{ xs: 2 }}>
           <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
             <Typography variant="h3">Increment</Typography>
           </Paper>
@@ -160,29 +156,29 @@ const PriceGranularityTable = ({ priceGranularity, customPriceBucket }: IPriceGr
         {rows.map((row, index) => {
           return (
             <React.Fragment key={index}>
-              <Grid xs={3} item>
+              <Grid size={{ xs: 3 }}>
                 <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
                   <Typography variant="body1">
                     {type} #{index + 1}
                   </Typography>
                 </Paper>
               </Grid>
-              <Grid xs={3} item>
+              <Grid size={{ xs: 3 }}>
                 <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
                   <Typography variant="body1">{row.precision || 2}</Typography>
                 </Paper>
               </Grid>
-              <Grid xs={2} item>
+              <Grid size={{ xs: 2 }}>
                 <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
                   <Typography variant="body1">{row.min}</Typography>
                 </Paper>
               </Grid>
-              <Grid xs={2} item>
+              <Grid size={{ xs: 2 }}>
                 <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
                   <Typography variant="body1">{row.max}</Typography>
                 </Paper>
               </Grid>
-              <Grid xs={2} item>
+              <Grid size={{ xs: 2 }}>
                 <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
                   <Typography variant="body1">{row.increment}</Typography>
                 </Paper>

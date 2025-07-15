@@ -1,6 +1,6 @@
 import React, { useEffect, useContext } from 'react';
 import { sendChromeTabsMessage } from '../Shared/utils';
-import { PBJS_NAMESPACE_CHANGE, POPUP_LOADED } from '../Shared/constants';
+import { MESSAGE_TYPE } from '../Shared/constants';
 import Box from '@mui/material/Box';
 import { BrowserRouter } from 'react-router-dom';
 import AppStateContext from '../Shared/contexts/appStateContext';
@@ -12,12 +12,12 @@ export const Popup = (): JSX.Element => {
   const { pbjsNamespace, prebids } = useContext(AppStateContext);
 
   useEffect(() => {
-    sendChromeTabsMessage(PBJS_NAMESPACE_CHANGE, pbjsNamespace);
+    sendChromeTabsMessage(MESSAGE_TYPE.PBJS_NAMESPACE_CHANGE, pbjsNamespace);
   }, [pbjsNamespace]);
 
   useEffect(() => {
     // console.log('popup POPUP_LOADED', );  
-    sendChromeTabsMessage(POPUP_LOADED, {});
+    sendChromeTabsMessage(MESSAGE_TYPE.POPUP_LOADED, {});
   }, []);
 
   return (

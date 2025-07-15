@@ -1,5 +1,5 @@
 import { getTabId, sendChromeTabsMessage } from '../../Shared/utils';
-import { DOWNLOAD_FAILED } from '../constants';
+import { MESSAGE_TYPE, MAX_EVENT_ITEMS } from '../constants';
 import { ITabInfos } from '../../Background';
 
 const safelyConstructURL = (url: string) => {
@@ -56,11 +56,15 @@ export const fetchEvents = async (
           setSyncInfo(`${namespace}: get JSON from response stream`);
           prebid.events = prebid.events || [];
           prebid.events = await response.json();
+          if (Array.isArray(prebid.events) && prebid.events.length > MAX_EVENT_ITEMS) {
+            prebid.events = prebid.events.slice(-MAX_EVENT_ITEMS);
+          }
           setDownloading('false');
           setSyncInfo(null);
         }
       } catch (error) {
-        sendChromeTabsMessage(DOWNLOAD_FAILED, { eventsUrl: prebid.eventsUrl });
+        console.error('Error fetching events', error);
+        sendChromeTabsMessage(MESSAGE_TYPE.DOWNLOAD_FAILED, { eventsUrl: prebid.eventsUrl });
         setSyncInfo(`${namespace}: error during download of ${prebid.eventsUrl}`);
         setDownloading('error');
         delete tabInfo[frameId].prebids[namespace];

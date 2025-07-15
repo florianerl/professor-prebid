@@ -5,7 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { NavBar } from '../Shared/components/navBar/Navbar';
 import InspectedPageContext from '../Shared/contexts/inspectedPageContext';
 import StateContext from '../Shared/contexts/appStateContext';
-import { PBJS_NAMESPACE_CHANGE } from '../Shared/constants';
+import { MESSAGE_TYPE } from '../Shared/constants';
 import { sendChromeTabsMessage } from '../Shared/utils';
 import DownloadingCardComponent from '../Shared/components/DownloadingCardComponent';
 import NoPrebidCardComponent from '../Shared/components/NoPrebidCardComponent';
@@ -31,7 +31,7 @@ const Panel = (): JSX.Element => {
   }, [downloading]);
 
   useEffect(() => {
-    sendChromeTabsMessage(PBJS_NAMESPACE_CHANGE, pbjsNamespace);
+    sendChromeTabsMessage(MESSAGE_TYPE.PBJS_NAMESPACE_CHANGE, pbjsNamespace);
   }, [pbjsNamespace]);
 
   return (

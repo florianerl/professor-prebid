@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { sendChromeTabsMessage } from '../../utils';
-import { PBJS_NAMESPACE_CHANGE } from '../../constants';
+import { MESSAGE_TYPE } from '../../constants';
 import Box from '@mui/material/Box';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -43,7 +43,7 @@ export const NavbarSelector = (): JSX.Element => {
   };
 
   const handlePbjsNamespaceChange = (event: SelectChangeEvent) => {
-    sendChromeTabsMessage(PBJS_NAMESPACE_CHANGE, event.target.value);
+    sendChromeTabsMessage(MESSAGE_TYPE.PBJS_NAMESPACE_CHANGE, event.target.value);
     setPbjsNamespace(event.target.value || '');
   };
 

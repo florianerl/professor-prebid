@@ -11,6 +11,19 @@ import PrivacyTipOutlinedIcon from '@mui/icons-material/PrivacyTipOutlined';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
 import { SvgIconTypeMap } from '@mui/material';
 
+export enum MESSAGE_TYPE {
+  CONSOLE_TOGGLE = 'PP_CONSOLE_STATE',
+  STORE_RULES_TOGGLE = 'persistDebuggingRules',
+  PBJS_NAMESPACE_CHANGE = 'PBJS_NAMESPACE_CHANGE',
+  SAVE_MASKS = 'PP_SAVE_MASKS',
+  DOWNLOAD_FAILED = 'PP_DOWNLOAD_FAILED',
+  INITIATOR_TOGGLE = 'initiator_state',
+  INITIATOR_ROOT_URL = 'initiator_root_url',
+  POPUP_LOADED = 'PP_POPUP_LOADED',
+}
+
+export const MAX_EVENT_ITEMS = 1000;
+
 interface IReplaceRuleKeyOptions {
   default: string;
   label: string;

@@ -1,7 +1,7 @@
 import { IGoogleAdManagerDetails } from '../Injected/googleAdManager';
 import { IPrebidDetails } from '../Injected/prebid';
 import { ITcfDetails } from '../Injected/tcf';
-import { EVENTS } from '../Shared/constants';
+import { EVENTS, MAX_EVENT_ITEMS } from '../Shared/constants';
 import { getTabId } from '../Shared/utils';
 
 class Background {
@@ -12,6 +12,9 @@ class Background {
 
   constructor() {
     chrome.runtime.onMessage.addListener(this.handleMessagesFromInjected);
+    chrome.runtime.onConnect.addListener((port) => {
+      port.onMessage.addListener((msg) => this.handleMessagesFromInjected(msg, port));
+    });
     chrome.webNavigation?.onBeforeNavigate.addListener(this.handleWebNavigationOnBeforeNavigate);
     chrome.tabs.onRemoved.addListener(this.handleOnTabRemoved);
     chrome.tabs.onActivated.addListener(this.handleOnTabActivated);
@@ -30,10 +33,10 @@ class Background {
 
   handleMessagesFromInjected = async (
     message: { type: string; payload: IGoogleAdManagerDetails | IPrebidDetails | ITcfDetails },
-    sender: chrome.runtime.MessageSender
+    sender: chrome.runtime.MessageSender | chrome.runtime.Port
   ) => {
     const { type, payload } = message;
-    const tabId = sender.tab?.id;
+    const tabId = 'tab' in sender ? sender.tab?.id : sender.sender?.tab?.id;
     if (!tabId || !type || !payload || JSON.stringify(payload) === '{}') return;
     this.tabInfos[tabId] = this.tabInfos[tabId] || {};
     switch (type) {
@@ -129,7 +132,24 @@ class Background {
     }, delay);
   };
 
+  pruneStoredEvents = () => {
+    for (const tabId in this.tabInfos) {
+      for (const frameId in this.tabInfos[tabId]) {
+        const prebids = this.tabInfos[tabId][frameId].prebids;
+        if (prebids) {
+          for (const ns in prebids) {
+            const ev = prebids[ns].events;
+            if (Array.isArray(ev) && ev.length > MAX_EVENT_ITEMS) {
+              prebids[ns].events = ev.slice(-MAX_EVENT_ITEMS);
+            }
+          }
+        }
+      }
+    }
+  };
+
   persistInStorage = async () => {
+    this.pruneStoredEvents();
     await chrome.storage?.local.set({ tabInfos: this.tabInfos });
   };
 }

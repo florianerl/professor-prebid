@@ -8,9 +8,11 @@
 
 # production
 /build
-
+**/dist/*.js
+**/dist/**/*.js
 # zip
 /zip
+*.zip
 
 # misc
 .DS_Store
@@ -22,3 +24,6 @@
 
 # secrets
 secrets.*.js
+*.cert
+*.key
+

@@ -60,25 +60,20 @@ const options = {
   },
   module: {
     rules: [
-      {
-        // look for .css or .scss files
-        test: /\.(css|scss)$/,
-        // in the `src` directory
-        use: [
-          {
-            loader: 'style-loader',
-          },
-          {
-            loader: 'css-loader',
-          },
-          {
-            loader: 'sass-loader',
-            options: {
-              sourceMap: true,
-            },
-          },
-        ],
-      },
+      // {
+      //   test: /\.(css|scss)$/,
+      //   use: [
+      //     'style-loader',
+      //     'css-loader',
+      //     {
+      //       loader: 'sass-loader',
+      //       options: {
+      //         implementation: require('sass'),
+      //         sourceMap: true,
+      //       },
+      //     },
+      //   ],
+      // },
       {
         test: new RegExp('.(' + fileExtensions.join('|') + ')$'),
         type: 'asset/resource',
@@ -167,11 +162,6 @@ const options = {
               }, null, 2)
             );
           }
-        },
-        {
-          from: 'src/pages/Content/content.styles.css',
-          to: path.join(__dirname, 'build'),
-          force: true,
         },
         {
           from: 'src/assets/img/icon-128.png',

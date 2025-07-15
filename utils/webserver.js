@@ -2,16 +2,19 @@
 process.env.BABEL_ENV = 'development';
 process.env.NODE_ENV = 'development';
 process.env.ASSET_PATH = '/';
-
-var WebpackDevServer = require('webpack-dev-server'),
-  webpack = require('webpack'),
-  config = require('../webpack.config'),
-  env = require('./env'),
-  path = require('path');
-
+import devcert from 'devcert';
+import WebpackDevServer from 'webpack-dev-server';
+import webpack from 'webpack';
+import config from '../webpack.config.js';
+import env from './env.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const httpsOptions = await devcert.certificateFor('localhost');
 var options = config.chromeExtensionBoilerplate || {};
 var excludeEntriesToHotReload = options.notHotReload || [];
-
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 for (var entryName in config.entry) {
   if (excludeEntriesToHotReload.indexOf(entryName) === -1) {
     config.entry[entryName] = [
@@ -27,11 +30,17 @@ var compiler = webpack(config);
 
 var server = new WebpackDevServer(
   {
-    https: false,
+    https: httpsOptions,
     hot: true,
     liveReload: false,
     client: {
       webSocketTransport: 'sockjs',
+      // webSocketURL: {
+      //   protocol: 'wss',
+      //   hostname: 'localhost',
+      //   port: env.PORT,
+      //   pathname: '/ws',
+      // },
     },
     webSocketServer: 'sockjs',
     host: 'localhost',

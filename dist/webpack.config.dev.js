@@ -56,21 +56,21 @@ var options = {
     publicPath: ASSET_PATH
   },
   module: {
-    rules: [{
-      // look for .css or .scss files
-      test: /\.(css|scss)$/,
-      // in the `src` directory
-      use: [{
-        loader: 'style-loader'
-      }, {
-        loader: 'css-loader'
-      }, {
-        loader: 'sass-loader',
-        options: {
-          sourceMap: true
-        }
-      }]
-    }, {
+    rules: [// {
+    //   test: /\.(css|scss)$/,
+    //   use: [
+    //     'style-loader',
+    //     'css-loader',
+    //     {
+    //       loader: 'sass-loader',
+    //       options: {
+    //         implementation: require('sass'),
+    //         sourceMap: true,
+    //       },
+    //     },
+    //   ],
+    // },
+    {
       test: new RegExp('.(' + fileExtensions.join('|') + ')$'),
       type: 'asset/resource',
       exclude: /node_modules/ // loader: 'file-loader',
@@ -137,10 +137,6 @@ var options = {
           })
         }), null, 2));
       }
-    }, {
-      from: 'src/pages/Content/content.styles.css',
-      to: path.join(__dirname, 'build'),
-      force: true
     }, {
       from: 'src/assets/img/icon-128.png',
       to: 'assets/img/icon-128.png',

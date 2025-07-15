@@ -1,11 +1,9 @@
 import React, { useContext } from 'react';
-import { List, ListItem, ListItemText, Checkbox, Button, Box, Typography, Paper } from '@mui/material';
-import { ThemeProvider } from '@mui/material/styles';
-import { theme } from '../../theme/theme';
-import { ErrorBoundary } from 'react-error-boundary';
-import ErrorCardComponent from '../Shared/components/ErrorCardComponent';
+import { List, ListItem, ListItemText, Checkbox, Button, Typography, Paper } from '@mui/material';
+import Box from '@mui/material/Box';
+import OptionsLayout from '../Shared/layouts/OptionsLayout';
 import { PAGES } from '../Shared/constants';
-import OptionsContext, { OptionsContextProvider } from '../Shared/contexts/optionsContext';
+import OptionsContext from '../Shared/contexts/optionsContext';
 
 const NaviOptions: React.FC<{}> = () => {
   const { selectedPopUpNavItems, setSelectedPopUpNavItems, selectedPanelNavItems, setSelectedPanelNavItems } = useContext(OptionsContext);
@@ -83,7 +81,16 @@ const NaviOptions: React.FC<{}> = () => {
             </ListItem>
           ))}
         </List>
-        <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-start', alignContent: 'flex-start', columnGap: 1 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            alignItems: 'flex-start',
+            alignContent: 'flex-start',
+            columnGap: 1,
+          }}
+        >
           <Button type="submit" variant="outlined" color="primary">
             Save
           </Button>
@@ -98,15 +105,9 @@ const NaviOptions: React.FC<{}> = () => {
 
 const Options: React.FC<{ title: string }> = ({ title }) => {
   return (
-    <ThemeProvider theme={theme}>
-      <OptionsContextProvider>
-        <ErrorBoundary FallbackComponent={ErrorCardComponent}>
-          <Box sx={{ backgroundColor: 'primary.light', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', height: '100vh', p: 1 }}>
-            <NaviOptions />
-          </Box>
-        </ErrorBoundary>
-      </OptionsContextProvider>
-    </ThemeProvider>
+    <OptionsLayout>
+      <NaviOptions />
+    </OptionsLayout>
   );
 };
 

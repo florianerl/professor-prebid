@@ -37,7 +37,7 @@ export const sendWindowPostMessage = (type: string, payload: object): void => {
       type,
       payload,
     },
-    '*'
+    '*',
   );
   // send postmessage to all iframes
   const iframes = document.querySelectorAll('iframe');
@@ -48,7 +48,7 @@ export const sendWindowPostMessage = (type: string, payload: object): void => {
         type,
         payload,
       },
-      '*'
+      '*',
     );
   });
 };
@@ -85,7 +85,13 @@ export const reloadPage = async () => {
 
 export const sendChromeTabsMessage = async (type: string, payload: object | string): Promise<void> => {
   const tabId = await getTabId();
-  chrome.tabs.sendMessage(tabId, { type, payload });
+  if (tabId != null) {
+    chrome.tabs.sendMessage(tabId, { type, payload }, () => {
+      if (chrome.runtime.lastError) {
+        console.warn('sendChromeTabsMessage failed:', chrome.runtime.lastError.message);
+      }
+    });
+  }
 };
 
 export const detectIframe = (): boolean => {

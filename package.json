@@ -9,7 +9,8 @@
   },
   "scripts": {
     "build": "node utils/build.js && npx rimraf `src/**/dist`",
-    "start": "node utils/webserver.js"
+    "start": "node utils/webserver.js",
+    "test": "vitest"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

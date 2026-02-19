@@ -121,6 +121,10 @@ describe('MessageHandler', () => {
 });
 
 describe('BadgeService', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('shows ✓ when prebid count > 0', async () => {
     const tabInfos = {
       123: {

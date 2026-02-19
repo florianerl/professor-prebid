@@ -2,7 +2,7 @@ import { Config, PrebidJS } from 'prebid.js';
 import { POPUP_LOADED, EVENTS, PREBID_DETECTION_TIMEOUT_IFRAME, PREBID_DETECTION_TIMEOUT } from '../Shared/constants';
 import { sendWindowPostMessage, detectIframe } from '../Shared/utils';
 
-class Prebid {
+export class Prebid {
   globalPbjs: PrebidJS = window.pbjs;
   namespace: string;
   frameId: string | null;

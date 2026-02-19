@@ -6,6 +6,9 @@ export const decycle = (obj: any) => {
         // document object found, discard key
         return;
       }
+      if (cache.has(value)) {
+        return;
+      }
       // Store value in our set
       cache.add(value);
     }

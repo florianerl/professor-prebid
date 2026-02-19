@@ -17,7 +17,11 @@ export class MessageHandler {
         const { type, payload } = message;
         const tabId = sender.tab?.id;
         if (!tabId || !type || !payload || JSON.stringify(payload) === '{}') return;
-        const tabInfo = this.tabContextService.getOrCreateTabInfo(tabId);
+
+        const tabInfos = await this.tabContextService.getTabInfos();
+        if (!tabInfos[tabId]) tabInfos[tabId] = {};
+        const tabInfo = tabInfos[tabId];
+
         if (type === EVENTS.SEND_GAM_DETAILS_TO_BACKGROUND && this.isGoogleAdManagerDetails(payload)) {
             tabInfo['top-window'] = tabInfo['top-window'] || {};
             tabInfo['top-window']['googleAdManager'] = payload;
@@ -25,11 +29,21 @@ export class MessageHandler {
             const { frameId, namespace } = payload;
             tabInfo[frameId] = tabInfo[frameId] || {};
             tabInfo[frameId]['prebids'] = tabInfo[frameId]['prebids'] || {};
-            tabInfo[frameId]['prebids'][namespace as keyof IPrebids] = payload;
+            // @ts-ignore: IPrebids type issue handling
+            tabInfo[frameId]['prebids'][namespace] = payload;
         } else if (type === EVENTS.SEND_TCF_DETAILS_TO_BACKGROUND && this.isTcfDetails(payload)) {
             tabInfo['tcf'] = payload;
         }
-        await this.tabContextService.persist();
+        await this.tabContextService.saveTabInfos(tabInfos);
+
+        // Pass complete tabInfos to updateBadge since it now expects it or creates it
+        // Wait, updateBadge in Background/index.ts fetches tabInfos itself.
+        // But here we are calling `this.updateBadge(tabId)`.
+        // The callback logic: 
+        // In Background.ts: updateBadge = async (tabId) => { const tabInfos = await service.getTabInfos(); BadgeService.update... }
+        // So just calling it is fine, it will re-fetch.
+        // Optimization: duplicate fetch? Yes.
+        // But for correctness and simplicity given statelessness, it's safer.
         this.updateBadge(tabId);
     };
 

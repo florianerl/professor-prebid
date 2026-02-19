@@ -28,10 +28,12 @@ class BackgroundService {
   handleWebNavigationOnBeforeNavigate = async (web_navigation: chrome.webNavigation.WebNavigationParentedCallbackDetails) => {
     const { frameId, tabId, url } = web_navigation;
     if (frameId === 0) {
-      const tabInfo = this.tabContextService.getOrCreateTabInfo(tabId);
-      tabInfo['top-window'] = { url };
+      const tabInfos = await this.tabContextService.getTabInfos();
+      // Ensure specific structure exists
+      if (!tabInfos[tabId]) tabInfos[tabId] = {};
+      tabInfos[tabId]['top-window'] = { url };
+      await this.tabContextService.saveTabInfos(tabInfos);
       this.updateBadge(tabId);
-      await this.tabContextService.persist();
     }
   };
 
@@ -46,22 +48,29 @@ class BackgroundService {
   private cleanStorage = async () => {
     const tabs = await chrome.tabs.query({});
     const activeTabIds = tabs.map((tab) => tab.id);
-    for (const tabIdStr of Object.keys(this.tabContextService.getTabInfos())) {
+    const tabInfos = await this.tabContextService.getTabInfos();
+    let changed = false;
+    for (const tabIdStr of Object.keys(tabInfos)) {
       const tabId = parseInt(tabIdStr, 10);
       if (!activeTabIds.includes(tabId)) {
-        await this.tabContextService.deleteTabInfo(tabId);
+        delete tabInfos[tabId];
+        changed = true;
       }
+    }
+    if (changed) {
+      await this.tabContextService.saveTabInfos(tabInfos);
     }
   };
 }
 
 class Background {
-  updateBadge = (tabId: number | undefined) => {
-    return BadgeService.update(this.tabContextService.getTabInfos(), tabId);
+  updateBadge = async (tabId: number | undefined) => {
+    const tabInfos = await this.tabContextService.getTabInfos();
+    BadgeService.update(tabInfos, tabId);
   };
   private tabContextService = new TabContextService();
   private backgroundService = new BackgroundService(this.tabContextService, this.updateBadge);
-  persistInStorageThrottled = debounce(() => this.tabContextService.persist(), 1500);
+  // persistInStorageThrottled removed as persistence is immediate
 
   constructor() {
     this.backgroundService.start();

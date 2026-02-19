@@ -1,4 +1,4 @@
-export const decylce = (obj: any) => {
+export const decycle = (obj: any) => {
   const cache = new WeakSet();
   return JSON.stringify(obj, (key, value) => {
     if (typeof value === 'object' && !Array.isArray(value) && value !== null) {
@@ -30,7 +30,7 @@ export const sendWindowPostMessage = (type: string, payload: object): void => {
   // DOMException:xyz could not be cloned.
   // in window.postMessage
   // payload = JSON.parse(JSON.stringify(payload));
-  payload = JSON.parse(decylce(payload));
+  payload = JSON.parse(decycle(payload));
   window.top.postMessage(
     {
       profPrebid: true,

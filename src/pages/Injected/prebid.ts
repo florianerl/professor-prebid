@@ -1,6 +1,6 @@
 import { Config, PrebidJS } from 'prebid.js';
 import { POPUP_LOADED, EVENTS, PREBID_DETECTION_TIMEOUT_IFRAME, PREBID_DETECTION_TIMEOUT } from '../Shared/constants';
-import { sendWindowPostMessage, detectIframe } from '../Shared/utils';
+import { EventBus, detectIframe } from '../Shared/utils';
 
 export class Prebid {
   globalPbjs: PrebidJS = window.pbjs;
@@ -163,7 +163,7 @@ export class Prebid {
         version: this.globalPbjs.version,
         bidderSettings: this.globalPbjs.bidderSettings,
       };
-      sendWindowPostMessage(EVENTS.SEND_PREBID_DETAILS_TO_BACKGROUND, prebidDetail);
+      EventBus.emit(EVENTS.SEND_PREBID_DETAILS_TO_BACKGROUND, prebidDetail);
       this.sendToContentScriptPending = false;
     });
   };

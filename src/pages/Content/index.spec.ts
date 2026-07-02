@@ -55,43 +55,17 @@ describe('Content Script', () => {
     });
   });
 
-  describe('processWindowMessages', () => {
-    it('ignores messages without profPrebid flag', async () => {
-      const event = { data: { type: 'SOME_TYPE' } } as any;
-      await contentScript.processWindowMessages(event);
-      expect(mockSendMessage).not.toHaveBeenCalled();
-    });
-
-    it('ignores messages without type', async () => {
-      const event = { data: { profPrebid: true } } as any;
-      await contentScript.processWindowMessages(event);
-      expect(mockSendMessage).not.toHaveBeenCalled();
-    });
+  describe('processEventBusMessages', () => {
 
     it('forwards valid messages to service worker', async () => {
       const payload = { data: 123 };
-      const event = {
-        data: {
-          profPrebid: true,
-          type: 'SOME_EVENT',
-          payload
-        }
-      } as any;
-
-      await contentScript.processWindowMessages(event);
+      await contentScript.processEventBusMessages('SOME_EVENT', payload);
       expect(mockSendMessage).toHaveBeenCalledWith({ type: 'SOME_EVENT', payload });
     });
 
     it('handles REQUEST_CONSOLE_STATE', async () => {
       mockGet.mockResolvedValue({ [CONSOLE_TOGGLE]: true });
-      const event = {
-        data: {
-          profPrebid: true,
-          type: EVENTS.REQUEST_CONSOLE_STATE,
-        }
-      } as any;
-
-      await contentScript.processWindowMessages(event);
+      await contentScript.processEventBusMessages(EVENTS.REQUEST_CONSOLE_STATE, {});
       expect(mockGet).toHaveBeenCalledWith(CONSOLE_TOGGLE);
     });
   });

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
     decycle, getTabId, conditionalPluralization, detectIframe, generateUniqueId,
-    createRangeArray, getMinAndMaxNumber, sendWindowPostMessage, sendChromeTabsMessage,
+    createRangeArray, getMinAndMaxNumber, EventBus, sendChromeTabsMessage,
     reloadPage, download
 } from './utils';
 
@@ -152,20 +152,21 @@ describe('Shared Utils', () => {
         });
     });
 
-    describe('sendWindowPostMessage', () => {
-        it('posts message to window.top', () => {
-            const mockPostMessage = vi.fn();
+    describe('EventBus', () => {
+        it('emits custom event to document', () => {
+            const mockDispatch = vi.fn();
             const originalTop = window.top;
-            Object.defineProperty(window, 'top', { value: { postMessage: mockPostMessage }, writable: true, configurable: true });
-            // Mock querySelectorAll to return empty
+            Object.defineProperty(window, 'top', { value: { document: { dispatchEvent: mockDispatch } }, writable: true, configurable: true });
+            
             vi.spyOn(document, 'querySelectorAll').mockReturnValue([] as any);
 
-            sendWindowPostMessage('TEST_EVENT', { data: 1 });
+            EventBus.emit('TEST_EVENT', { data: 1 });
 
-            expect(mockPostMessage).toHaveBeenCalledWith(
-                { profPrebid: true, type: 'TEST_EVENT', payload: { data: 1 } },
-                '*'
-            );
+            expect(mockDispatch).toHaveBeenCalled();
+            const eventArg = mockDispatch.mock.calls[0][0];
+            expect(eventArg).toBeInstanceOf(CustomEvent);
+            expect(eventArg.type).toBe('PROF_PREBID_MESSAGE_TEST_EVENT');
+            expect(eventArg.detail).toEqual({ data: 1 });
 
             Object.defineProperty(window, 'top', { value: originalTop, writable: true, configurable: true });
         });

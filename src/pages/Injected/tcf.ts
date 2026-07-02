@@ -1,5 +1,5 @@
 import { EVENTS } from '../Shared/constants';
-import { sendWindowPostMessage } from '../Shared/utils';
+import { EventBus } from '../Shared/utils';
 
 declare global {
   interface Window {
@@ -114,7 +114,7 @@ class IabTcf {
               },
             };
             if (this.lastMessage !== JSON.stringify(detail)) {
-              sendWindowPostMessage(EVENTS.SEND_TCF_DETAILS_TO_BACKGROUND, detail);
+              EventBus.emit(EVENTS.SEND_TCF_DETAILS_TO_BACKGROUND, detail);
               this.lastMessage = JSON.stringify(detail);
             }
           });
@@ -134,7 +134,7 @@ class IabTcf {
               },
             };
             if (this.lastMessage !== JSON.stringify(detail)) {
-              sendWindowPostMessage(EVENTS.SEND_TCF_DETAILS_TO_BACKGROUND, detail);
+              EventBus.emit(EVENTS.SEND_TCF_DETAILS_TO_BACKGROUND, detail);
               this.lastMessage = JSON.stringify(detail);
             }
           });

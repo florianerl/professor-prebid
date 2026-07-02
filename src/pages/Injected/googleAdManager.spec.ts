@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock sendWindowPostMessage before import
+// Mock EventBus before import
 vi.mock('../Shared/utils', () => ({
-    sendWindowPostMessage: vi.fn(),
+    EventBus: {
+        emit: vi.fn(),
+    },
 }));
 
-import { sendWindowPostMessage } from '../Shared/utils';
+import { EventBus } from '../Shared/utils';
 
 describe('GoogleAdManager', () => {
     let gam: any;
@@ -99,6 +101,7 @@ describe('GoogleAdManager', () => {
 
     describe('getFetchBeforeKeyValue', () => {
         it('returns false when no events', () => {
+
             expect(gam.getFetchBeforeKeyValue()).toBe(false);
         });
     });

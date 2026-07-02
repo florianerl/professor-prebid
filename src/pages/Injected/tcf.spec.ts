@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('../Shared/utils', () => ({
-    sendWindowPostMessage: vi.fn(),
+    EventBus: {
+        emit: vi.fn(),
+    },
 }));
 
 describe('IabTcf', () => {

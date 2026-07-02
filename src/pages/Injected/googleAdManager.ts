@@ -1,4 +1,4 @@
-import { sendWindowPostMessage } from '../Shared/utils';
+import { EventBus } from '../Shared/utils';
 import { EVENTS } from '../Shared/constants';
 
 declare global {
@@ -218,7 +218,7 @@ class GoogleAdManager {
       postAuctionEndTimestamp: this.postAuctionEndTimestamp,
     };
     if (this.lastMessage !== JSON.stringify(detail)) {
-      sendWindowPostMessage(EVENTS.SEND_GAM_DETAILS_TO_BACKGROUND, detail);
+      EventBus.emit(EVENTS.SEND_GAM_DETAILS_TO_BACKGROUND, detail);
       this.lastMessage = JSON.stringify(detail);
     }
   }

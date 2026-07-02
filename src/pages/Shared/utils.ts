@@ -28,32 +28,62 @@ export const getTabId = (): Promise<number> => {
   });
 };
 
-export const sendWindowPostMessage = (type: string, payload: object): void => {
-  // work-around for
-  // DOMException:xyz could not be cloned.
-  // in window.postMessage
-  // payload = JSON.parse(JSON.stringify(payload));
-  payload = JSON.parse(decycle(payload));
-  window.top.postMessage(
-    {
-      profPrebid: true,
-      type,
-      payload,
-    },
-    '*'
-  );
-  // send postmessage to all iframes
-  const iframes = document.querySelectorAll('iframe');
-  iframes.forEach((iframe) => {
-    iframe.contentWindow.postMessage(
-      {
-        profPrebid: true,
-        type,
-        payload,
-      },
-      '*'
-    );
-  });
+export const EventBus = {
+  PREFIX: 'PROF_PREBID_MESSAGE_',
+  
+  emit: (type: string, payload: any): void => {
+    const serializedPayload = JSON.parse(decycle(payload));
+    const eventName = `${EventBus.PREFIX}${type}`;
+    const customEvent = new CustomEvent(eventName, { 
+      detail: serializedPayload 
+    });
+
+    window.top.document.dispatchEvent(customEvent);
+
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach((iframe) => {
+      try {
+        iframe.contentDocument?.dispatchEvent(
+          new CustomEvent(eventName, { detail: serializedPayload })
+        );
+      } catch (e) {
+        // Ignore cross-origin iframe DOM access errors
+      }
+    });
+  },
+
+  on: (type: string, callback: (payload: any) => void) => {
+    const eventName = `${EventBus.PREFIX}${type}`;
+    
+    const listener = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      callback(customEvent.detail);
+    };
+
+    document.addEventListener(eventName, listener);
+
+    return () => document.removeEventListener(eventName, listener);
+  },
+  
+  onAny: (callback: (type: string, payload: any) => void, eventsToListen: string[]) => {
+    const listeners: { eventName: string; listener: (event: Event) => void }[] = [];
+
+    eventsToListen.forEach((type) => {
+      const eventName = `${EventBus.PREFIX}${type}`;
+      const listener = (event: Event) => {
+        const customEvent = event as CustomEvent;
+        callback(type, customEvent.detail);
+      };
+      document.addEventListener(eventName, listener);
+      listeners.push({ eventName, listener });
+    });
+
+    return () => {
+      listeners.forEach(({ eventName, listener }) => {
+        document.removeEventListener(eventName, listener);
+      });
+    };
+  }
 };
 
 export const createRangeArray = (start: number, end: number, step: number, offsetRight: number): number[] => {

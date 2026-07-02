@@ -102,6 +102,7 @@ test.describe('Real-Site Prebid Detection', () => {
 
         browserContext = await chromium.launchPersistentContext(userDataDir, {
             headless: false,
+            bypassCSP: true,
             args: [
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`,
@@ -136,6 +137,8 @@ test.describe('Real-Site Prebid Detection', () => {
 
         extensionId = serviceWorker.url().split('/')[2];
         console.log(`Extension loaded with ID: ${extensionId}`);
+        // Wait to ensure content script registration is completed by the browser
+        await new Promise(r => setTimeout(r, 4000));
     });
 
     test.afterAll(async () => {

@@ -18,6 +18,7 @@ export class Prebid {
     this.frameId = iframeId;
     this.globalPbjs = window[namespace as keyof Window];
     this.addEventListeners();
+    this.throttle(this.sendDetailsToBackground);
   }
 
   addEventListeners = (): void => {

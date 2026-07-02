@@ -270,3 +270,14 @@ const processHarRequestEntry = async (
         default:
     }
 };
+
+// Export helpers for testing
+export {
+    buildObjectFromHarEntry as _buildObjectFromHarEntry,
+    populateInitSeqArray as _populateInitSeqArray,
+    setToInitReqChainObj as _setToInitReqChainObj,
+    setToRedirectValue as _setToRedirectValue,
+    findPathsToKey as _findPathsToKey,
+    processHarRequestEntry as _processHarRequestEntry,
+};
+

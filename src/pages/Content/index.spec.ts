@@ -1,46 +1,98 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { processWindowMessages } from './index';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest';
+import { EVENTS, CONSOLE_TOGGLE } from '../Shared/constants';
 
-// Mock the functions we want to spy on
-const mockSendToServiceWorker = vi.fn();
-const mockUpdateOverlays = vi.fn();
+// Mock chrome API
+const mockSendMessage = vi.fn();
+const mockGetURL = vi.fn((path) => `mock-extension://${path}`);
+const mockGet = vi.fn();
 
-vi.mock('./index', async () => {
-  const actual = await vi.importActual<any>('./index');
-  return {
-    ...actual,
-    sendToServiceWorker: mockSendToServiceWorker,
-    updateOverlays: mockUpdateOverlays,
-  };
-});
+// Setup global mocks BEFORE import
+global.chrome = {
+  runtime: {
+    id: 'mock-id',
+    sendMessage: mockSendMessage,
+    onMessage: {
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+    },
+    getURL: mockGetURL
+  },
+  storage: {
+    local: {
+      get: mockGet
+    }
+  }
+} as any;
 
-describe('processWindowMessages', () => {
+// Mock DOM
+global.document.dispatchEvent = vi.fn();
+
+describe('Content Script', () => {
+  let contentScript: any;
+
+  beforeAll(async () => {
+    // Dynamic import to ensure globals are set
+    contentScript = await import('./index');
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should handle valid window message and call sendToServiceWorker and updateOverlays', async () => {
-    const detail = { frameId: 'f1', namespace: 'pbjs' };
-    const event = new MessageEvent('message', {
-      data: {
-        type: 'SEND_PREBID_DETAILS_TO_BACKGROUND',
-        profPrebid: true,
-        payload: detail,
-      },
+  describe('sendToServiceWorker', () => {
+    it('sends message to runtime', () => {
+      const payload = { foo: 'bar' };
+      contentScript.sendToServiceWorker('TEST_TYPE', payload);
+      expect(mockSendMessage).toHaveBeenCalledWith({ type: 'TEST_TYPE', payload });
     });
 
-    await processWindowMessages(event);
-    expect(mockSendToServiceWorker).toHaveBeenCalledWith('SEND_PREBID_DETAILS_TO_BACKGROUND', detail);
-    expect(mockUpdateOverlays).toHaveBeenCalledWith('pbjs');
+    it('does not send if runtime id is missing', () => {
+      const originalId = global.chrome.runtime.id;
+      global.chrome.runtime.id = undefined;
+      contentScript.sendToServiceWorker('TEST_TYPE', {});
+      expect(mockSendMessage).not.toHaveBeenCalled();
+      global.chrome.runtime.id = originalId;
+    });
   });
 
-  it('should ignore non-profPrebid messages', async () => {
-    const event = new MessageEvent('message', {
-      data: { type: 'ANY', profPrebid: false, payload: {} },
+  describe('processWindowMessages', () => {
+    it('ignores messages without profPrebid flag', async () => {
+      const event = { data: { type: 'SOME_TYPE' } } as any;
+      await contentScript.processWindowMessages(event);
+      expect(mockSendMessage).not.toHaveBeenCalled();
     });
 
-    await processWindowMessages(event);
-    expect(mockSendToServiceWorker).not.toHaveBeenCalled();
-    expect(mockUpdateOverlays).not.toHaveBeenCalled();
+    it('ignores messages without type', async () => {
+      const event = { data: { profPrebid: true } } as any;
+      await contentScript.processWindowMessages(event);
+      expect(mockSendMessage).not.toHaveBeenCalled();
+    });
+
+    it('forwards valid messages to service worker', async () => {
+      const payload = { data: 123 };
+      const event = {
+        data: {
+          profPrebid: true,
+          type: 'SOME_EVENT',
+          payload
+        }
+      } as any;
+
+      await contentScript.processWindowMessages(event);
+      expect(mockSendMessage).toHaveBeenCalledWith({ type: 'SOME_EVENT', payload });
+    });
+
+    it('handles REQUEST_CONSOLE_STATE', async () => {
+      mockGet.mockResolvedValue({ [CONSOLE_TOGGLE]: true });
+      const event = {
+        data: {
+          profPrebid: true,
+          type: EVENTS.REQUEST_CONSOLE_STATE,
+        }
+      } as any;
+
+      await contentScript.processWindowMessages(event);
+      expect(mockGet).toHaveBeenCalledWith(CONSOLE_TOGGLE);
+    });
   });
 });

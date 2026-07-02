@@ -27,13 +27,12 @@ const getCurrentTabURL = async (): Promise<URL> => {
 };
 
 export const fetchEvents = async (
-  tabInfos: ITabInfos,
+  tabInfo: IFrameInfos,
   setDownloading: React.Dispatch<React.SetStateAction<'true' | 'false' | 'error'>>,
   setSyncInfo: React.Dispatch<React.SetStateAction<string | null>>,
   downloadingUrls: string[]
 ) => {
-  const tabId = await getTabId();
-  const tabInfo = tabInfos[tabId];
+  if (!tabInfo) return {};
 
   for (const frameId of Object.keys(tabInfo)) {
     const { prebids } = tabInfo[frameId];
@@ -69,5 +68,5 @@ export const fetchEvents = async (
       }
     }
   }
-  return { ...tabInfos[tabId] };
+  return { ...tabInfo };
 };

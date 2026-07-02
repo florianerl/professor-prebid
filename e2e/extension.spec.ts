@@ -211,9 +211,8 @@ test.describe('Professor Prebid Extension', () => {
 
         console.log('Final Storage Data:', JSON.stringify(finalStorageData));
 
-        // Expect tabInfos to exist and contain data
-        expect(finalStorageData.tabInfos).toBeDefined();
-        const tabKeys = Object.keys(finalStorageData.tabInfos);
-        expect(tabKeys.length).toBeGreaterThan(0);
+        // Expect tab info to exist and contain data
+        const tabInfoKeys = Object.keys(finalStorageData).filter(key => key.startsWith('tab_info_'));
+        expect(tabInfoKeys.length).toBeGreaterThan(0);
     });
 });

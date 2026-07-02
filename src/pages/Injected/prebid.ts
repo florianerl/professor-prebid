@@ -94,39 +94,39 @@ export class Prebid {
     }
   };
 
-  removeWindowFields = (obj: { [key: string]: any }): void => {
-    if (obj.eventType === 'adRenderSucceeded' && obj.args.doc) {
-      obj.args.doc = 'pruned by Prof. Prebid';
-    } else {
-      const visitedObjects: Set<Object> = new Set();
-      const traverseObject = (obj: { [key: string]: any }) => {
-        for (const key in obj) {
-          if (typeof obj.hasOwnProperty === 'function' && obj.hasOwnProperty(key)) {
-            const propertyValue = obj[key];
-            if (propertyValue instanceof Window || propertyValue instanceof Node || propertyValue instanceof HTMLElement) {
-              try {
-                delete obj[key];
-              } catch (error) {
-                // some properties are not deletable
-              }
-            } else if (typeof propertyValue === 'object' && !visitedObjects.has(propertyValue)) {
-              visitedObjects.add(propertyValue);
-              traverseObject(propertyValue);
-            }
-          }
-        }
-      };
-      traverseObject(obj);
-    }
-  };
-
   getEventsObjUrl = () => {
     const events = this.globalPbjs?.getEvents ? this.globalPbjs.getEvents() : this.events;
+    
+    const safeStringify = (obj: any): string => {
+      const seen = new WeakSet();
+      return JSON.stringify(obj, (key, value) => {
+        if (value instanceof Window || value instanceof Node || value instanceof HTMLElement) {
+          return '[DOM Node]';
+        }
+        if (typeof value === 'object' && value !== null) {
+          if (seen.has(value)) {
+            return '[Circular]';
+          }
+          seen.add(value);
+        }
+        return value;
+      });
+    };
+
     const string = `[${events
       .map((event) => {
-        this.removeWindowFields(event);
+        let processedEvent = event;
+        if (event?.eventType === 'adRenderSucceeded' && event?.args?.doc) {
+          processedEvent = {
+            ...event,
+            args: {
+              ...event.args,
+              doc: 'pruned by Prof. Prebid',
+            },
+          };
+        }
         try {
-          return JSON.stringify(event);
+          return safeStringify(processedEvent);
         } catch (error) {
           return JSON.stringify({
             eventType: event.eventType,

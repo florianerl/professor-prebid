@@ -3,12 +3,14 @@ import { StorageService } from './StorageService';
 
 const mockGet = vi.fn();
 const mockSet = vi.fn();
+const mockRemove = vi.fn();
 
 global.chrome = {
     storage: {
         local: {
             get: mockGet,
-            set: mockSet
+            set: mockSet,
+            remove: mockRemove
         }
     }
 } as any;
@@ -18,37 +20,35 @@ describe('StorageService', () => {
         vi.clearAllMocks();
     });
 
-    describe('loadTabInfos', () => {
-        it('returns tabInfos from storage', async () => {
-            mockGet.mockResolvedValue({ tabInfos: { 1: { 'f': {} } } });
-            const result = await StorageService.loadTabInfos();
-            expect(result).toEqual({ 1: { 'f': {} } });
-            expect(mockGet).toHaveBeenCalledWith(['tabInfos']);
+    describe('loadTabInfo', () => {
+        it('returns tabInfo from storage', async () => {
+            mockGet.mockResolvedValue({ tab_info_1: { 'f': {} } });
+            const result = await StorageService.loadTabInfo(1);
+            expect(result).toEqual({ 'f': {} });
+            expect(mockGet).toHaveBeenCalledWith(['tab_info_1']);
         });
 
-        it('returns empty object when no tabInfos', async () => {
+        it('returns empty object when no tabInfo', async () => {
             mockGet.mockResolvedValue({});
-            const result = await StorageService.loadTabInfos();
+            const result = await StorageService.loadTabInfo(1);
             expect(result).toEqual({});
         });
     });
 
-    describe('saveTabInfos', () => {
-        it('saves tabInfos to storage', async () => {
+    describe('saveTabInfo', () => {
+        it('saves tabInfo to storage', async () => {
             mockSet.mockResolvedValue(undefined);
-            const data = { 1: { 'top': {} } };
-            await StorageService.saveTabInfos(data);
-            expect(mockSet).toHaveBeenCalledWith({ tabInfos: data });
+            const data = { 'top': {} };
+            await StorageService.saveTabInfo(1, data);
+            expect(mockSet).toHaveBeenCalledWith({ tab_info_1: data });
         });
     });
 
     describe('deleteTabInfo', () => {
-        it('removes tab and saves', async () => {
-            mockSet.mockResolvedValue(undefined);
-            const data: any = { 1: { 'f': {} }, 2: { 'g': {} } };
-            await StorageService.deleteTabInfo(data, 1);
-            expect(data[1]).toBeUndefined();
-            expect(mockSet).toHaveBeenCalledWith({ tabInfos: { 2: { 'g': {} } } });
+        it('removes tab from storage', async () => {
+            mockRemove.mockResolvedValue(undefined);
+            await StorageService.deleteTabInfo(1);
+            expect(mockRemove).toHaveBeenCalledWith(['tab_info_1']);
         });
     });
 });

@@ -1,13 +1,13 @@
 import { getTabId } from '../Shared/utils';
 
 export class BadgeService {
-    static async update(tabInfos: ITabInfos, tabId: number | undefined) {
+    static async update(tabInfo: IFrameInfos | undefined, tabId: number | undefined) {
         const activeTabId = await getTabId();
         if (!tabId || tabId !== activeTabId) return;
 
         let prebidCount = 0;
-        if (tabInfos[tabId] && typeof tabInfos[tabId] === 'object') {
-            Object.values(tabInfos[tabId] || {}).forEach((frameInfo) => {
+        if (tabInfo && typeof tabInfo === 'object') {
+            Object.values(tabInfo || {}).forEach((frameInfo) => {
                 if (frameInfo.prebids) {
                     prebidCount += Object.keys(frameInfo.prebids).length;
                 }

@@ -18,21 +18,28 @@ export const InspectedPageContextProvider = ({ children }: ChromeStorageProvider
 
   useEffect(() => {
     // Read initial value from chrome.storage.local
-    chrome.storage.local.get(['tabInfos'], async ({ tabInfos, url }) => {
-      if (tabInfos && url) {
-        const tabInfoWithEvents = await fetchEvents(tabInfos, setDownloading, setSyncInfo, []);
-        setFrames(tabInfoWithEvents);
-      }
+    getTabId().then((tabId) => {
+      const key = `tab_info_${tabId}`;
+      chrome.storage.local.get([key], async (res) => {
+        const tabInfo = res[key];
+        if (tabInfo) {
+          const tabInfoWithEvents = await fetchEvents(tabInfo, setDownloading, setSyncInfo, []);
+          setFrames(tabInfoWithEvents);
+        }
+      });
     });
   }, []);
 
   useEffect(() => {
     // Subscribe to changes in local storage
     const handler = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: 'local' | 'sync' | 'managed' | 'session') => {
-      if (areaName === 'local' && changes?.tabInfos) {
+      if (areaName === 'local') {
         getTabId().then((tabId) => {
-          if (JSON.stringify(changes.tabInfos.newValue[tabId]) !== JSON.stringify(changes.tabInfos.oldValue[tabId])) {
-            fetchEvents({ ...changes.tabInfos.newValue, [tabId]: changes.tabInfos.newValue[tabId] }, setDownloading, setSyncInfo, downloadingUrls).then(setFrames);
+          const key = `tab_info_${tabId}`;
+          if (changes[key]) {
+            if (JSON.stringify(changes[key].newValue) !== JSON.stringify(changes[key].oldValue)) {
+              fetchEvents(changes[key].newValue || {}, setDownloading, setSyncInfo, downloadingUrls).then(setFrames);
+            }
           }
         });
       }

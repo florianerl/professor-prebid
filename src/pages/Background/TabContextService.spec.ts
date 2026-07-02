@@ -5,8 +5,8 @@ import { StorageService } from './StorageService';
 // Mock StorageService
 vi.mock('./StorageService', () => ({
     StorageService: {
-        loadTabInfos: vi.fn(),
-        saveTabInfos: vi.fn(),
+        loadTabInfo: vi.fn(),
+        saveTabInfo: vi.fn(),
         deleteTabInfo: vi.fn(),
     }
 }));
@@ -19,63 +19,52 @@ describe('TabContextService', () => {
         service = new TabContextService();
     });
 
-    describe('getTabInfos', () => {
-        it('returns tab infos from storage', async () => {
-            const mockData = { 1: { 'top-window': { url: 'https://example.com' } } };
-            (StorageService.loadTabInfos as any).mockResolvedValue(mockData);
+    describe('getTabInfo', () => {
+        it('returns tab info from storage', async () => {
+            const mockData = { 'top-window': { url: 'https://example.com' } };
+            (StorageService.loadTabInfo as any).mockResolvedValue(mockData);
 
-            const result = await service.getTabInfos();
+            const result = await service.getTabInfo(1);
             expect(result).toEqual(mockData);
-            expect(StorageService.loadTabInfos).toHaveBeenCalledOnce();
+            expect(StorageService.loadTabInfo).toHaveBeenCalledWith(1);
         });
 
         it('returns empty object when no data', async () => {
-            (StorageService.loadTabInfos as any).mockResolvedValue({});
-            const result = await service.getTabInfos();
+            (StorageService.loadTabInfo as any).mockResolvedValue({});
+            const result = await service.getTabInfo(1);
             expect(result).toEqual({});
         });
     });
 
     describe('getOrCreateTabInfo', () => {
         it('returns existing tab info', async () => {
-            const existing = { 1: { 'top-window': { url: 'test' } } };
-            (StorageService.loadTabInfos as any).mockResolvedValue(existing);
+            const existing = { 'top-window': { url: 'test' } };
+            (StorageService.loadTabInfo as any).mockResolvedValue(existing);
 
             const result = await service.getOrCreateTabInfo(1);
             expect(result).toEqual({ 'top-window': { url: 'test' } });
-        });
-
-        it('creates new tab info if missing', async () => {
-            (StorageService.loadTabInfos as any).mockResolvedValue({});
-
-            const result = await service.getOrCreateTabInfo(99);
-            expect(result).toEqual({});
-            expect(StorageService.saveTabInfos).toHaveBeenCalledWith({ 99: {} });
         });
     });
 
     describe('deleteTabInfo', () => {
         it('delegates to StorageService', async () => {
-            const mockData = { 1: {}, 2: {} };
-            (StorageService.loadTabInfos as any).mockResolvedValue(mockData);
-
             await service.deleteTabInfo(1);
-            expect(StorageService.deleteTabInfo).toHaveBeenCalledWith(mockData, 1);
+            expect(StorageService.deleteTabInfo).toHaveBeenCalledWith(1);
         });
     });
 
-    describe('saveTabInfos', () => {
+    describe('saveTabInfo', () => {
         it('delegates to StorageService', async () => {
-            const data = { 1: { 'frame': {} } };
-            await service.saveTabInfos(data);
-            expect(StorageService.saveTabInfos).toHaveBeenCalledWith(data);
+            const data = { 'frame': {} };
+            await service.saveTabInfo(1, data);
+            expect(StorageService.saveTabInfo).toHaveBeenCalledWith(1, data);
         });
     });
 
     describe('persist', () => {
         it('is a no-op', async () => {
             await service.persist();
-            expect(StorageService.saveTabInfos).not.toHaveBeenCalled();
+            expect(StorageService.saveTabInfo).not.toHaveBeenCalled();
         });
     });
 });

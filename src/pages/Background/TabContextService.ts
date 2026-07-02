@@ -1,37 +1,28 @@
 import { StorageService } from './StorageService';
 
 export class TabContextService {
-    // In-memory cache removed for MV3 statelessness
-    // All methods now interact directly with storage
-
     async load(): Promise<void> {
-        // No-op or perhaps verify storage integrity
+        // No-op
     }
 
-    async getTabInfos(): Promise<ITabInfos> {
-        return await StorageService.loadTabInfos();
+    async getTabInfo(tabId: number): Promise<IFrameInfos> {
+        return await StorageService.loadTabInfo(tabId);
     }
 
     async getOrCreateTabInfo(tabId: number): Promise<IFrameInfos> {
-        const tabInfos = await StorageService.loadTabInfos();
-        if (!tabInfos[tabId]) {
-            tabInfos[tabId] = {};
-            await StorageService.saveTabInfos(tabInfos);
-        }
-        return tabInfos[tabId];
+        return await StorageService.loadTabInfo(tabId);
     }
 
     async deleteTabInfo(tabId: number): Promise<void> {
-        const tabInfos = await StorageService.loadTabInfos();
-        await StorageService.deleteTabInfo(tabInfos, tabId);
+        await StorageService.deleteTabInfo(tabId);
     }
 
-    async saveTabInfos(tabInfos: ITabInfos): Promise<void> {
-        await StorageService.saveTabInfos(tabInfos);
+    async saveTabInfo(tabId: number, tabInfo: IFrameInfos): Promise<void> {
+        await StorageService.saveTabInfo(tabId, tabInfo);
     }
 
     async persist(): Promise<void> {
-        // No-op as every operation persists immediately
+        // No-op
     }
 }
 // Debounce utility function

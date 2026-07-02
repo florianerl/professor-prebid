@@ -18,9 +18,7 @@ export class MessageHandler {
         const tabId = sender.tab?.id;
         if (!tabId || !type || !payload || JSON.stringify(payload) === '{}') return;
 
-        const tabInfos = await this.tabContextService.getTabInfos();
-        if (!tabInfos[tabId]) tabInfos[tabId] = {};
-        const tabInfo = tabInfos[tabId];
+        const tabInfo = await this.tabContextService.getTabInfo(tabId);
 
         if (type === EVENTS.SEND_GAM_DETAILS_TO_BACKGROUND && this.isGoogleAdManagerDetails(payload)) {
             tabInfo['top-window'] = tabInfo['top-window'] || {};
@@ -34,7 +32,7 @@ export class MessageHandler {
         } else if (type === EVENTS.SEND_TCF_DETAILS_TO_BACKGROUND && this.isTcfDetails(payload)) {
             tabInfo['tcf'] = payload;
         }
-        await this.tabContextService.saveTabInfos(tabInfos);
+        await this.tabContextService.saveTabInfo(tabId, tabInfo);
 
         // Pass complete tabInfos to updateBadge since it now expects it or creates it
         // Wait, updateBadge in Background/index.ts fetches tabInfos itself.

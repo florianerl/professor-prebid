@@ -28,11 +28,9 @@ class BackgroundService {
   handleWebNavigationOnBeforeNavigate = async (web_navigation: chrome.webNavigation.WebNavigationParentedCallbackDetails) => {
     const { frameId, tabId, url } = web_navigation;
     if (frameId === 0) {
-      const tabInfos = await this.tabContextService.getTabInfos();
-      // Ensure specific structure exists
-      if (!tabInfos[tabId]) tabInfos[tabId] = {};
-      tabInfos[tabId]['top-window'] = { url };
-      await this.tabContextService.saveTabInfos(tabInfos);
+      const tabInfo = await this.tabContextService.getTabInfo(tabId);
+      tabInfo['top-window'] = { url };
+      await this.tabContextService.saveTabInfo(tabId, tabInfo);
       this.updateBadge(tabId);
     }
   };
@@ -48,25 +46,23 @@ class BackgroundService {
   private cleanStorage = async () => {
     const tabs = await chrome.tabs.query({});
     const activeTabIds = tabs.map((tab) => tab.id);
-    const tabInfos = await this.tabContextService.getTabInfos();
-    let changed = false;
-    for (const tabIdStr of Object.keys(tabInfos)) {
-      const tabId = parseInt(tabIdStr, 10);
-      if (!activeTabIds.includes(tabId)) {
-        delete tabInfos[tabId];
-        changed = true;
+    const allStorage = (await chrome.storage.local.get(null)) as any;
+    for (const key of Object.keys(allStorage)) {
+      if (key.startsWith('tab_info_')) {
+        const tabId = parseInt(key.replace('tab_info_', ''), 10);
+        if (!activeTabIds.includes(tabId)) {
+          await chrome.storage.local.remove(key);
+        }
       }
-    }
-    if (changed) {
-      await this.tabContextService.saveTabInfos(tabInfos);
     }
   };
 }
 
 class Background {
   updateBadge = async (tabId: number | undefined) => {
-    const tabInfos = await this.tabContextService.getTabInfos();
-    BadgeService.update(tabInfos, tabId);
+    if (tabId === undefined) return;
+    const tabInfo = await this.tabContextService.getTabInfo(tabId);
+    BadgeService.update(tabInfo, tabId);
   };
   private tabContextService = new TabContextService();
   private backgroundService = new BackgroundService(this.tabContextService, this.updateBadge);

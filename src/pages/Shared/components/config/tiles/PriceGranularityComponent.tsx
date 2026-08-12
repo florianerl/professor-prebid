@@ -112,54 +112,41 @@ const PriceGranularityComponent = () => {
   );
 };
 
-const HeaderCell = ({ children }: { children: React.ReactNode }) => (
-  <Grid size={{ xs: 3 }}>
-    <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
-      <Typography variant="h3">{children}</Typography>
-    </Paper>
-  </Grid>
-);
-const HeaderCellSmall = ({ children }: { children: React.ReactNode }) => (
-  <Grid size={{ xs: 2 }}>
-    <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
-      <Typography variant="h3">{children}</Typography>
-    </Paper>
-  </Grid>
-);
-const BodyCell = ({ children }: { children: React.ReactNode }) => (
-  <Grid size={{ xs: 3 }}>
-    <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
-      <Typography variant="body1">{children}</Typography>
-    </Paper>
-  </Grid>
-);
-const BodyCellSmall = ({ children }: { children: React.ReactNode }) => (
-  <Grid size={{ xs: 2 }}>
-    <Paper sx={{ height: 1, borderRadius: 1, display: 'flex', justifyContent: 'center' }}>
-      <Typography variant="body1">{children}</Typography>
-    </Paper>
-  </Grid>
-);
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 
 const BucketTable = ({ buckets, type }: { buckets: IPrebidConfigPriceBucket[]; type?: string }) => {
   return (
-    <Grid container spacing={0.2}>
-      <HeaderCell>Bucket</HeaderCell>
-      <HeaderCell>Precision</HeaderCell>
-      <HeaderCellSmall>Min</HeaderCellSmall>
-      <HeaderCellSmall>Max</HeaderCellSmall>
-      <HeaderCellSmall>Increment</HeaderCellSmall>
-
-      {buckets.map((bucket: IPrebidConfigPriceBucket, index: number) => (
-        <React.Fragment key={`${type}-${index}`}>
-          <BodyCell>{type ? `${type} #${index + 1}` : `Bucket #${index + 1}`}</BodyCell>
-          <BodyCell>{bucket.precision ?? 2}</BodyCell>
-          <BodyCellSmall>{bucket.min}</BodyCellSmall>
-          <BodyCellSmall>{bucket.max}</BodyCellSmall>
-          <BodyCellSmall>{bucket.increment}</BodyCellSmall>
-        </React.Fragment>
-      ))}
-    </Grid>
+    <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, overflow: 'hidden' }}>
+      <Table size="small" aria-label="price granularity buckets">
+        <TableHead sx={{ bgcolor: 'action.hover' }}>
+          <TableRow>
+            <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Bucket</TableCell>
+            <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Precision</TableCell>
+            <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Min</TableCell>
+            <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Max</TableCell>
+            <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Increment</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {buckets.map((bucket: IPrebidConfigPriceBucket, index: number) => (
+            <TableRow key={`${type}-${index}`} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+              <TableCell component="th" scope="row" sx={{ fontSize: '0.75rem', py: 0.5 }}>
+                {type ? `${type} #${index + 1}` : `Bucket #${index + 1}`}
+              </TableCell>
+              <TableCell align="right" sx={{ fontSize: '0.75rem', py: 0.5 }}>{bucket.precision ?? 2}</TableCell>
+              <TableCell align="right" sx={{ fontSize: '0.75rem', py: 0.5 }}>{bucket.min}</TableCell>
+              <TableCell align="right" sx={{ fontSize: '0.75rem', py: 0.5 }}>{bucket.max}</TableCell>
+              <TableCell align="right" sx={{ fontSize: '0.75rem', py: 0.5 }}>{bucket.increment}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 };
 
@@ -171,7 +158,7 @@ const PriceGranularityTable = ({ priceGranularity, customPriceBucket }: IPriceGr
   }, [priceGranularity, customPriceBucket?.buckets]);
 
   return (
-    <Box sx={{ backgroundColor: 'text.disabled', p: 0.25, borderRadius: 1 }}>
+    <Box sx={{ width: '100%', mt: 1 }}>
       <BucketTable buckets={rows} type={priceGranularity} />
     </Box>
   );

@@ -58,30 +58,15 @@ const options = {
     clean: true,
     publicPath: ASSET_PATH,
   },
+  cache: {
+    type: 'filesystem',
+  },
   module: {
     rules: [
-      // {
-      //   test: /\.(css|scss)$/,
-      //   use: [
-      //     'style-loader',
-      //     'css-loader',
-      //     {
-      //       loader: 'sass-loader',
-      //       options: {
-      //         implementation: require('sass'),
-      //         sourceMap: true,
-      //       },
-      //     },
-      //   ],
-      // },
       {
         test: new RegExp('.(' + fileExtensions.join('|') + ')$'),
         type: 'asset/resource',
         exclude: /node_modules/,
-        // loader: 'file-loader',
-        // options: {
-        //   name: '[name].[ext]',
-        // },
       },
       {
         test: /\.html$/,
@@ -100,7 +85,7 @@ const options = {
                   Boolean
                 ),
               }),
-              transpileOnly: isDevelopment,
+              transpileOnly: true,
             },
           },
         ],
@@ -213,9 +198,10 @@ if (env.NODE_ENV === 'development') {
   options.devtool = 'cheap-module-source-map';
 } else {
   options.optimization = {
-    minimize: true,
+    minimize: !process.env.NO_MINIFY,
     minimizer: [
       new TerserPlugin({
+        parallel: true,
         extractComments: false,
       }),
     ],

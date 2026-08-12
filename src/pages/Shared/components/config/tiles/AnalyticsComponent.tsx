@@ -1,9 +1,9 @@
 import React, { useContext, useState } from 'react';
-import Typography from '@mui/material/Typography';
-import SettingsApplicationsIcon from '@mui/icons-material/SettingsApplications';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
 import CodeIcon from '@mui/icons-material/Code';
 import Chip from '@mui/material/Chip';
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
@@ -12,14 +12,15 @@ import AppStateContext from '../../../contexts/appStateContext';
 import { ExpandableTile } from './ExpandableTile';
 import JSONViewerComponent from '../../JSONViewerComponent';
 
-const BidderSettingsComponent = (): JSX.Element | null => {
+const AnalyticsComponent = (): JSX.Element | null => {
   const { prebid } = useContext(AppStateContext);
   const [showJson, setShowJson] = useState(false);
-  const { bidderSettings } = prebid;
+  const config = (prebid?.config || {}) as Record<string, any>;
+  const analytics = config.analytics || config.enableAnalytics;
 
-  if (!bidderSettings || Object.keys(bidderSettings).length === 0) return null;
-
-  const storageBidders = Object.keys(bidderSettings).filter((b) => bidderSettings[b].storageAllowed !== undefined);
+  if (!analytics || (typeof analytics === 'object' && Object.keys(analytics).length === 0)) {
+    return null;
+  }
 
   const jsonToggleAction = (
     <Tooltip title={showJson ? 'Switch to formatted view' : 'Switch to raw JSON view'} arrow>
@@ -29,38 +30,37 @@ const BidderSettingsComponent = (): JSX.Element | null => {
     </Tooltip>
   );
 
+  const adapters = Array.isArray(analytics) ? analytics : typeof analytics === 'object' ? Object.keys(analytics) : [String(analytics)];
+
   return (
     <ExpandableTile
-      icon={<SettingsApplicationsIcon />}
-      title="Bidder Settings"
-      subtitle="Storage access & bidder defaults"
+      icon={<AnalyticsIcon />}
+      title="Analytics"
+      subtitle={`${adapters.length} adapter(s) / settings`}
       defaultMaxWidth={4}
       expandedMaxWidth={8}
       headerAction={jsonToggleAction}
     >
       {showJson ? (
         <Grid size={{ xs: 12 }}>
-          <JSONViewerComponent src={bidderSettings} name="" collapsed={1} />
+          <JSONViewerComponent src={analytics} name="" collapsed={1} />
         </Grid>
       ) : (
         <Grid size={{ xs: 12 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: 'text.secondary', fontSize: '0.75rem' }}>
-            Storage Access Permissions
+            Analytics Adapters
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-            {storageBidders.map((bidder) => {
-              const allowed = bidderSettings[bidder].storageAllowed;
-              return (
-                <Chip
-                  key={bidder}
-                  label={`${bidder}: ${allowed ? 'allowed' : 'denied'}`}
-                  size="small"
-                  color={allowed ? 'success' : 'error'}
-                  variant="outlined"
-                  sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-                />
-              );
-            })}
+            {adapters.map((item, idx) => (
+              <Chip
+                key={idx}
+                label={typeof item === 'object' ? item.provider || item.type || `Adapter ${idx + 1}` : item}
+                size="small"
+                color="info"
+                variant="outlined"
+                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
+              />
+            ))}
           </Box>
         </Grid>
       )}
@@ -68,4 +68,4 @@ const BidderSettingsComponent = (): JSX.Element | null => {
   );
 };
 
-export default BidderSettingsComponent;
+export default AnalyticsComponent;

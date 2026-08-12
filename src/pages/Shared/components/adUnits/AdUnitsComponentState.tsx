@@ -22,12 +22,14 @@ const processAdUnits = (auctionInitEvents: EventRecord<'auctionInit'>[]): AdUnit
   return (
     auctionInitEvents
       .reduce((previousValue, currentValue) => {
-        return [...previousValue, ...currentValue.args.adUnits] as AdUnit[];
+        const adUnits = currentValue?.args?.adUnits || [];
+        return [...previousValue, ...adUnits] as AdUnit[];
       }, [] as AdUnit[])
       .reduce((previousValue: AdUnit[], currentValue: AdUnit) => {
+        if (!currentValue) return previousValue;
         let toUpdate = previousValue.find((adUnit) => {
-          const adUnitBids = adUnit.bids.map(({ bidder, params }) => ({ bidder, params })) || [];
-          const currentValueBids = currentValue.bids.map(({ bidder, params }) => ({ bidder, params })) || [];
+          const adUnitBids = (adUnit.bids || []).map(({ bidder, params }) => ({ bidder, params }));
+          const currentValueBids = (currentValue.bids || []).map(({ bidder, params }) => ({ bidder, params }));
           return (
             adUnit.code === currentValue.code &&
             JSON.stringify(adUnit.mediaTypes) === JSON.stringify(currentValue.mediaTypes) &&
@@ -43,31 +45,20 @@ const processAdUnits = (auctionInitEvents: EventRecord<'auctionInit'>[]): AdUnit
           return [...previousValue, currentValue];
         }
       }, [] as AdUnit[])
-      // "fix" https://github.com/prebid/professor-prebid/issues/104 ?
-      .sort((a: AdUnit, b: AdUnit) => a.code.localeCompare(b.code))
+      .sort((a: AdUnit, b: AdUnit) => (a?.code || '').localeCompare(b?.code || ''))
   );
 };
 
 const adUnitAllSizesStr = (adUnit: AdUnit): string =>
-  Array.isArray(adUnit?.mediaTypes.banner.sizes)
+  Array.isArray(adUnit?.mediaTypes?.banner?.sizes)
     ? adUnit.mediaTypes.banner.sizes
-        .filter((size) => {
-          return Array.isArray(size) && size.length === 2;
-        })
-        .map((size) => {
-          if (!Array.isArray(size)) return '';
-          return `${size[0]}x${size[1]}`;
-        })
+        .filter((size) => Array.isArray(size) && size.length === 2)
+        .map((size) => `${size[0]}x${size[1]}`)
         .join(',')
-    : Array.isArray(adUnit?.mediaTypes.video?.playerSize)
+    : Array.isArray(adUnit?.mediaTypes?.video?.playerSize)
     ? adUnit.mediaTypes.video.playerSize
-        .filter((size) => {
-          return Array.isArray(size) && size.length === 2;
-        })
-        .map((size) => {
-          if (!Array.isArray(size)) return '';
-          return `${size[0]}x${size[1]}`;
-        })
+        .filter((size) => Array.isArray(size) && size.length === 2)
+        .map((size) => `${size[0]}x${size[1]}`)
         .join(',')
     : '';
 
@@ -75,8 +66,14 @@ const ADUNIT_FIELD_MAP = {
   adunitcode: (adUnit: AdUnit) => adUnit?.code,
 
   size: (adUnit: AdUnit) => adUnitAllSizesStr(adUnit),
-  width: (adUnit: AdUnit) => adUnitAllSizesStr(adUnit)?.[0].split('x')[0] || null,
-  height: (adUnit: AdUnit) => adUnitAllSizesStr(adUnit)?.[0].split('x')[1] || null,
+  width: (adUnit: AdUnit) => {
+    const str = adUnitAllSizesStr(adUnit);
+    return str ? str.split(',')[0]?.split('x')[0] || null : null;
+  },
+  height: (adUnit: AdUnit) => {
+    const str = adUnitAllSizesStr(adUnit);
+    return str ? str.split(',')[0]?.split('x')[1] || null : null;
+  },
 
   mediatype: (adUnit: AdUnit): string => (adUnit?.mediaTypes ? Object.keys(adUnit.mediaTypes).join(',') : ''),
 
@@ -99,7 +96,7 @@ const adUnitsQueryEngine = (() => createQueryEngine<any>(ADUNIT_FIELD_MAP))();
 const buildAdUnitSuggestions = (adUnits: AdUnit[], allSizes: string[]): string[] => {
   const keySuggestions = (Object.keys(ADUNIT_FIELD_MAP) as string[]).map((key) => `${key}:`);
   const numericStubs = (NUMERIC_FIELD_KEYS as readonly string[]).flatMap((key) => [`${key}>`, `${key}>=`, `${key}<`, `${key}<=`, `${key}=`]);
-  const adUnitCodeSuggestions = distinct(adUnits.map((adUnit) => (adUnit?.code ? `adunitcode:${String(adUnit.code)}` : undefined)).filter((s) => s));
+  const adUnitCodeSuggestions = distinct(adUnits.map((adUnit) => (adUnit?.code ? `adunitcode:${String(adUnit.code)}` : undefined)).filter((s): s is string => !!s));
   const bidderSuggestions = distinct(adUnits.flatMap((adUnit) => (Array.isArray(adUnit?.bids) ? adUnit.bids.map((b) => (b?.bidder ? `bidder:${String(b.bidder)}` : undefined)) : [])));
   const mediaTypes = distinct(adUnits.flatMap((adUnit) => (adUnit?.mediaTypes ? Object.keys(adUnit.mediaTypes).map((mt) => `mediatype:${mt}`) : [])));
 

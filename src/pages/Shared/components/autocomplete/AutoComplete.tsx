@@ -1,4 +1,4 @@
-import { Autocomplete, TextField, Tooltip, IconButton, Paper, AutocompleteChangeReason, AutocompleteChangeDetails, AutocompleteRenderInputParams } from '@mui/material';
+import { Autocomplete, TextField, Tooltip, IconButton, Paper, AutocompleteChangeReason, AutocompleteRenderInputParams } from '@mui/material';
 import React, { useState } from 'react';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import { NUMERIC_FIELD_KEYS } from './utils';
@@ -7,19 +7,19 @@ type AutoCompleteProps = {
   query: string;
   onQueryChange: (v: string) => void;
   placeholder: string;
-  fieldKeys: string[];
+  fieldKeys?: string[];
   options?: string[];
   onPick?: (opt: string) => void;
   onDownloadFilteredBids?: () => void;
 };
 
-const keyOnlyOptions = (fieldKeys: string[]) => {
+const keyOnlyOptions = (fieldKeys: string[] = []) => {
   const numericKeys = Array.from(NUMERIC_FIELD_KEYS);
-  const allKeys = new Set([...fieldKeys, ...numericKeys]);
+  const allKeys = new Set([...(fieldKeys || []), ...numericKeys]);
   return Array.from(allKeys).sort((a, b) => a.localeCompare(b));
 };
 
-const getOptionsForQuery = (query: string, fieldKeys: string[], options?: string[]) => {
+const getOptionsForQuery = (query: string = '', fieldKeys: string[] = [], options?: string[]) => {
   const input = query || '';
   // Split only on ' AND ' or ' OR ' (case-insensitive)
   const last = input.split(/\s+(and|or)\s+/i).pop() ?? '';
@@ -47,6 +47,7 @@ const getOptionsForQuery = (query: string, fieldKeys: string[], options?: string
       .filter((s) => s); // Remove empty strings
     return filtered;
   }
+  return options || [];
 };
 
 const renderInput = (params: AutocompleteRenderInputParams, placeholder: string) => (
@@ -75,12 +76,12 @@ const renderInput = (params: AutocompleteRenderInputParams, placeholder: string)
   </Paper>
 );
 
-export const AutoComplete = ({ query, onQueryChange, options, onPick, placeholder, fieldKeys }: AutoCompleteProps) => {
+export const AutoComplete = ({ query = '', onQueryChange, options = [], onPick, placeholder, fieldKeys = [] }: AutoCompleteProps) => {
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
 
   const onChange = (_event: React.SyntheticEvent<Element, Event>, val: string, reason: AutocompleteChangeReason) => {
     if (reason === 'selectOption' && val != null) {
-      const input = query;
+      const input = query || '';
 
       // Find the last occurrence of AND or OR
       const lastAndIndex = input.toLowerCase().lastIndexOf(' and ');
@@ -98,10 +99,10 @@ export const AutoComplete = ({ query, onQueryChange, options, onPick, placeholde
           // Completing a value
           const colonIndex = afterOperator.indexOf(':');
           const key = afterOperator.slice(0, colonIndex);
-          onQueryChange(`${beforeOperator}${operator}${key}:${val}`);
+          onQueryChange?.(`${beforeOperator}${operator}${key}:${val}`);
         } else {
           // Completing a key
-          onQueryChange(`${beforeOperator}${operator}${val}:`);
+          onQueryChange?.(`${beforeOperator}${operator}${val}:`);
         }
       } else {
         // No operator, handle as before
@@ -110,7 +111,7 @@ export const AutoComplete = ({ query, onQueryChange, options, onPick, placeholde
           // Completing a value
           const colonIndex = input.indexOf(':');
           const key = input.slice(0, colonIndex);
-          onQueryChange(`${key}:${val}`);
+          onQueryChange?.(`${key}:${val}`);
         } else {
           // Completing a key
           onPick?.(`${val}:`);
@@ -135,7 +136,7 @@ export const AutoComplete = ({ query, onQueryChange, options, onPick, placeholde
       inputValue={query}
       isOptionEqualToValue={(o, v) => o === v}
       filterOptions={(opts) => opts}
-      onInputChange={(_event, val, reason) => reason !== 'reset' && onQueryChange(val || '')}
+      onInputChange={(_event, val, reason) => reason !== 'reset' && onQueryChange?.(val || '')}
       onChange={onChange}
       renderInput={(params) => renderInput(params, placeholder)}
     />

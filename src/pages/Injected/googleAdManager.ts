@@ -36,7 +36,8 @@ class GoogleAdManager {
       const slotElementId = event.slot.getSlotElementId();
       const timestamp = Date.now();
       this.updatePostAuctionTimestamps(timestamp);
-      this.slotEvents[slotElementId as keyof ISlotEvents] = [...(this.slotEvents[slotElementId] || []), { type: 'slotRequested', timestamp }];
+      if (!this.slotEvents[slotElementId]) this.slotEvents[slotElementId] = [];
+      this.slotEvents[slotElementId].push({ type: 'slotRequested', timestamp });
       // this.sendDetailsToContentScript()
     });
 
@@ -44,35 +45,40 @@ class GoogleAdManager {
       const slotElementId = event.slot.getSlotElementId();
       const timestamp = Date.now();
       this.updatePostAuctionTimestamps(timestamp);
-      this.slotEvents[slotElementId as keyof ISlotEvents] = [...(this.slotEvents[slotElementId] || []), { type: 'slotResponseReceived', timestamp }];
+      if (!this.slotEvents[slotElementId]) this.slotEvents[slotElementId] = [];
+      this.slotEvents[slotElementId].push({ type: 'slotResponseReceived', timestamp });
       this.sendDetailsToContentScript();
     });
 
     this.googletag.pubads().addEventListener('slotRenderEnded', (event) => {
       const slotElementId = event.slot.getSlotElementId();
       const timestamp = Date.now();
-      this.slotEvents[slotElementId as keyof ISlotEvents] = [...(this.slotEvents[slotElementId] || []), { type: 'slotRenderEnded', timestamp }];
+      if (!this.slotEvents[slotElementId]) this.slotEvents[slotElementId] = [];
+      this.slotEvents[slotElementId].push({ type: 'slotRenderEnded', timestamp });
       // this.sendDetailsToContentScript()
     });
 
     this.googletag.pubads().addEventListener('slotOnload', (event) => {
       const slotElementId = event.slot.getSlotElementId();
       const timestamp = Date.now();
-      this.slotEvents[slotElementId as keyof ISlotEvents] = [...(this.slotEvents[slotElementId] || []), { type: 'slotOnload', timestamp }];
+      if (!this.slotEvents[slotElementId]) this.slotEvents[slotElementId] = [];
+      this.slotEvents[slotElementId].push({ type: 'slotOnload', timestamp });
       // this.sendDetailsToContentScript()
     });
 
     this.googletag.pubads().addEventListener('slotVisibilityChanged', (event) => {
       const slotElementId = event.slot.getSlotElementId();
       const timestamp = Date.now();
-      this.slotEvents[slotElementId as keyof ISlotEvents] = [...(this.slotEvents[slotElementId] || []), { type: 'slotVisibilityChanged', timestamp }];
+      if (!this.slotEvents[slotElementId]) this.slotEvents[slotElementId] = [];
+      this.slotEvents[slotElementId].push({ type: 'slotVisibilityChanged', timestamp });
       // this.sendDetailsToContentScript()
     });
 
     this.googletag.pubads().addEventListener('impressionViewable', (event) => {
       const slotElementId = event.slot.getSlotElementId();
       const timestamp = Date.now();
-      this.slotEvents[slotElementId as keyof ISlotEvents] = [...(this.slotEvents[slotElementId] || []), { type: 'impressionViewable', timestamp }];
+      if (!this.slotEvents[slotElementId]) this.slotEvents[slotElementId] = [];
+      this.slotEvents[slotElementId].push({ type: 'impressionViewable', timestamp });
       this.sendDetailsToContentScript();
     });
   }

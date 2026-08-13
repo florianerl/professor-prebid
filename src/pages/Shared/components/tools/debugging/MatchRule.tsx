@@ -86,8 +86,8 @@ const MatchRule = ({ groupIndex, rule, ruleKey, handleRulesFormChange, prebid, p
         onChange={(e) => {
           handleRulesFormChange('update', null, [...path.slice(0, path.length - 1), e.target.value], [...path.slice(0, path.length - 1), ruleKey]);
         }}
-        children={matchRuleTargets?.map((option, key) => (
-          <MenuItem key={key} value={option.value} disabled={Object.keys(rule.when).includes(option.value)}>
+        children={matchRuleTargets?.map((option) => (
+          <MenuItem key={option.value} value={option.value} disabled={Object.keys(rule.when).includes(option.value)}>
             {option.label}
           </MenuItem>
         ))}
@@ -105,8 +105,8 @@ const MatchRule = ({ groupIndex, rule, ruleKey, handleRulesFormChange, prebid, p
           handleRulesFormChange('update', e.target.value, path);
         }}
         children={
-          options[ruleKey as keyof IMatchRuleKeyOptions]?.map((option: string, i: number) => (
-            <MenuItem key={i} value={option} disabled={Object.values(rule.when).includes(option)}>
+          options[ruleKey as keyof IMatchRuleKeyOptions]?.map((option: string) => (
+            <MenuItem key={option} value={option} disabled={Object.values(rule.when).includes(option)}>
               {option}
             </MenuItem>
           )) || <MenuItem key={0} value={rule.when[ruleKey] || ''} />

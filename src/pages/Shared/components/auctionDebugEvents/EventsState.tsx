@@ -59,7 +59,8 @@ const EventsState = () => {
 
   const suggestions = useMemo(() => buildEventSuggestions(events as any[]), [events]);
 
-  const filteredEvents = useMemo(() => events.filter(eventsQueryEngine.runQuery(deferredQuery)), [events, deferredQuery]);
+  const filterFn = useMemo(() => eventsQueryEngine.runQuery(deferredQuery), [deferredQuery]);
+  const filteredEvents = useMemo(() => events.filter(filterFn), [events, filterFn]);
 
   const sortedEvents = useMemo(() => sortEvents(filteredEvents as IPrebidEvent[]), [filteredEvents]);
 

@@ -85,7 +85,8 @@ const BidsComponentState = () => {
 
   const toggleSort = useCallback((key: string) => setSort((prev) => (prev.key === key ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' })), []);
 
-  const filteredBids = useMemo(() => [...bidsReceived, ...noBids].filter(bidsQueryEngine.runQuery(query)), [bidsReceived, noBids, query]);
+  const filterFn = useMemo(() => bidsQueryEngine.runQuery(query), [query]);
+  const filteredBids = useMemo(() => [...bidsReceived, ...noBids].filter(filterFn), [bidsReceived, noBids, filterFn]);
 
   const sortedBids = useMemo(() => sortBids(sort, filteredBids), [filteredBids, sort]);
 

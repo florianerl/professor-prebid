@@ -48,9 +48,9 @@ const PrivacyComponent = (): JSX.Element | null => {
           <RenderKeyValueComponent label="Timeout" value={timeout ? `${timeout}ms` : undefined} columns={[4, 12]} expanded />
           <RenderKeyValueComponent label="Default GDPR Scope" value={defaultGdprScope} columns={[4, 12]} expanded />
           {gdpr?.rules?.map((rule: any, index: number) => (
-            <RenderKeyValueComponent key={index} label={`Rule #${index + 1}`} value={rule} columns={[4, 12]} expanded />
+            <RenderKeyValueComponent key={`rule-${index}`} label={`Rule #${index + 1}`} value={rule} columns={[4, 12]} expanded />
           ))}
-          {tcf && Object.keys(tcf).map((key, index) => <TcfComponent key={index} tcf={tcf} tcfKey={key} />)}
+          {tcf && Object.keys(tcf).map((key) => <TcfComponent key={key} tcf={tcf} tcfKey={key} />)}
         </>
       )}
     </ExpandableTile>

@@ -38,7 +38,11 @@ export const EventBus = {
       detail: serializedPayload 
     });
 
-    window.top.document.dispatchEvent(customEvent);
+    try {
+      window.top.document.dispatchEvent(customEvent);
+    } catch (e) {
+      window.document.dispatchEvent(customEvent);
+    }
 
     const iframes = document.querySelectorAll('iframe');
     iframes.forEach((iframe) => {
@@ -87,7 +91,7 @@ export const EventBus = {
 };
 
 export const createRangeArray = (start: number, end: number, step: number, offsetRight: number): number[] => {
-  const arr1 = Array.from(Array.from(Array(Math.ceil((end + offsetRight - start) / step)).keys()), (x) => start + x * step);
+  const arr1 = Array.from({ length: Math.ceil((end + offsetRight - start) / step) }, (_, x) => start + x * step);
   const endValueIndex = arr1.indexOf(end);
   if (endValueIndex === -1) {
     arr1.push(end);
@@ -129,12 +133,13 @@ export const detectIframe = (): boolean => {
   }
 };
 
-export const generateUniqueId = () => new Date().getTime() + '-' + Math.random().toString(36).substr(2, 9);
+export const generateUniqueId = () => new Date().getTime() + '-' + Math.random().toString(36).substring(2, 11);
 
 
 export const download = (input: object, filename: string) => {
   const dataStr = JSON.stringify(input, null, 2);
-  const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const dataUri = URL.createObjectURL(blob);
 
   const exportFileDefaultName = `f${filename}-${new Date().toISOString().split('T')[0]}.json`;
 
@@ -142,4 +147,5 @@ export const download = (input: object, filename: string) => {
   linkElement.setAttribute('href', dataUri);
   linkElement.setAttribute('download', exportFileDefaultName);
   linkElement.click();
+  URL.revokeObjectURL(dataUri);
 };

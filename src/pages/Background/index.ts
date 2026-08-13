@@ -18,7 +18,11 @@ class BackgroundService {
     chrome.tabs.onRemoved.addListener(this.handleOnTabRemoved);
     chrome.tabs.onActivated.addListener(this.handleOnTabActivated);
     chrome.alarms?.onAlarm.addListener(this.handleOnAlarm);
-    chrome.alarms?.create('cleanUpTabInfo', { periodInMinutes: 15 });
+    chrome.alarms?.get('cleanUpTabInfo', (alarm) => {
+      if (!alarm) {
+        chrome.alarms?.create('cleanUpTabInfo', { periodInMinutes: 15 });
+      }
+    });
   }
 
   handleOnTabActivated = (activeInfo: chrome.tabs.TabActiveInfo) => {
@@ -47,13 +51,17 @@ class BackgroundService {
     const tabs = await chrome.tabs.query({});
     const activeTabIds = tabs.map((tab) => tab.id);
     const allStorage = (await chrome.storage.local.get(null)) as any;
+    const keysToRemove: string[] = [];
     for (const key of Object.keys(allStorage)) {
       if (key.startsWith('tab_info_')) {
         const tabId = parseInt(key.replace('tab_info_', ''), 10);
         if (!activeTabIds.includes(tabId)) {
-          await chrome.storage.local.remove(key);
+          keysToRemove.push(key);
         }
       }
+    }
+    if (keysToRemove.length > 0) {
+      await chrome.storage.local.remove(keysToRemove);
     }
   };
 }

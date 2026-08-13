@@ -159,10 +159,10 @@ const BidOverWriteComponent = ({ debugConfigState, setDebugConfigState }: BidOve
             input={<OutlinedInput label="Detected Bidders" />}
             renderValue={(selected) => (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map((value, index) => (
+                {selected.map((value) => (
                   <Chip
                     size="small"
-                    key={index}
+                    key={value}
                     label={value}
                     onDelete={handleBidderDelete(value)}
                     onMouseDown={(event) => {
@@ -175,8 +175,8 @@ const BidOverWriteComponent = ({ debugConfigState, setDebugConfigState }: BidOve
             MenuProps={MenuProps}
             disabled={!bidsOverwriteEnabled}
           >
-            {detectedBidderNames.map((name, index) => (
-              <MenuItem key={index} value={name} style={getStyles(name, selectedBidders, theme)}>
+            {detectedBidderNames.map((name) => (
+              <MenuItem key={name} value={name} style={getStyles(name, selectedBidders, theme)}>
                 {name}
               </MenuItem>
             ))}
@@ -194,10 +194,10 @@ const BidOverWriteComponent = ({ debugConfigState, setDebugConfigState }: BidOve
             input={<OutlinedInput label="Detected AdUnit(s)" />}
             renderValue={(selected) => (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map((value, index) => (
+                {selected.map((value) => (
                   <Chip
                     size="small"
-                    key={index}
+                    key={value}
                     label={value.length > 26 ? `...${value.substring(value.length - 26)}` : value}
                     onDelete={handleAdUnitDelete(value)}
                     onMouseDown={(event) => {
@@ -210,8 +210,8 @@ const BidOverWriteComponent = ({ debugConfigState, setDebugConfigState }: BidOve
             MenuProps={MenuProps}
             disabled={!bidsOverwriteEnabled || selectedBidders.length === 0}
           >
-            {detectedAdUnitCodes.map((name, index) => (
-              <MenuItem key={index} value={name} style={getStyles(name, selectedAdUnitCodes, theme)}>
+            {detectedAdUnitCodes.map((name) => (
+              <MenuItem key={name} value={name} style={getStyles(name, selectedAdUnitCodes, theme)}>
                 {name.length > 40 ? `...${name.substring(name.length - 40)}` : name}
               </MenuItem>
             ))}

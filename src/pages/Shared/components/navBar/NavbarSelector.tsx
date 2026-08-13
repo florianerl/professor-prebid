@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { sendChromeTabsMessage } from '../../utils';
 import { PBJS_NAMESPACE_CHANGE } from '../../constants';
 import Box from '@mui/material/Box';
@@ -13,33 +13,36 @@ import PrebidLogo from './Logo';
 declare const __APP_VERSION__: string;
 export const NavbarSelector = (): JSX.Element => {
   const [expanded, setExpanded] = useState<boolean>(false);
-  const [enterDelay, setEnterDelay] = useState<NodeJS.Timeout | null>(null);
-  const [leaveDelay, setLeaveDelay] = useState<NodeJS.Timeout | null>(null);
+  const enterDelayRef = React.useRef<NodeJS.Timeout | null>(null);
+  const leaveDelayRef = React.useRef<NodeJS.Timeout | null>(null);
   const { pbjsNamespace, setPbjsNamespace, frameId, setIframeId, prebids, isPanel } = useContext(StateContext);
   const pageContext = useContext(InspectedPageContext);
 
+  useEffect(() => {
+    return () => {
+      if (enterDelayRef.current) clearTimeout(enterDelayRef.current);
+      if (leaveDelayRef.current) clearTimeout(leaveDelayRef.current);
+    };
+  }, []);
+
   const handleMouseEnter = () => {
-    if (leaveDelay) {
-      clearTimeout(leaveDelay);
-      setLeaveDelay(null);
+    if (leaveDelayRef.current) {
+      clearTimeout(leaveDelayRef.current);
+      leaveDelayRef.current = null;
     }
-    setEnterDelay(
-      setTimeout(() => {
-        setExpanded(true);
-      }, 200) // Delay of 200ms
-    );
+    enterDelayRef.current = setTimeout(() => {
+      setExpanded(true);
+    }, 200); // Delay of 200ms
   };
 
   const handleMouseLeave = () => {
-    if (enterDelay) {
-      clearTimeout(enterDelay);
-      setEnterDelay(null);
+    if (enterDelayRef.current) {
+      clearTimeout(enterDelayRef.current);
+      enterDelayRef.current = null;
     }
-    setLeaveDelay(
-      setTimeout(() => {
-        setExpanded(false);
-      }, 200)
-    );
+    leaveDelayRef.current = setTimeout(() => {
+      setExpanded(false);
+    }, 200);
   };
 
   const handlePbjsNamespaceChange = (event: SelectChangeEvent) => {
@@ -75,8 +78,8 @@ export const NavbarSelector = (): JSX.Element => {
             {pageContext &&
               Object.keys(pageContext.frames || {})
                 .filter((key) => !['downloading', 'syncState', 'initReqChainResult'].includes(key))
-                .map((frameId, index) => (
-                  <MenuItem value={frameId} key={index} sx={{ fontSize: '0.8rem', minHeight: 28 }}>
+                .map((frameId) => (
+                  <MenuItem value={frameId} key={frameId} sx={{ fontSize: '0.8rem', minHeight: 28 }}>
                     <em>{frameId}</em>
                   </MenuItem>
                 ))}
@@ -97,8 +100,8 @@ export const NavbarSelector = (): JSX.Element => {
             }}
           >
             {prebids &&
-              Object.keys(prebids).map((global, index) => (
-                <MenuItem key={index} value={global} sx={{ fontSize: '0.8rem', minHeight: 28 }}>
+              Object.keys(prebids).map((global) => (
+                <MenuItem key={global} value={global} sx={{ fontSize: '0.8rem', minHeight: 28 }}>
                   {global}
                 </MenuItem>
               ))}

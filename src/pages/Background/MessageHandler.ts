@@ -16,7 +16,7 @@ export class MessageHandler {
     ) => {
         const { type, payload } = message;
         const tabId = sender.tab?.id;
-        if (!tabId || !type || !payload || JSON.stringify(payload) === '{}') return;
+        if (!tabId || !type || !payload || Object.keys(payload).length === 0) return;
 
         const tabInfo = await this.tabContextService.getTabInfo(tabId);
 
@@ -27,8 +27,7 @@ export class MessageHandler {
             const { frameId, namespace } = payload;
             tabInfo[frameId] = tabInfo[frameId] || {};
             tabInfo[frameId]['prebids'] = tabInfo[frameId]['prebids'] || {};
-            // @ts-ignore: IPrebids type issue handling
-            tabInfo[frameId]['prebids'][namespace] = payload;
+            (tabInfo[frameId]['prebids'] as Record<string, IPrebidDetails>)[namespace] = payload;
         } else if (type === EVENTS.SEND_TCF_DETAILS_TO_BACKGROUND && this.isTcfDetails(payload)) {
             tabInfo['tcf'] = payload;
         }

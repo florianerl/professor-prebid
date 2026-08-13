@@ -11,8 +11,8 @@ const FloorsModuleComponent = (): JSX.Element | null => {
 
   return (
     <ExpandableTile icon={<BorderBottomIcon />} title="Floors Module" subtitle="Dynamic Floors" defaultMaxWidth={4} expandedMaxWidth={8}>
-      {Object.entries(floors).map(([key, value], i) => (
-        <RenderKeyValueComponent key={i} label={key} value={value} columns={[4, 12]} expanded />
+      {Object.entries(floors).map(([key, value]) => (
+        <RenderKeyValueComponent key={key} label={key} value={value} columns={[4, 12]} expanded />
       ))}
     </ExpandableTile>
   );

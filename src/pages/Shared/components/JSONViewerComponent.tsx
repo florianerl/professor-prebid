@@ -24,7 +24,12 @@ const JSONViewerComponent = ({
       objectSortKeys={sortKeys}
       indentWidth={indentWidth}
       stringEllipsis={collapseStringsAfterLength}
-      style={{ fontSize: '12px', fontFamily: 'roboto', padding: '15px', ...style }}
+      style={{
+        fontSize: '12px',
+        fontFamily: 'roboto',
+        padding: '15px',
+        ...style
+      }}
     />
   );
 };

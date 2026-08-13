@@ -39,10 +39,8 @@ const NaviOptions: React.FC<{}> = () => {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     chrome.storage.sync.set({ selectedPopUpNavItems }, () => {
-      // console.log('Selected Popup Items saved to Chrome storage: ', selectedPopUpNavItems);
     });
     chrome.storage.sync.set({ selectedPanelNavItems }, () => {
-      // console.log('Selected Panel Items saved to Chrome storage: ', selectedPanelNavItems);
     });
   };
 
@@ -50,7 +48,6 @@ const NaviOptions: React.FC<{}> = () => {
     setSelectedPopUpNavItems([]);
     setSelectedPanelNavItems([]);
     chrome.storage.sync.clear(() => {
-      // console.log('Selected Popup Items reset in Chrome storage');
       window.location.reload();
     });
   };

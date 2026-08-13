@@ -7,8 +7,8 @@ import { Config } from 'prebid.js';
 
 const RenderPrebidServerComponent = ({ s2sConfig }: { s2sConfig: Config['s2sConfig'] }) => (
   <ExpandableTile icon={<DnsIcon />} title="Prebid Server" subtitle="Server Config" defaultMaxWidth={4} expandedMaxWidth={8}>
-    {Object.entries(s2sConfig).map(([key, value], i) => (
-      <RenderKeyValueComponent key={i} label={key} value={value} columns={[4, 12]} expanded />
+    {Object.entries(s2sConfig).map(([key, value]) => (
+      <RenderKeyValueComponent key={key} label={key} value={value} columns={[4, 12]} expanded />
     ))}
   </ExpandableTile>
 );
@@ -17,7 +17,7 @@ const PrebidServerComponent = (): JSX.Element | null => {
   const { prebid } = useContext(AppStateContext);
   const { s2sConfig } = prebid.config;
   if (!s2sConfig) return null;
-  return <>{Array.isArray(s2sConfig) ? s2sConfig.map((config, i) => <RenderPrebidServerComponent s2sConfig={config} key={i} />) : <RenderPrebidServerComponent s2sConfig={s2sConfig} />}</>;
+  return <>{Array.isArray(s2sConfig) ? s2sConfig.map((config, i) => <RenderPrebidServerComponent s2sConfig={config} key={(config as any).accountId || (config as any).endpoint || i} />) : <RenderPrebidServerComponent s2sConfig={s2sConfig} />}</>;
 };
 
 export default PrebidServerComponent;

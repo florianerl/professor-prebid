@@ -72,7 +72,7 @@ const RuleComponent = ({ rule, ruleIndex, handleRulesFormChange, prebid, removeR
           {Object.keys(rule.when).map((key, matchRuleTargetsIndex) => (
             <MatchRule
               groupIndex={matchRuleTargetsIndex}
-              key={matchRuleTargetsIndex}
+              key={key}
               rule={rule}
               ruleKey={key}
               handleRulesFormChange={handleRulesFormChange}
@@ -91,7 +91,7 @@ const RuleComponent = ({ rule, ruleIndex, handleRulesFormChange, prebid, removeR
             if (key === 'native') {
               return Object.keys(rule.then[key]).map((k, i) => (
                 <ReplaceRule
-                  key={i}
+                  key={k}
                   rule={rule}
                   ruleKey={k}
                   groupIndex={index}
@@ -102,7 +102,7 @@ const RuleComponent = ({ rule, ruleIndex, handleRulesFormChange, prebid, removeR
             } else {
               return (
                 <ReplaceRule
-                  key={index}
+                  key={key}
                   rule={rule}
                   ruleKey={key}
                   groupIndex={index}

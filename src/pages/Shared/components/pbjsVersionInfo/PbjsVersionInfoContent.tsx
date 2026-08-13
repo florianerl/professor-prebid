@@ -260,7 +260,7 @@ const PbjsVersionInfoContent = ({ close }: PbjsVersionInfoContentProps): JSX.Ele
             </div>
             {showChangeLog &&
               prebidReleaseInfo.releasesSinceInstalledVersion.map((version: VersionProps) => (
-                <>
+                <React.Fragment key={version.tag_name || version.name as string}>
                   <hr />
                   <p>
                     <strong>Name:</strong> {version.name}
@@ -277,7 +277,7 @@ const PbjsVersionInfoContent = ({ close }: PbjsVersionInfoContentProps): JSX.Ele
                   <p>
                     <strong>Description:</strong> {parse(version.doc.body.innerHTML)}
                   </p>
-                </>
+                </React.Fragment>
               ))}
           </>
         ) : (

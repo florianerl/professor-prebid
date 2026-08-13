@@ -119,10 +119,10 @@ const InjectedApp = (): JSX.Element => {
 
   return (
     <React.Fragment>
-      {masks.map((mask, index) => {
+      {masks.map((mask) => {
         const container =
           document.getElementById(mask.elementId) || document.querySelector(`[id*="${mask.elementId}"]:not([id^=prpb-mask--container-])`);
-        return <AdOverlayPortal key={index} mask={mask} consoleState={consoleState} container={container} pbjsNameSpace={pbjsNameSpace} />;
+        return <AdOverlayPortal key={mask.elementId} mask={mask} consoleState={consoleState} container={container} pbjsNameSpace={pbjsNameSpace} />;
       })}
     </React.Fragment>
   );

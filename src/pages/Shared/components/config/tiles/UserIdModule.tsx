@@ -47,7 +47,7 @@ const UserIdModuleComponent = (): JSX.Element | null => {
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
             {userIds.map((userId, index) => (
               <Chip
-                key={index}
+                key={`${userId.name}-${index}`}
                 label={`${userId.name}${userId.storage?.type ? ` (${userId.storage.type})` : ''}`}
                 size="small"
                 variant="outlined"
@@ -60,7 +60,7 @@ const UserIdModuleComponent = (): JSX.Element | null => {
           {userIds.map((userId, index) => {
             if (!userId.params || Object.keys(userId.params).length === 0) return null;
             return (
-              <Box key={index} sx={{ mt: 0.75 }}>
+              <Box key={`${userId.name}-${index}`} sx={{ mt: 0.75 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary' }}>
                   {userId.name} Parameters:
                 </Typography>

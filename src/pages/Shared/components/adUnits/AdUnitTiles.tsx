@@ -141,8 +141,8 @@ export const AdServerTile = ({ adUnit, colCount }: { adUnit: AdUnit; colCount: n
               )}
               {sizes?.length > 0 && (
                 <TileSection label="Sizes">
-                  {sizes.map((sizeStr, index) => (
-                    <Chip size="small" variant="outlined" color="primary" label={sizeStr} key={index} />
+                  {sizes.map((sizeStr) => (
+                    <Chip size="small" variant="outlined" color="primary" label={sizeStr} key={sizeStr} />
                   ))}
                 </TileSection>
               )}
@@ -151,14 +151,14 @@ export const AdServerTile = ({ adUnit, colCount }: { adUnit: AdUnit; colCount: n
                   {targeting
                     .filter(({ value }) => value)
                     .sort((a, b) => (a.key > b.key ? 1 : -1))
-                    .map(({ key, value }, index) => (
-                      <Chip size="small" variant="outlined" color="primary" label={`${key}: ${value}`} key={index} />
+                    .map(({ key, value }) => (
+                      <Chip size="small" variant="outlined" color="primary" label={`${key}: ${value}`} key={key} />
                     ))}
                   {targeting
                     .filter(({ value }) => !value)
                     .sort((a, b) => (a.key > b.key ? 1 : -1))
-                    .map(({ key, value }, index) => (
-                      <Chip size="small" variant="outlined" color="primary" label={`${key}: ${value}`} key={index} />
+                    .map(({ key, value }) => (
+                      <Chip size="small" variant="outlined" color="primary" label={`${key}: ${value}`} key={key} />
                     ))}
                 </TileSection>
               )}
@@ -235,7 +235,7 @@ export const BiddersTile = ({ adUnit, colCount }: { adUnit: AdUnit; colCount: nu
           <TileSection label="Bids">
             {adUnit?.bids?.map(({ bidder }, index, arr) => {
               const { bidReceived, bidRequested, isWinner, isRendered, label } = getBidStatus(bidder);
-              return <BidChipComponent key={index} input={arr[index]} label={label} isWinner={isWinner} bidRequested={bidRequested} bidReceived={bidReceived} isRendered={isRendered} />;
+              return <BidChipComponent key={bidder} input={arr[index]} label={label} isWinner={isWinner} bidRequested={bidRequested} bidReceived={bidReceived} isRendered={isRendered} />;
             })}
           </TileSection>
         }
@@ -270,8 +270,8 @@ export const MediaTypesTile = ({ adUnit, colCount }: { adUnit: AdUnit; colCount:
               <TileSection label="Banner Sizes">
                 {mediaTypes.banner.sizes
                   .filter((size) => Array.isArray(size))
-                  .map(([w, h], i) => (
-                    <MediaTypeChipComponent key={i} input={mediaTypes.banner || mediaTypes.native || mediaTypes.video} label={`${w}x${h}`} isWinner={allWinningBids.find(({ args }) => args.adUnitCode === adUnitCode)?.args?.size === `${w}x${h}`} />
+                  .map(([w, h]) => (
+                    <MediaTypeChipComponent key={`${w}x${h}`} input={mediaTypes.banner || mediaTypes.native || mediaTypes.video} label={`${w}x${h}`} isWinner={allWinningBids.find(({ args }) => args.adUnitCode === adUnitCode)?.args?.size === `${w}x${h}`} />
                   ))}
               </TileSection>
             )}

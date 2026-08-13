@@ -29,27 +29,27 @@ import OtherConfigsComponent from './tiles/OtherConfigsComponent';
 
 export const tileHeight = 255;
 
+const tiles = [
+  InstalledModulesComponent,
+  PriceGranularityComponent,
+  PrebidConfigComponent,
+  BidderSettingsComponent,
+  PrebidServerComponent,
+  PrivacyComponent,
+  UserIdModule,
+  FloorsModuleComponent,
+  GptPreAuctionComponent,
+  UserSyncComponent,
+  AnalyticsComponent,
+  FirstPartyDataComponent,
+  CurrencyComponent,
+  RtdComponent,
+  OtherConfigsComponent,
+];
+
 const ConfigComponent = (): JSX.Element => {
   const { prebid } = useContext(AppStateContext);
   const [query, setQuery] = useState('');
-
-  const tiles = [
-    InstalledModulesComponent,
-    PriceGranularityComponent,
-    PrebidConfigComponent,
-    BidderSettingsComponent,
-    PrebidServerComponent,
-    PrivacyComponent,
-    UserIdModule,
-    FloorsModuleComponent,
-    GptPreAuctionComponent,
-    UserSyncComponent,
-    AnalyticsComponent,
-    FirstPartyDataComponent,
-    CurrencyComponent,
-    RtdComponent,
-    OtherConfigsComponent,
-  ];
 
   const fullConfig = (prebid?.config || {}) as Record<string, any>;
   const fieldKeys = useMemo(() => Object.keys(fullConfig), [fullConfig]);
@@ -107,7 +107,7 @@ const ConfigComponent = (): JSX.Element => {
       ) : (
         <Grid size={{ xs: 12 }} sx={{ columnCount: { xs: 1, sm: 2, md: 3 }, columnGap: '4px', '& > *': { width: '100% !important', maxWidth: '100% !important' } }}>
           {tiles.map((Tile, index) => (
-            <ErrorBoundary key={index} FallbackComponent={ErrorFallback}>
+            <ErrorBoundary key={Tile.name || index} FallbackComponent={ErrorFallback}>
               <Tile />
             </ErrorBoundary>
           ))}

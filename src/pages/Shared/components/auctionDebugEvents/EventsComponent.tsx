@@ -249,7 +249,7 @@ const EventsComponent = (): JSX.Element => {
       ) : (
         <Grid size={{ xs: 12 }} sx={{ mt: 0.5 }}>
           {sortedEvents.map((event, index) => (
-            <EventRowComponent key={index} event={event} index={index} />
+            <EventRowComponent key={`${event.eventType}-${event.elapsedTime}-${index}`} event={event} index={index} />
           ))}
         </Grid>
       )}

@@ -207,11 +207,18 @@ describe('Shared Utils', () => {
                 click: mockClick,
             } as any);
 
+            const mockCreateObjectURL = vi.fn().mockReturnValue('blob:something');
+            const mockRevokeObjectURL = vi.fn();
+            global.URL.createObjectURL = mockCreateObjectURL;
+            global.URL.revokeObjectURL = mockRevokeObjectURL;
+
             download({ test: true }, 'myfile');
 
-            expect(mockSetAttribute).toHaveBeenCalledWith('href', expect.stringContaining('data:application/json'));
+            expect(mockSetAttribute).toHaveBeenCalledWith('href', 'blob:something');
             expect(mockSetAttribute).toHaveBeenCalledWith('download', expect.stringContaining('myfile'));
             expect(mockClick).toHaveBeenCalled();
+            expect(mockCreateObjectURL).toHaveBeenCalled();
+            expect(mockRevokeObjectURL).toHaveBeenCalled();
         });
     });
 });

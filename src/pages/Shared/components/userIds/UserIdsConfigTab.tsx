@@ -44,7 +44,7 @@ const ConfigTab = ({ searchQuery = '' }: { searchQuery?: string }): JSX.Element 
         const params = userId?.params;
 
         return (
-          <Grid key={index} size={{ xs: 12 }}>
+          <Grid key={userId?.name || index} size={{ xs: 12 }}>
             <Card elevation={1} sx={{ border: '1px solid', borderColor: 'divider', transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 2 } }}>
               <CardContent sx={{ p: 1.25, '&:last-child': { pb: 1.25 } }}>
                 {/* Header Bar */}
@@ -84,8 +84,8 @@ const ConfigTab = ({ searchQuery = '' }: { searchQuery?: string }): JSX.Element 
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                       Allowed Bidders:
                     </Typography>
-                    {bidders.map((b, bIdx) => (
-                      <Chip key={bIdx} label={b} size="small" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
+                    {bidders.map((b) => (
+                      <Chip key={b} label={b} size="small" variant="outlined" sx={{ height: 18, fontSize: '0.65rem' }} />
                     ))}
                   </Box>
                 )}

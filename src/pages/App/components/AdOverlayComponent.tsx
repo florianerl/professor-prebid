@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
+import { alpha } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import { theme } from '../../../theme/theme';
 import { ThemeProvider } from '@mui/material';
@@ -23,9 +24,17 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
   const [expanded, setExpanded] = useState<boolean>(true);
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const [slot, setSlot] = React.useState<googletag.Slot>(null);
-  const cache = createCache({ key: 'css', container: contentRef?.contentWindow?.document?.head, prepend: true });
+  const cache = React.useMemo(() => createCache({ key: 'css', container: contentRef?.contentWindow?.document?.head, prepend: true }), [contentRef]);
   const openInPopOver = () => {
-    setAnchorEl(window.top.document.body);
+    let bodyContainer = window.document.body;
+    try {
+      if (window.top && window.top.document) {
+        bodyContainer = window.top.document.body;
+      }
+    } catch (e) {
+      // Ignore cross-origin error, fallback to window.document
+    }
+    setAnchorEl(bodyContainer);
   };
   useEffect(() => {
     if (window.parent.googletag && typeof window.parent.googletag?.pubads === 'function') {
@@ -51,104 +60,96 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
           sx={{
             height: expanded ? '100%' : 'auto',
             width: '100%',
-            opacity: 0.9,
-            backgroundColor: 'primary.light',
+            maxWidth: '100%',
+            backgroundColor: (theme) => alpha(theme.palette.primary.light, expanded ? 0.9 : 0.95),
             color: 'text.primary',
-            padding: 0.5,
+            padding: 0.75,
             boxSizing: 'border-box',
-            flexGrow: 1,
-            '&:hover': { opacity: 1 },
+            border: '1px solid',
+            borderBottom: expanded ? '1px solid' : 'none',
+            borderColor: (theme) => alpha(theme.palette.primary.main, 0.3),
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            zIndex: 999999,
+            transition: 'background-color 0.2s',
           }}
         >
-          <Grid container alignItems="flex-start" ref={gridRef}>
-            <Grid container justifyContent="space-between" alignItems="flex-start">
-              <Grid size={{ xs: 7, lg: 3.5, xl: 1.5 }}>
-                <Paper elevation={1} sx={{ p: 0.25 }}>
-                  <Typography
-                    variant="h4"
-                    sx={{
-                      wordWrap: 'break-word',
-                      textAlign: 'left',
-                    }}
-                  >
-                    {elementId}
-                  </Typography>
-                </Paper>
+          <Grid container alignItems="flex-start" ref={gridRef} sx={{ flexWrap: 'nowrap' }}>
+            <Grid container justifyContent="space-between" alignItems="center" sx={{ width: '100%', flexWrap: 'nowrap' }}>
+              <Grid sx={{ display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main', whiteSpace: 'nowrap' }}>
+                  {elementId}
+                </Typography>
               </Grid>
               <Grid
                 sx={{
                   display: 'flex',
                   flexDirection: 'row',
                   justifyContent: 'flex-end',
-                  alignItems: 'flex-end',
+                  alignItems: 'center',
                   color: 'text.secondary',
+                  flexShrink: 0
                 }}
-                size={4}
               >
-                <IconButton sx={{ p: 0 }} onClick={() => setExpanded(!expanded)}>
-                  {expanded && <MinimizeIcon sx={{ fontSize: 14 }} />}
-                  {!expanded && <MaximizeIcon sx={{ fontSize: 14 }} />}
+                <IconButton sx={{ p: 0.25 }} onClick={() => setExpanded(!expanded)}>
+                  {expanded ? <MinimizeIcon sx={{ fontSize: 16 }} /> : <MaximizeIcon sx={{ fontSize: 16 }} />}
                 </IconButton>
 
-                <IconButton sx={{ p: 0 }} onClick={openInPopOver}>
-                  <OpenInFullIcon sx={{ fontSize: 14 }} />
+                <IconButton sx={{ p: 0.25 }} onClick={openInPopOver}>
+                  <OpenInFullIcon sx={{ fontSize: 16 }} />
                 </IconButton>
 
-                {window.parent.googletag && typeof window.parent.googletag?.pubads === 'function' && (
-                  <IconButton
-                    sx={{ p: 0 }}
-                    onClick={() => {
-                      window.parent.googletag.pubads().refresh([slot]);
-                    }}
-                  >
-                    <Refresh sx={{ fontSize: 14 }} />
-                  </IconButton>
-                )}
+              {window.parent.googletag && typeof window.parent.googletag?.pubads === 'function' && (
+                <IconButton
+                  sx={{ p: 0.25 }}
+                  onClick={() => {
+                    window.parent.googletag.pubads().refresh([slot]);
+                  }}
+                >
+                  <Refresh sx={{ fontSize: 16 }} />
+                </IconButton>
+              )}
 
-                <IconButton sx={{ p: 0 }} onClick={closePortal}>
-                  <Close sx={{ fontSize: 14 }} />
+                <IconButton sx={{ p: 0.25 }} onClick={closePortal}>
+                  <Close sx={{ fontSize: 16 }} />
                 </IconButton>
               </Grid>
             </Grid>
+            </Grid>
+            
             {expanded && (currency || winningBidder || winningCPM || timeToRespond || elementId) && (
-              <Grid container>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1, width: '100%' }}>
                 {winningCPM && (
-                  <Grid>
-                    <Paper elevation={1} sx={{ p: 0.5 }}>
-                      <Typography>
-                        <strong>CPM: </strong>
-                        {winningCPM} {currency}
-                      </Typography>
-                    </Paper>
-                  </Grid>
+                  <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.5)', border: '1px solid', borderColor: 'primary.light' }}>
+                    <Typography variant="caption" sx={{ color: 'text.primary' }}>
+                      <strong style={{ color: '#f99b0c' }}>CPM: </strong>
+                      {winningCPM} {currency}
+                    </Typography>
+                  </Box>
                 )}
                 {winningBidder && (
-                  <Grid>
-                    <Paper elevation={1} sx={{ p: 0.5 }}>
-                      <Typography>
-                        <strong>Bidder: </strong>
-                        {winningBidder}
-                      </Typography>
-                    </Paper>
-                  </Grid>
+                  <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.5)', border: '1px solid', borderColor: 'primary.light' }}>
+                    <Typography variant="caption" sx={{ color: 'text.primary' }}>
+                      <strong style={{ color: '#f99b0c' }}>Bidder: </strong>
+                      {winningBidder}
+                    </Typography>
+                  </Box>
                 )}
                 {timeToRespond && (
-                  <Grid>
-                    <Paper elevation={1} sx={{ p: 0.5 }}>
-                      <Typography>
-                        <strong>TTR: </strong>
-                        {timeToRespond}ms
-                      </Typography>
-                    </Paper>
-                  </Grid>
+                  <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.5)', border: '1px solid', borderColor: 'primary.light' }}>
+                    <Typography variant="caption" sx={{ color: 'text.primary' }}>
+                      <strong style={{ color: '#f99b0c' }}>TTR: </strong>
+                      {timeToRespond}ms
+                    </Typography>
+                  </Box>
                 )}
                 {elementId && <GamDetailsComponent elementId={elementId} inPopOver={false} truncate={truncate} />}
-              </Grid>
+              </Box>
             )}
-          </Grid>
         </Box>
       </CacheProvider>
     </ThemeProvider>

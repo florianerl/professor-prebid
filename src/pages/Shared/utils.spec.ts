@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
     decycle, getTabId, conditionalPluralization, detectIframe, generateUniqueId,
     createRangeArray, getMinAndMaxNumber, EventBus, sendChromeTabsMessage,
@@ -40,11 +40,13 @@ describe('Shared Utils', () => {
             expect(result.items).toEqual([1, 2, 3]);
         });
 
-        it('handles null values', () => {
-            const obj = { a: null, b: 1 };
+        it('handles null and non-object values', () => {
+            const obj = { a: null, b: 1, c: 'str', d: true };
             const result = JSON.parse(decycle(obj));
             expect(result.a).toBeNull();
             expect(result.b).toBe(1);
+            expect(result.c).toBe('str');
+            expect(result.d).toBe(true);
         });
     });
 
@@ -61,11 +63,34 @@ describe('Shared Utils', () => {
         it('returns "s" for 3+ items', () => {
             expect(conditionalPluralization([1, 2, 3])).toBe('s');
         });
+        it('returns empty string for null or undefined input', () => {
+            expect(conditionalPluralization(null as any)).toBe('');
+            expect(conditionalPluralization(undefined as any)).toBe('');
+        });
     });
 
     describe('detectIframe', () => {
         it('returns false when window.self === window.top', () => {
             expect(detectIframe()).toBe(false);
+        });
+
+        it('returns true when window.self !== window.top', () => {
+            const originalTop = window.top;
+            Object.defineProperty(window, 'top', { value: {}, writable: true, configurable: true });
+            expect(detectIframe()).toBe(true);
+            Object.defineProperty(window, 'top', { value: originalTop, writable: true, configurable: true });
+        });
+
+        it('returns true when accessing window.top throws error', () => {
+            const originalTop = window.top;
+            Object.defineProperty(window, 'top', {
+                get: () => {
+                    throw new Error('Cross-origin frame error');
+                },
+                configurable: true,
+            });
+            expect(detectIframe()).toBe(true);
+            Object.defineProperty(window, 'top', { value: originalTop, writable: true, configurable: true });
         });
     });
 
@@ -97,8 +122,8 @@ describe('Shared Utils', () => {
             expect(result).toContain(5);
         });
 
-        it('returns correct number of elements', () => {
-            const result = createRangeArray(0, 10, 3, 0);
+        it('returns correct number of elements with offsetRight', () => {
+            const result = createRangeArray(0, 10, 3, 2);
             expect(result).toContain(0);
             expect(result).toContain(3);
             expect(result).toContain(6);
@@ -108,7 +133,7 @@ describe('Shared Utils', () => {
     });
 
     describe('getMinAndMaxNumber', () => {
-        it('returns min and max of array', () => {
+        it('returns min and max of array with positive numbers', () => {
             const result = getMinAndMaxNumber([5, 2, 8, 1, 9]);
             expect(result.min).toBe(1);
             expect(result.max).toBe(9);
@@ -124,6 +149,12 @@ describe('Shared Utils', () => {
             const result = getMinAndMaxNumber([]);
             expect(result.min).toBe(0);
             expect(result.max).toBe(0);
+        });
+
+        it('handles negative numbers', () => {
+            const result = getMinAndMaxNumber([-10, -5, -20]);
+            expect(result.min).toBe(-20);
+            expect(result.max).toBe(-5);
         });
     });
 
@@ -150,14 +181,23 @@ describe('Shared Utils', () => {
             const id = await getTabId();
             expect(id).toBe(456);
         });
+
+        it('returns undefined if chrome.tabs.query returns empty tabs array', async () => {
+            global.chrome.devtools.inspectedWindow.tabId = undefined;
+            (global.chrome.tabs.query as any).mockImplementation((_query: any, cb: any) => {
+                cb([]);
+            });
+            const id = await getTabId();
+            expect(id).toBeUndefined();
+        });
     });
 
     describe('EventBus', () => {
-        it('emits custom event to document', () => {
+        it('emits custom event to top window document', () => {
             const mockDispatch = vi.fn();
             const originalTop = window.top;
             Object.defineProperty(window, 'top', { value: { document: { dispatchEvent: mockDispatch } }, writable: true, configurable: true });
-            
+
             vi.spyOn(document, 'querySelectorAll').mockReturnValue([] as any);
 
             EventBus.emit('TEST_EVENT', { data: 1 });
@@ -169,6 +209,81 @@ describe('Shared Utils', () => {
             expect(eventArg.detail).toEqual({ data: 1 });
 
             Object.defineProperty(window, 'top', { value: originalTop, writable: true, configurable: true });
+        });
+
+        it('falls back to window.document if window.top throws error', () => {
+            const mockDispatch = vi.fn();
+            const originalTop = window.top;
+            Object.defineProperty(window, 'top', {
+                get: () => {
+                    throw new Error('Cross origin');
+                },
+                configurable: true,
+            });
+            const spyDocumentDispatch = vi.spyOn(window.document, 'dispatchEvent').mockImplementation(mockDispatch);
+
+            vi.spyOn(document, 'querySelectorAll').mockReturnValue([] as any);
+
+            EventBus.emit('TEST_EVENT_FALLBACK', { data: 2 });
+
+            expect(spyDocumentDispatch).toHaveBeenCalled();
+            Object.defineProperty(window, 'top', { value: originalTop, writable: true, configurable: true });
+            spyDocumentDispatch.mockRestore();
+        });
+
+        it('dispatches events to matching and handles cross-origin iframe errors', () => {
+            const iframeDispatch = vi.fn();
+            const normalIframe: any = {
+                contentDocument: { dispatchEvent: iframeDispatch },
+            };
+            const errorIframe: any = {};
+            Object.defineProperty(errorIframe, 'contentDocument', {
+                get: () => {
+                    throw new Error('Frame error');
+                },
+            });
+
+            vi.spyOn(document, 'querySelectorAll').mockReturnValue([normalIframe, errorIframe] as any);
+
+            EventBus.emit('IFRAME_EVENT', { payload: 'ok' });
+
+            expect(iframeDispatch).toHaveBeenCalled();
+        });
+
+        it('on registers listener and handles callback and cleanup', () => {
+            const callback = vi.fn();
+            const cleanup = EventBus.on('CUSTOM_TYPE', callback);
+
+            const eventName = 'PROF_PREBID_MESSAGE_CUSTOM_TYPE';
+            const customEvent = new CustomEvent(eventName, { detail: { info: 'hello' } });
+
+            document.dispatchEvent(customEvent);
+            expect(callback).toHaveBeenCalledWith({ info: 'hello' });
+
+            cleanup();
+            callback.mockClear();
+            document.dispatchEvent(customEvent);
+            expect(callback).not.toHaveBeenCalled();
+        });
+
+        it('onAny registers listeners for multiple events and handles cleanup', () => {
+            const callback = vi.fn();
+            const cleanup = EventBus.onAny(callback, ['EVT1', 'EVT2']);
+
+            const event1 = new CustomEvent('PROF_PREBID_MESSAGE_EVT1', { detail: { val: 1 } });
+            const event2 = new CustomEvent('PROF_PREBID_MESSAGE_EVT2', { detail: { val: 2 } });
+
+            document.dispatchEvent(event1);
+            expect(callback).toHaveBeenCalledWith('EVT1', { val: 1 });
+
+            document.dispatchEvent(event2);
+            expect(callback).toHaveBeenCalledWith('EVT2', { val: 2 });
+
+            cleanup();
+            callback.mockClear();
+            document.dispatchEvent(event1);
+            document.dispatchEvent(event2);
+            expect(callback).not.toHaveBeenCalled();
         });
     });
 
@@ -222,4 +337,5 @@ describe('Shared Utils', () => {
         });
     });
 });
+
 

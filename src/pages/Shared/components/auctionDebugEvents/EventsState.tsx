@@ -3,7 +3,7 @@ import StateContext from '../../contexts/appStateContext';
 import { IPrebidEvent } from '../../../Injected/prebid';
 import { createQueryEngine, distinct } from '../autocomplete/utils';
 
-const EVENT_FIELD_MAP = {
+export const EVENT_FIELD_MAP = {
   eventtype: (e: any) => e?.eventType,
   elapsedtime: (e: any) => parseInt(e?.elapsedTime),
   argstype: (e: any) => e?.args?.type,

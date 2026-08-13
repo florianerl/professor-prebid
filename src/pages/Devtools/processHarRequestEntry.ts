@@ -210,11 +210,13 @@ const handleInitiatorUrl = (
     resource: resourceObj
 ) => {
     initReqChainObj[harEntryRequestUrl] = resource;
-    initReqChainObj[currentRootUrl].initiated.push({
-        message: `${harEntryRequestUrl} was initiated by the root URL, however the root URL will no longer be visible in the initiator stack for any subsequent resources initiated/redirected to from ${harEntryRequestUrl} because this resource was parsed by the root URL.  Instead all subsequent resources of this type will appear under a new object key under ${harEntryRequestUrl} (Scroll below to view).`,
-        url: harEntryRequestUrl,
-        initiatorDetails: har_entry._initiator,
-    });
+    if (initReqChainObj[currentRootUrl] && Array.isArray(initReqChainObj[currentRootUrl].initiated)) {
+        initReqChainObj[currentRootUrl].initiated.push({
+            message: `${harEntryRequestUrl} was initiated by the root URL, however the root URL will no longer be visible in the initiator stack for any subsequent resources initiated/redirected to from ${harEntryRequestUrl} because this resource was parsed by the root URL.  Instead all subsequent resources of this type will appear under a new object key under ${harEntryRequestUrl} (Scroll below to view).`,
+            url: harEntryRequestUrl,
+            initiatorDetails: har_entry._initiator,
+        });
+    }
 };
 const processHarRequestEntry = async (
     har_entry: any,

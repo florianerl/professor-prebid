@@ -7,14 +7,14 @@ export class BadgeService {
 
         let prebidCount = 0;
         if (tabInfo && typeof tabInfo === 'object') {
-            Object.values(tabInfo || {}).forEach((frameInfo) => {
-                if (frameInfo.prebids) {
+            Object.values(tabInfo).forEach((frameInfo) => {
+                if (frameInfo?.prebids) {
                     prebidCount += Object.keys(frameInfo.prebids).length;
                 }
             });
         }
 
-        if (tabId && prebidCount > 0) {
+        if (prebidCount > 0) {
             chrome.action.setBadgeBackgroundColor({ color: '#1ba9e1', tabId: activeTabId });
             chrome.action.setBadgeText({ text: `✓`, tabId: activeTabId });
         } else {

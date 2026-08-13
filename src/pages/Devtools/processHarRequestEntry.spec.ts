@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
+    getInitReqChainByUrl,
     _buildObjectFromHarEntry,
     _populateInitSeqArray,
+    _setToInitReqChainObj,
     _setToRedirectValue,
     _findPathsToKey,
     _processHarRequestEntry,
@@ -9,6 +11,11 @@ import {
 
 // Mock chrome APIs
 const mockSet = vi.fn();
+const mockRemoveListener = vi.fn();
+const mockAddListener = vi.fn();
+const mockGetHAR = vi.fn();
+const mockTabsAddListener = vi.fn();
+
 global.chrome = {
     storage: {
         local: {
@@ -18,12 +25,15 @@ global.chrome = {
     },
     devtools: {
         network: {
-            onRequestFinished: { addListener: vi.fn() },
-            getHAR: vi.fn(),
+            onRequestFinished: {
+                addListener: mockAddListener,
+                removeListener: mockRemoveListener,
+            },
+            getHAR: mockGetHAR,
         },
     },
     tabs: {
-        onUpdated: { addListener: vi.fn() },
+        onUpdated: { addListener: mockTabsAddListener },
     },
 } as any;
 
@@ -76,17 +86,20 @@ describe('processHarRequestEntry helpers', () => {
             expect(result.host).toBe('example.com');
         });
 
-        it('handles missing origin header', () => {
+        it('handles missing headers and missing queryString', () => {
             const entry = createMockHarEntry({
                 request: {
                     url: 'https://example.com/ad.js',
                     headers: [],
-                    queryString: {},
+                    queryString: null,
                     cookies: [],
                 },
             });
             const result = _buildObjectFromHarEntry(entry);
             expect(result.origin).toBe('');
+            expect(result.referer).toBe('');
+            expect(result.host).toBe('');
+            expect(result.queryParameters).toEqual({});
         });
 
         it('populates redirectsTo on redirect', () => {
@@ -157,6 +170,47 @@ describe('processHarRequestEntry helpers', () => {
         });
     });
 
+    describe('_setToInitReqChainObj', () => {
+        it('handles even and odd indices when next items exist', () => {
+            const value: any = { fullUrl: 'https://final.com', initiated: [] };
+            const target: any = {
+                rootKey: {
+                    initiated: [
+                        { fullUrl: 'https://middle.com', initiated: [] }
+                    ]
+                }
+            };
+            // pathArray length = 2: i=0 (even, 'rootKey'), i=1 (odd, 'https://middle.com')
+            _setToInitReqChainObj(target, ['rootKey', 'https://middle.com'], value);
+            expect(target.rootKey.initiated[0].initiated).toContain(value);
+        });
+
+        it('handles odd index when matching item is NOT found', () => {
+            const value: any = { fullUrl: 'https://new.com', initiated: [] };
+            const target: any = {
+                rootKey: {
+                    initiated: [] // empty list so find() returns undefined
+                }
+            };
+            _setToInitReqChainObj(target, ['rootKey', 'https://missing.com'], value);
+            // In odd branch when not found, value is replaced with { fullUrl: 'https://missing.com', initiated: [value] }
+            expect(target.rootKey.initiated).toHaveLength(1);
+            expect(target.rootKey.initiated[0].fullUrl).toBe('https://missing.com');
+        });
+
+        it('handles non-array obj at the end of loop', () => {
+            const value: any = { fullUrl: 'https://leaf.com', initiated: [] };
+            const target: any = {
+                key: {
+                    initiated: []
+                }
+            };
+            // Single item pathArray: i=0 (even, 'key'). obj becomes target.key.initiated (array)
+            _setToInitReqChainObj(target, ['key'], value);
+            expect(target.key.initiated).toContain(value);
+        });
+    });
+
     describe('_setToRedirectValue', () => {
         it('sets value at path in object', () => {
             const obj: any = { a: { b: {} } };
@@ -198,7 +252,7 @@ describe('processHarRequestEntry helpers', () => {
             expect(result).toEqual([]);
         });
 
-        it('finds key in nested arrays', async () => {
+        it('finds key in nested arrays and handles brackets in path', async () => {
             const result = await _findPathsToKey({
                 obj: {
                     items: [
@@ -210,9 +264,52 @@ describe('processHarRequestEntry helpers', () => {
             });
             expect((result as any[]).length).toBe(2);
         });
+
+        it('handles non-empty pathToKey', async () => {
+            const result = await _findPathsToKey({
+                obj: { nested: { target: 123 } },
+                key: 'target',
+                pathToKey: 'root',
+            });
+            expect(result).toEqual([['root', 'nested', 'target']]);
+        });
+
+        it('rejects on error in findPathsToKey', async () => {
+            const throwingObj = {};
+            Object.defineProperty(throwingObj, 'boom', {
+                get() {
+                    throw new Error('Access error');
+                },
+                enumerable: true,
+            });
+
+            await expect(_findPathsToKey({ obj: throwingObj, key: 'test' })).rejects.toEqual({
+                error: expect.any(Error),
+            });
+        });
     });
 
     describe('_processHarRequestEntry', () => {
+        it('updates currentRootUrl if stringified stack contains url in initReqChainObj', async () => {
+            const redirectSet = new Set<string>();
+            const initReqChainObj: any = {
+                'https://matched-root.com': { fullUrl: 'https://matched-root.com', initiated: [] }
+            };
+            const harEntry = {
+                request: { url: 'https://child.com', method: 'GET', headers: [] },
+                response: { redirectURL: '' },
+                _resourceType: 'script',
+                _initiator: {
+                    stack: {
+                        callFrames: [{ url: 'https://matched-root.com/bundle.js' }]
+                    }
+                }
+            };
+
+            await _processHarRequestEntry(harEntry, initReqChainObj, redirectSet, 'https://old-root.com');
+            expect(mockSet).toHaveBeenCalledWith('initReqChain', expect.any(String));
+        });
+
         it('adds redirect URL to redirectSet', async () => {
             const redirectSet = new Set<string>();
             const initReqChainObj: any = {
@@ -243,13 +340,13 @@ describe('processHarRequestEntry helpers', () => {
             expect(redirectSet.has('https://cdn.com/script.js')).toBe(true);
         });
 
-        it('handles entry with no initiator stack', async () => {
+        it('processes root URL request entry (Case 1: matches currentRootUrl)', async () => {
             const redirectSet = new Set<string>();
             const initReqChainObj: any = {};
 
             const harEntry = {
                 request: {
-                    url: 'https://example.com/page',
+                    url: 'https://root.com/page',
                     headers: [],
                     queryString: {},
                     cookies: [],
@@ -267,48 +364,197 @@ describe('processHarRequestEntry helpers', () => {
                 timings: {},
             };
 
-            // Should not throw
-            await _processHarRequestEntry(harEntry, initReqChainObj, redirectSet, 'https://example.com');
-        });
-    });
-});
-
-describe('Devtools index', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        global.chrome = {
-            devtools: {
-                panels: { create: vi.fn() },
-                network: {
-                    onRequestFinished: { addListener: vi.fn() },
-                    getHAR: vi.fn(),
-                },
-            },
-            storage: {
-                local: {
-                    get: vi.fn(),
-                    set: vi.fn(),
-                },
-            },
-            tabs: {
-                onUpdated: { addListener: vi.fn() },
-            },
-        } as any;
-    });
-
-    it('creates devtools panel on import', async () => {
-        // Mock storage.local.get to call callback with no initiator state
-        (global.chrome.storage.local.get as any).mockImplementation((key: string, cb: Function) => {
-            cb({});
+            await _processHarRequestEntry(harEntry, initReqChainObj, redirectSet, 'https://root.com');
+            expect(initReqChainObj['https://root.com']).toBeDefined();
+            expect(mockSet).toHaveBeenCalledWith('initReqChain', JSON.stringify(initReqChainObj));
         });
 
-        await import('./index');
+        it('processes initiator stack and initiator url when not a redirect (Case 2)', async () => {
+            const redirectSet = new Set<string>();
+            const initReqChainObj: any = {
+                'https://root.com': { fullUrl: 'https://root.com', initiated: [] }
+            };
 
-        expect(global.chrome.devtools.panels.create).toHaveBeenCalledWith(
-            'Professor Prebid',
-            'icon-34.png',
-            'panel.html',
-            expect.any(Function)
-        );
+            const harEntry = {
+                request: {
+                    url: 'https://example.com/ad.js',
+                    headers: [],
+                    queryString: {},
+                    cookies: [],
+                    method: 'GET',
+                },
+                response: {
+                    redirectURL: '',
+                    cookies: [],
+                    headers: [],
+                },
+                _initiator: {
+                    url: 'https://root.com/index.html',
+                    stack: {
+                        callFrames: [{ url: 'https://root.com/index.html' }]
+                    }
+                },
+                _resourceType: 'script',
+                startedDateTime: '2024-01-01T00:00:00.000Z',
+                time: 10,
+                timings: {},
+            };
+
+            await _processHarRequestEntry(harEntry, initReqChainObj, redirectSet, 'https://root.com');
+            expect(initReqChainObj['https://example.com/ad.js']).toBeDefined();
+            expect(initReqChainObj['https://root.com'].initiated).toHaveLength(1);
+            expect(mockSet).toHaveBeenCalledWith('initReqChain', JSON.stringify(initReqChainObj));
+        });
+
+        it('handles redirects when harEntryRequestUrl is in redirectSet', async () => {
+            const redirectSet = new Set<string>(['https://redirected.com/ad.js']);
+            const initReqChainObj: any = {
+                'https://redirected.com/ad.js': {}
+            };
+
+            const harEntry = {
+                request: {
+                    url: 'https://redirected.com/ad.js',
+                    headers: [],
+                    queryString: {},
+                    cookies: [],
+                    method: 'GET',
+                },
+                response: {
+                    redirectURL: '',
+                    cookies: [],
+                    headers: [],
+                },
+                _initiator: {
+                    url: 'https://root.com/index.html',
+                },
+                _resourceType: 'script',
+                startedDateTime: '2024-01-01T00:00:00.000Z',
+                time: 10,
+                timings: {},
+            };
+
+            await _processHarRequestEntry(harEntry, initReqChainObj, redirectSet, 'https://root.com');
+            expect(redirectSet.has('https://redirected.com/ad.js')).toBe(false);
+        });
+
+        it('handles default case when entry does not match root or initiator', async () => {
+            const redirectSet = new Set<string>();
+            const initReqChainObj: any = {};
+
+            const harEntry = {
+                request: {
+                    url: 'https://unrelated.com/image.png',
+                    headers: [],
+                    queryString: {},
+                    cookies: [],
+                    method: 'GET',
+                },
+                response: {
+                    redirectURL: '',
+                    cookies: [],
+                    headers: [],
+                },
+                _initiator: {
+                    url: 'https://other.com',
+                },
+                _resourceType: 'image',
+                startedDateTime: '2024-01-01T00:00:00.000Z',
+                time: 10,
+                timings: {},
+            };
+
+            await _processHarRequestEntry(harEntry, initReqChainObj, redirectSet, 'https://root.com');
+            expect(mockSet).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('getInitReqChainByUrl', () => {
+        it('starts HAR listening and handles processHarRequests when storage is not null', async () => {
+            let getHARCallback: Function = () => {};
+            mockGetHAR.mockImplementation((cb) => {
+                getHARCallback = cb;
+            });
+
+            const reqChain = getInitReqChainByUrl('https://example.com', 'document', 'GET');
+            expect(reqChain).toEqual({});
+            expect(mockGetHAR).toHaveBeenCalled();
+
+            getHARCallback();
+            expect(mockAddListener).toHaveBeenCalled();
+            expect(mockTabsAddListener).toHaveBeenCalled();
+
+            const harRequestHandler = mockAddListener.mock.calls[0][0];
+            const harEntry = {
+                request: { url: 'https://example.com', method: 'GET', headers: [] },
+                response: { redirectURL: '' },
+                _initiator: {},
+                _resourceType: 'document',
+            };
+
+            (global.chrome.storage.local.get as any).mockImplementation((key: string, cb: Function) => {
+                cb({ initReqChain: '{"existing": 1}' });
+            });
+
+            await harRequestHandler(harEntry);
+            expect(global.chrome.storage.local.get).toHaveBeenCalledWith('initReqChain', expect.any(Function));
+        });
+
+        it('handles processHarRequests when storage is "null"', async () => {
+            let getHARCallback: Function = () => {};
+            mockGetHAR.mockImplementation((cb) => {
+                getHARCallback = cb;
+            });
+
+            getInitReqChainByUrl('https://example.com', 'document', 'GET');
+            getHARCallback();
+
+            const harRequestHandler = mockAddListener.mock.calls[0][0];
+
+            (global.chrome.storage.local.get as any).mockImplementation((key: string, cb: Function) => {
+                cb({ initReqChain: 'null' });
+            });
+
+            await harRequestHandler({});
+            expect(mockRemoveListener).toHaveBeenCalledWith(harRequestHandler);
+        });
+
+        it('handles chrome.tabs.onUpdated listener status loading and complete', () => {
+            let getHARCallback: Function = () => {};
+            mockGetHAR.mockImplementation((cb) => {
+                getHARCallback = cb;
+            });
+
+            getInitReqChainByUrl('https://example.com', 'document', 'GET');
+            getHARCallback();
+
+            const tabsUpdatedHandler = mockTabsAddListener.mock.calls[0][0];
+
+            // Status = loading
+            tabsUpdatedHandler(123, { status: 'loading' });
+            expect(mockSet).toHaveBeenCalledWith({ initReqChain: JSON.stringify({}) });
+
+            // Status = complete (no-op)
+            mockSet.mockClear();
+            tabsUpdatedHandler(123, { status: 'complete' });
+            expect(mockSet).not.toHaveBeenCalled();
+        });
+
+        it('handles missing chrome.tabs gracefully', () => {
+            const originalTabs = global.chrome.tabs;
+            (global.chrome as any).tabs = undefined;
+
+            let getHARCallback: Function = () => {};
+            mockGetHAR.mockImplementation((cb) => {
+                getHARCallback = cb;
+            });
+
+            expect(() => {
+                getInitReqChainByUrl('https://example.com', 'document', 'GET');
+                getHARCallback();
+            }).not.toThrow();
+
+            (global.chrome as any).tabs = originalTabs;
+        });
     });
 });

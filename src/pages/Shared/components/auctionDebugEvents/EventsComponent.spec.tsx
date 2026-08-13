@@ -1,0 +1,149 @@
+import React from 'react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import EventsComponent from './EventsComponent';
+import AppStateContext from '../../contexts/appStateContext';
+import { EVENT_FIELD_MAP } from './EventsState';
+
+import * as utils from '../../utils';
+
+vi.spyOn(utils, 'download').mockImplementation(() => {});
+
+describe('EventsComponent & EventsState', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const mockEvents: any = [
+    {
+      eventType: 'auctionInit',
+      elapsedTime: 10,
+      args: { auctionId: '1234567890', adUnitCodes: ['slot-1'] },
+    },
+    {
+      eventType: 'auctionDebug',
+      elapsedTime: 20,
+      args: { type: 'WARNING', arguments: { msg: 'Slow bidder response' } },
+    },
+    {
+      eventType: 'auctionDebug',
+      elapsedTime: 30,
+      args: { type: 'ERROR', message: 'Fatal auction error' },
+    },
+    {
+      eventType: 'bidResponse',
+      elapsedTime: 40,
+      args: { bidderCode: 'rubicon', cpm: 2.5, adUnitCode: 'slot-1' },
+    },
+    {
+      eventType: 'bidRequested',
+      elapsedTime: 50,
+      args: { bidderCode: 'rubicon', bids: [{ adUnitCode: 'slot-1' }] },
+    },
+    {
+      eventType: 'bidWon',
+      elapsedTime: 60,
+      args: { bidder: 'rubicon', cpm: 2.5, adUnitCode: 'slot-1' },
+    },
+  ];
+
+  const mockContext: any = {
+    prebid: { events: mockEvents },
+  };
+
+  it('renders events stream with correct chips, summary text, and expansion', () => {
+    render(
+      <AppStateContext.Provider value={mockContext}>
+        <EventsComponent />
+      </AppStateContext.Provider>
+    );
+
+    expect(screen.getByText(/Events: 6/)).toBeTruthy();
+    expect(screen.getByText(/Warning: 1/)).toBeTruthy();
+    expect(screen.getByText(/Error: 1/)).toBeTruthy();
+
+    expect(screen.getByText('+10ms')).toBeTruthy();
+    expect(screen.getByText('WARNING')).toBeTruthy();
+    expect(screen.getByText('ERROR')).toBeTruthy();
+    expect(screen.getAllByText(/rubicon — \$2.5 — slot-1/).length).toBeGreaterThan(0);
+
+    // Click event row to expand details
+    const eventRow = screen.getAllByText(/rubicon — \$2.5 — slot-1/)[0];
+    fireEvent.click(eventRow);
+
+    expect(screen.getByText('event[3]')).toBeTruthy();
+  });
+
+  it('handles quick filter button clicks', () => {
+    render(
+      <AppStateContext.Provider value={mockContext}>
+        <EventsComponent />
+      </AppStateContext.Provider>
+    );
+
+    // Click Warning button
+    const warningBtn = screen.getByText(/Warning: 1/);
+    fireEvent.click(warningBtn);
+    expect(screen.getByPlaceholderText('Filter events...')).toHaveValue('eventtype:auctionDebug argstype:WARNING');
+
+    // Click Error button
+    const errorBtn = screen.getByText(/Error: 1/);
+    fireEvent.click(errorBtn);
+    expect(screen.getByPlaceholderText('Filter events...')).toHaveValue('eventtype:auctionDebug argstype:ERROR');
+
+    // Click Event button to clear filter
+    const eventBtn = screen.getByText(/Events: 6/);
+    fireEvent.click(eventBtn);
+    expect(screen.getByPlaceholderText('Filter events...')).toHaveValue('');
+  });
+
+  it('toggles raw JSON view mode and triggers download', () => {
+    render(
+      <AppStateContext.Provider value={mockContext}>
+        <EventsComponent />
+      </AppStateContext.Provider>
+    );
+
+    // Toggle JSON mode
+    const codeBtn = screen.getByLabelText('Switch to raw JSON view');
+    fireEvent.click(codeBtn);
+
+    expect(screen.getByText('6 Events')).toBeTruthy();
+
+    // Click download button
+    const downloadBtn = screen.getByLabelText('Download filtered events as JSON');
+    fireEvent.click(downloadBtn);
+
+    expect(utils.download).toHaveBeenCalledWith(expect.any(Array), 'filtered-events');
+  });
+
+  it('handles search query with no matching events', () => {
+    render(
+      <AppStateContext.Provider value={mockContext}>
+        <EventsComponent />
+      </AppStateContext.Provider>
+    );
+
+    const input = screen.getByPlaceholderText('Filter events...');
+    fireEvent.change(input, { target: { value: 'nonexistent' } });
+
+    expect(screen.getByText('No matching events')).toBeTruthy();
+  });
+
+  it('tests EVENT_FIELD_MAP getters', () => {
+    const event: any = {
+      eventType: 'auctionDebug',
+      elapsedTime: '25',
+      args: {
+        type: 'WARNING',
+        arguments: { 0: 'Warning', 1: 'message' },
+      },
+    };
+
+    expect(EVENT_FIELD_MAP.eventtype(event)).toBe('auctionDebug');
+    expect(EVENT_FIELD_MAP.elapsedtime(event)).toBe(25);
+    expect(EVENT_FIELD_MAP.argstype(event)).toBe('WARNING');
+    expect(EVENT_FIELD_MAP.argsarguments(event)).toEqual({ 0: 'Warning', 1: 'message' });
+    expect(EVENT_FIELD_MAP.argsmessage(event)).toBe('Warning message');
+  });
+});

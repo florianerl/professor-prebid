@@ -60,6 +60,13 @@ describe('BadgeService', () => {
         expect(mockSetBadgeText).toHaveBeenCalledWith({ text: '', tabId: 1 });
     });
 
+    it('clears badge when tabInfo is undefined', async () => {
+        (getTabId as any).mockResolvedValue(1);
+        await BadgeService.update(undefined, 1);
+        expect(mockSetBadgeBackgroundColor).toHaveBeenCalledWith({ color: '#ecf3f5', tabId: 1 });
+        expect(mockSetBadgeText).toHaveBeenCalledWith({ text: '', tabId: 1 });
+    });
+
     it('counts prebids across multiple frames', async () => {
         (getTabId as any).mockResolvedValue(2);
         const tabInfo: IFrameInfos = {

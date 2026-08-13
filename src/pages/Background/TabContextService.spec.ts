@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { TabContextService } from './TabContextService';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { TabContextService, debounce } from './TabContextService';
 import { StorageService } from './StorageService';
 
 // Mock StorageService
@@ -61,10 +61,42 @@ describe('TabContextService', () => {
         });
     });
 
+    describe('load', () => {
+        it('is a no-op that resolves', async () => {
+            await expect(service.load()).resolves.toBeUndefined();
+        });
+    });
+
     describe('persist', () => {
         it('is a no-op', async () => {
             await service.persist();
             expect(StorageService.saveTabInfo).not.toHaveBeenCalled();
         });
+    });
+});
+
+describe('debounce', () => {
+    beforeEach(() => {
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it('debounces function execution and clears existing timer on subsequent calls', () => {
+        const fn = vi.fn();
+        const debounced = debounce(fn, 100);
+
+        debounced('first');
+        expect(fn).not.toHaveBeenCalled();
+
+        // Call again before timer expires to trigger clearTimeout branch
+        debounced('second');
+        expect(fn).not.toHaveBeenCalled();
+
+        vi.advanceTimersByTime(100);
+        expect(fn).toHaveBeenCalledTimes(1);
+        expect(fn).toHaveBeenCalledWith('second');
     });
 });

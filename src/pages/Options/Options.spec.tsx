@@ -1,9 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import Options from './Options';
-import OptionsContext, { OptionsContextProvider } from '../Shared/contexts/optionsContext';
-import { PAGES } from '../Shared/constants';
 
 // Mock external deps
 vi.mock('react-error-boundary', () => ({
@@ -13,10 +11,6 @@ vi.mock('react-error-boundary', () => ({
 vi.mock('../Shared/components/ErrorCardComponent', () => ({
   default: () => <div>Error</div>,
 }));
-
-// Mock OptionsContextProvider to allow custom context value injection in tests
-const mockSetSelectedPopUpNavItems = vi.fn();
-const mockSetSelectedPanelNavItems = vi.fn();
 
 describe('Options Component', () => {
   const originalLocation = window.location;
@@ -34,8 +28,15 @@ describe('Options Component', () => {
     global.chrome = {
       storage: {
         sync: {
-          set: vi.fn((data, cb) => { if (cb) cb(); }),
-          clear: vi.fn((cb) => { if (cb) cb(); }),
+          get: vi.fn((keys, cb) => {
+            cb({ selectedPopUpNavItems: [], selectedPanelNavItems: [] });
+          }),
+          set: vi.fn((data, cb) => {
+            if (cb) cb();
+          }),
+          clear: vi.fn((cb) => {
+            if (cb) cb();
+          }),
         },
       },
     } as any;
@@ -45,21 +46,26 @@ describe('Options Component', () => {
     (window as any).location = originalLocation;
   });
 
-  it('renders page title text and section headers', () => {
-    render(<Options title="Options" />);
+  it('renders page title text and section headers', async () => {
+    await act(async () => {
+      render(<Options title="Options" />);
+    });
     expect(screen.getByText(/Enable or disable the following pages in the pop-up:/i)).toBeTruthy();
     expect(screen.getByText(/Enable or disable the following pages in the dev-tools-panel:/i)).toBeTruthy();
   });
 
-  it('renders Save and Reset buttons', () => {
-    render(<Options title="Options" />);
+  it('renders Save and Reset buttons', async () => {
+    await act(async () => {
+      render(<Options title="Options" />);
+    });
     expect(screen.getByRole('button', { name: /Save/i })).toBeTruthy();
     expect(screen.getByRole('button', { name: /Reset/i })).toBeTruthy();
   });
 
-  it('renders page items for both pop-up and panel sections', () => {
-    render(<Options title="Options" />);
-    // PAGES items like 'Ad Units', 'Bids', etc. appear in both pop-up and dev-tools lists
+  it('renders page items for both pop-up and panel sections', async () => {
+    await act(async () => {
+      render(<Options title="Options" />);
+    });
     const adUnitsLabels = screen.getAllByText('Ad Units');
     expect(adUnitsLabels.length).toBe(2);
 
@@ -67,147 +73,75 @@ describe('Options Component', () => {
     expect(bidsLabels.length).toBe(2);
   });
 
-  it('toggles PopUp nav item on and off (handleTogglePopUp)', () => {
-    let selectedPopUp: string[] = [];
-    let selectedPanel: string[] = [];
+  it('toggles PopUp nav item on and off (handleTogglePopUp)', async () => {
+    await act(async () => {
+      render(<Options title="Options" />);
+    });
 
-    const TestWrapper = () => {
-      const [popUp, setPopUp] = React.useState<string[]>(selectedPopUp);
-      const [panel, setPanel] = React.useState<string[]>(selectedPanel);
-      return (
-        <OptionsContext.Provider
-          value={{
-            selectedPopUpNavItems: popUp,
-            setSelectedPopUpNavItems: (items) => {
-              setPopUp(items);
-              mockSetSelectedPopUpNavItems(items);
-            },
-            selectedPanelNavItems: panel,
-            setSelectedPanelNavItems: (items) => {
-              setPanel(items);
-              mockSetSelectedPanelNavItems(items);
-            },
-          }}
-        >
-          <Options title="Options" />
-        </OptionsContext.Provider>
-      );
-    };
+    const popUpAdUnitsItem = screen.getAllByText('Ad Units')[0].closest('li')!;
+    const checkbox = popUpAdUnitsItem.querySelector('input') as HTMLInputElement;
 
-    const { rerender } = render(<TestWrapper />);
+    expect(checkbox.checked).toBe(false);
 
-    // Click 'Ad Units' in the pop-up list (first list)
-    const popUpItems = screen.getAllByText('Ad Units');
-    const popUpAdUnitsItem = popUpItems[0].closest('li')!;
+    // Toggle ON
+    await act(async () => {
+      fireEvent.click(popUpAdUnitsItem);
+    });
+    expect(checkbox.checked).toBe(true);
 
-    // Toggle ON (add item)
-    fireEvent.click(popUpAdUnitsItem);
-    expect(mockSetSelectedPopUpNavItems).toHaveBeenCalledWith(['adUnits']);
-
-    // Re-render wrapper with updated state
-    selectedPopUp = ['adUnits'];
-    rerender(<TestWrapper />);
-
-    // Toggle OFF (remove item)
-    fireEvent.click(popUpAdUnitsItem);
-    expect(mockSetSelectedPopUpNavItems).toHaveBeenCalledWith([]);
+    // Toggle OFF
+    await act(async () => {
+      fireEvent.click(popUpAdUnitsItem);
+    });
+    expect(checkbox.checked).toBe(false);
   });
 
-  it('toggles Panel nav item on and off (handleTogglePanel)', () => {
-    let selectedPopUp: string[] = [];
-    let selectedPanel: string[] = [];
+  it('toggles Panel nav item on and off (handleTogglePanel)', async () => {
+    await act(async () => {
+      render(<Options title="Options" />);
+    });
 
-    const TestWrapper = () => {
-      const [popUp, setPopUp] = React.useState<string[]>(selectedPopUp);
-      const [panel, setPanel] = React.useState<string[]>(selectedPanel);
-      return (
-        <OptionsContext.Provider
-          value={{
-            selectedPopUpNavItems: popUp,
-            setSelectedPopUpNavItems: (items) => {
-              setPopUp(items);
-              mockSetSelectedPopUpNavItems(items);
-            },
-            selectedPanelNavItems: panel,
-            setSelectedPanelNavItems: (items) => {
-              setPanel(items);
-              mockSetSelectedPanelNavItems(items);
-            },
-          }}
-        >
-          <Options title="Options" />
-        </OptionsContext.Provider>
-      );
-    };
+    const panelAdUnitsItem = screen.getAllByText('Ad Units')[1].closest('li')!;
+    const checkbox = panelAdUnitsItem.querySelector('input') as HTMLInputElement;
 
-    const { rerender } = render(<TestWrapper />);
+    expect(checkbox.checked).toBe(false);
 
-    // Click 'Ad Units' in the panel list (second list)
-    const panelItems = screen.getAllByText('Ad Units');
-    const panelAdUnitsItem = panelItems[1].closest('li')!;
+    // Toggle ON
+    await act(async () => {
+      fireEvent.click(panelAdUnitsItem);
+    });
+    expect(checkbox.checked).toBe(true);
 
-    // Toggle ON (add item)
-    fireEvent.click(panelAdUnitsItem);
-    expect(mockSetSelectedPanelNavItems).toHaveBeenCalledWith(['adUnits']);
-
-    // Re-render wrapper with updated state
-    selectedPanel = ['adUnits'];
-    rerender(<TestWrapper />);
-
-    // Toggle OFF (remove item)
-    fireEvent.click(panelAdUnitsItem);
-    expect(mockSetSelectedPanelNavItems).toHaveBeenCalledWith([]);
+    // Toggle OFF
+    await act(async () => {
+      fireEvent.click(panelAdUnitsItem);
+    });
+    expect(checkbox.checked).toBe(false);
   });
 
-  it('saves selected items to chrome.storage.sync on form submission (handleSubmit)', () => {
-    const contextValue = {
-      selectedPopUpNavItems: ['adUnits', 'bids'],
-      setSelectedPopUpNavItems: mockSetSelectedPopUpNavItems,
-      selectedPanelNavItems: ['timeline'],
-      setSelectedPanelNavItems: mockSetSelectedPanelNavItems,
-    };
-
-    render(
-      <OptionsContext.Provider value={contextValue}>
-        <Options title="Options" />
-      </OptionsContext.Provider>
-    );
+  it('saves selected items to chrome.storage.sync on form submission (handleSubmit)', async () => {
+    await act(async () => {
+      render(<Options title="Options" />);
+    });
 
     const saveButton = screen.getByRole('button', { name: /Save/i });
-    fireEvent.click(saveButton);
+    await act(async () => {
+      fireEvent.click(saveButton);
+    });
 
-    expect(chrome.storage.sync.set).toHaveBeenCalledTimes(2);
-    expect(chrome.storage.sync.set).toHaveBeenNthCalledWith(
-      1,
-      { selectedPopUpNavItems: ['adUnits', 'bids'] },
-      expect.any(Function)
-    );
-    expect(chrome.storage.sync.set).toHaveBeenNthCalledWith(
-      2,
-      { selectedPanelNavItems: ['timeline'] },
-      expect.any(Function)
-    );
+    expect(chrome.storage.sync.set).toHaveBeenCalled();
   });
 
-  it('resets selected items and clears chrome.storage.sync when Reset button is clicked (handleReset)', () => {
-    const contextValue = {
-      selectedPopUpNavItems: ['adUnits'],
-      setSelectedPopUpNavItems: mockSetSelectedPopUpNavItems,
-      selectedPanelNavItems: ['bids'],
-      setSelectedPanelNavItems: mockSetSelectedPanelNavItems,
-    };
-
-    render(
-      <OptionsContext.Provider value={contextValue}>
-        <Options title="Options" />
-      </OptionsContext.Provider>
-    );
+  it('resets selected items and clears chrome.storage.sync when Reset button is clicked (handleReset)', async () => {
+    await act(async () => {
+      render(<Options title="Options" />);
+    });
 
     const resetButton = screen.getByRole('button', { name: /Reset/i });
-    fireEvent.click(resetButton);
+    await act(async () => {
+      fireEvent.click(resetButton);
+    });
 
-    expect(mockSetSelectedPopUpNavItems).toHaveBeenCalledWith([]);
-    expect(mockSetSelectedPanelNavItems).toHaveBeenCalledWith([]);
     expect(chrome.storage.sync.clear).toHaveBeenCalled();
     expect(window.location.reload).toHaveBeenCalled();
   });

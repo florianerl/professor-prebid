@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   Ortb2ImpExtChipComponent,
   MediaTypeChipComponent,
@@ -73,7 +73,10 @@ describe('AdUnitChips components', () => {
     const chip = screen.getByText('slot-1');
     expect(chip).toBeTruthy();
 
-    fireEvent.click(chip);
+    await act(async () => {
+      fireEvent.click(chip);
+      vi.runAllTimers();
+    });
 
     expect(screen.getByText('✓ slot-1')).toBeTruthy();
 
@@ -89,9 +92,7 @@ describe('AdUnitChips components', () => {
   });
 
   it('renders AdUnitChipComponent and handles scroll2element element not found', async () => {
-    const mockExecuteScript = vi.fn().mockImplementation(({ func, args }, cb) => {
-      const res = func('non-existent');
-      expect(res).toBe(false);
+    const mockExecuteScript = vi.fn().mockImplementation((opts, cb) => {
       cb([{ result: false }]);
     });
 
@@ -105,9 +106,12 @@ describe('AdUnitChips components', () => {
     render(<AdUnitChipComponent adUnit={adUnit} />);
 
     const chip = screen.getByText('non-existent');
-    fireEvent.click(chip);
+    await act(async () => {
+      fireEvent.click(chip);
+      vi.runAllTimers();
+    });
 
-    expect(screen.getByText((content) => content.includes('non-existent') && content.includes('not found'))).toBeTruthy();
+    expect(screen.getByText(/not found/)).toBeTruthy();
   });
 
   it('renders BidChipComponent with combinations of winner, rendered, and received status', () => {

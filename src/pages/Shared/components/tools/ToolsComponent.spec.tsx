@@ -21,14 +21,10 @@ describe('Tools & OverlayControl components', () => {
         },
       },
       scripting: {
-        executeScript: vi.fn().mockImplementation(({ func }, cb) => {
-          if (typeof func === 'function') {
-            const mockWin: any = { location: { href: 'http://example.com' } };
-            // Simulate main world script execution
-            func();
-          }
-          cb?.([]);
-          return Promise.resolve([]);
+        executeScript: vi.fn().mockImplementation((opts, cb) => {
+          const result = [{ result: JSON.stringify({ enabled: false, bidders: [], bids: [] }) }];
+          if (cb) cb(result);
+          return Promise.resolve(result);
         }),
       },
     } as any;

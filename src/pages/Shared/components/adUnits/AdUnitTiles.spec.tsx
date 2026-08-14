@@ -111,7 +111,10 @@ describe('AdUnitTiles components', () => {
     const emptySlotState: any = {
       ...mockAppState,
       googleAdManager: {
-        slots: [{ name: 'other-slot', elementId: 'other-slot' }],
+        slots: [
+          { name: 'other-slot-1', elementId: 'other-slot-1' },
+          { name: 'other-slot-2', elementId: 'other-slot-2' },
+        ],
       },
     };
 
@@ -161,7 +164,7 @@ describe('AdUnitTiles components', () => {
       </AppStateContext.Provider>
     );
 
-    expect(screen.getByText('Media Types Object')).toBeTruthy();
+    expect(screen.getByText('Media Types Object:')).toBeTruthy();
   });
 
   it('renders Ortb2ImpTile when ortb2Imp is present and returns null when absent', () => {
@@ -171,7 +174,7 @@ describe('AdUnitTiles components', () => {
       </AppStateContext.Provider>
     );
 
-    expect(screen.getByText('ORTB2 Imp')).toBeTruthy();
+    expect(screen.getByText('ORTB2 Imp:')).toBeTruthy();
 
     // Rerender with no ortb2Imp
     rerender(
@@ -180,6 +183,6 @@ describe('AdUnitTiles components', () => {
       </AppStateContext.Provider>
     );
 
-    expect(screen.queryByText('ORTB2 Imp')).toBeNull();
+    expect(screen.queryByText('ORTB2 Imp:')).toBeNull();
   });
 });

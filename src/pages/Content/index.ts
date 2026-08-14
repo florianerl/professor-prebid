@@ -27,7 +27,7 @@ const injectScript = () => {
 export const processEventBusMessages = async (type: string, payload: any) => {
   if (type === EVENTS.REQUEST_CONSOLE_STATE) {
     const result = await chrome.storage?.local.get(CONSOLE_TOGGLE);
-    const checked = result[CONSOLE_TOGGLE];
+    const checked = result?.[CONSOLE_TOGGLE];
     document.dispatchEvent(new CustomEvent(CONSOLE_TOGGLE, { detail: !!checked }));
   }
 

@@ -39,8 +39,10 @@ export const getSortValue = (b: any, key: string): string | number => {
         case 'cpm': {
             if (typeof b?.cpm === 'number') return Number.isFinite(b.cpm) ? b.cpm : Number.NEGATIVE_INFINITY;
             const raw = String(b?.cpm ?? '').trim();
+            if (!raw) return Number.NEGATIVE_INFINITY;
             const normalized = raw.includes(',') && !raw.includes('.') ? raw.replace(',', '.') : raw;
             const cleaned = normalized.replace(/[^0-9.\-]/g, '');
+            if (!cleaned) return Number.NEGATIVE_INFINITY;
             const n = Number(cleaned);
             return Number.isFinite(n) ? n : Number.NEGATIVE_INFINITY;
         }
@@ -110,13 +112,12 @@ const tokenize = (query: string): string[] => {
 
 export const getAutocompleteOptions = (query: string, fieldKeys: string[], options: string[] = []): string[] => {
     const input = query || '';
-    // Split only on ' AND ' or ' OR ' (case-insensitive)
-    const last = input.split(/\s+(and|or)\s+/i).pop() ?? '';
-    const queryLastToken = last.toLowerCase();
+    const tokens = input.trim().split(/\s+/);
+    const queryLastToken = (tokens.pop() ?? '').toLowerCase();
 
     const numericKeys = Array.from(NUMERIC_FIELD_KEYS);
     const allKeys = new Set([...fieldKeys, ...numericKeys]);
-    const keyOnlyOptions = Array.from(allKeys).sort((a, b) => a.localeCompare(b));
+    const keyOnlyOptions = Array.from(allKeys).map((k) => `${k}:`).sort((a, b) => a.localeCompare(b));
 
     // If no query or query is an operator, show key suggestions
     if (['or', 'and'].includes(queryLastToken)) {

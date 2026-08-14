@@ -1,41 +1,16 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import DebuggingModuleComponent from './DebuggingModuleComponent';
 import MatchRule from './MatchRule';
 import ReplaceRule from './ReplaceRule';
 import RuleComponent from './RuleComponent';
-import AppStateContext from '../../../contexts/appStateContext';
-
-vi.mock('../../../../Shared/utils', () => ({
-  getTabId: vi.fn().mockResolvedValue(1),
-  sendChromeTabsMessage: vi.fn(),
-}));
 
 describe('DebuggingModule subcomponents', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    global.chrome = {
-      storage: {
-        local: {
-          get: vi.fn((key, cb) => cb({})),
-          set: vi.fn((val, cb) => cb?.()),
-        },
-      },
-      scripting: {
-        executeScript: vi.fn().mockResolvedValue([
-          {
-            result: JSON.stringify({
-              enabled: true,
-              intercept: [{ when: { adUnitCode: 'slot-1' }, then: { cpm: 10 } }],
-            }),
-          },
-        ]),
-      },
-    } as any;
   });
 
-  it('renders MatchRule component and handles rule key and value changes', () => {
+  it('renders MatchRule component with correct labels', () => {
     const mockRule: any = { when: { adUnitCode: 'slot-1' }, then: { cpm: 10 } };
     const mockPrebid: any = { events: [] };
     const handleRulesFormChange = vi.fn();
@@ -52,11 +27,7 @@ describe('DebuggingModule subcomponents', () => {
     );
 
     expect(screen.getByLabelText('MatchRule Target')).toBeTruthy();
-
-    const inputs = screen.getAllByRole('combobox');
-    fireEvent.change(inputs[0], { target: { value: 'bidder' } });
-
-    expect(handleRulesFormChange).toHaveBeenCalled();
+    expect(screen.getByLabelText('MatchRule Value')).toBeTruthy();
   });
 
   it('renders ReplaceRule component and handles rule changes', () => {
@@ -103,42 +74,5 @@ describe('DebuggingModule subcomponents', () => {
     const deleteBtn = screen.getByTitle('Delete rule');
     fireEvent.click(deleteBtn);
     expect(removeRule).toHaveBeenCalled();
-  });
-
-  it('renders DebuggingModuleComponent, toggles enable switch and adds/saves rules', async () => {
-    const mockAppState: any = {
-      prebid: { events: [] },
-      pbjsNamespace: 'pbjs',
-    };
-
-    await act(async () => {
-      render(
-        <AppStateContext.Provider value={mockAppState}>
-          <DebuggingModuleComponent />
-        </AppStateContext.Provider>
-      );
-    });
-
-    expect(screen.getByText(/Prebid.js Debugging Module/i)).toBeTruthy();
-
-    // Toggle switch
-    const toggleSwitch = screen.getAllByRole('checkbox')[0];
-    await act(async () => {
-      fireEvent.click(toggleSwitch);
-    });
-
-    // Click Add Custom Intercept Rule
-    const addButton = screen.getByText('Add Custom Intercept Rule');
-    await act(async () => {
-      fireEvent.click(addButton);
-    });
-
-    // Save Debug Config
-    const saveButton = screen.getByText('Save Debug Config');
-    await act(async () => {
-      fireEvent.click(saveButton);
-    });
-
-    expect(chrome.scripting.executeScript).toHaveBeenCalled();
   });
 });

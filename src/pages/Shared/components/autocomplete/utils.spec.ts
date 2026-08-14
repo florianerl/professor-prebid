@@ -81,7 +81,7 @@ describe('autocomplete/utils', () => {
     it('filters keys matching query prefix when no colon is typed', () => {
       const keys = ['bidder', 'adunit', 'cpm'];
       const res = getAutocompleteOptions('bi', keys);
-      expect(res).toEqual(['bidder']);
+      expect(res).toEqual(['bidder:']);
     });
 
     it('filters options matching key prefix when colon is typed', () => {

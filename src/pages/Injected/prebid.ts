@@ -97,18 +97,31 @@ export class Prebid {
   getEventsObjUrl = () => {
     const events = this.globalPbjs?.getEvents ? this.globalPbjs.getEvents() : this.events;
     
+    /**
+     * Serializes an event, replacing DOM nodes and genuine reference cycles.
+     *
+     * Tracks the chain of ancestors rather than every object seen: prebid deliberately shares objects
+     * between branches - the entries of `noBids` are the same objects held in `bidderRequests[].bids`
+     * - and a "seen anything twice" check would replace those siblings with '[Circular]', turning a
+     * bid into the literal string.
+     */
     const safeStringify = (obj: any): string => {
-      const seen = new WeakSet();
-      return JSON.stringify(obj, (key, value) => {
+      const ancestors: any[] = [];
+      return JSON.stringify(obj, function (key, value) {
         if (value instanceof Window || value instanceof Node || value instanceof HTMLElement) {
           return '[DOM Node]';
         }
-        if (typeof value === 'object' && value !== null) {
-          if (seen.has(value)) {
-            return '[Circular]';
-          }
-          seen.add(value);
+        if (typeof value !== 'object' || value === null) {
+          return value;
         }
+        // `this` is the object `value` was reached through; unwind to it to drop siblings we have left
+        while (ancestors.length > 0 && ancestors[ancestors.length - 1] !== this) {
+          ancestors.pop();
+        }
+        if (ancestors.includes(value)) {
+          return '[Circular]';
+        }
+        ancestors.push(value);
         return value;
       });
     };

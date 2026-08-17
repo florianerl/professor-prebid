@@ -8,6 +8,7 @@ import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 import DifferenceIcon from '@mui/icons-material/Difference';
 import LinkIcon from '@mui/icons-material/Link';
 import PrivacyTipOutlinedIcon from '@mui/icons-material/PrivacyTipOutlined';
+import HubOutlinedIcon from '@mui/icons-material/HubOutlined';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
 import { SvgIconTypeMap } from '@mui/material';
 
@@ -34,6 +35,7 @@ export const SAVE_MASKS = 'PP_SAVE_MASKS';
 export const DOWNLOAD_FAILED = 'PP_DOWNLOAD_FAILED';
 export const INITIATOR_TOGGLE = 'initiator_state';
 export const INITIATOR_ROOT_URL = 'initiator_root_url';
+export const PRE_AUCTION_HAR = 'preAuctionHar';
 export const POPUP_LOADED = 'PP_POPUP_LOADED';
 export const PREBID_DETECTION_TIMEOUT = 60000;
 export const PREBID_DETECTION_TIMEOUT_IFRAME = 3000;
@@ -89,6 +91,7 @@ export const PAGES: {
     { label: 'Config', path: 'config', Icon: SettingsOutlinedIcon, beta: false },
     { label: 'Events', path: 'events', Icon: WarningAmberOutlinedIcon, beta: false },
     { label: 'Network Inspector', path: 'initiator', Icon: LinkIcon, beta: true },
+    { label: 'Pre-Auction', path: 'preAuction', Icon: HubOutlinedIcon, beta: true },
     { label: 'Timeline', path: 'timeline', Icon: TimelineOutlinedIcon, beta: false },
     { label: 'Tools', path: 'tools', Icon: DnsOutlinedIcon, beta: false },
     { label: 'User Id', path: 'userId', Icon: ContactPageOutlinedIcon, beta: false },

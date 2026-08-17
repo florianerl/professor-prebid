@@ -13,11 +13,13 @@ type AutoCompleteProps = {
   onDownloadFilteredBids?: () => void;
 };
 
-const keyOnlyOptions = (fieldKeys: string[] = []) => {
-  const numericKeys = Array.from(NUMERIC_FIELD_KEYS);
-  const allKeys = new Set([...(fieldKeys || []), ...numericKeys]);
-  return Array.from(allKeys).sort((a, b) => a.localeCompare(b));
-};
+/**
+ * Only the keys the calling tab declares. `NUMERIC_FIELD_KEYS` used to be merged in here, which put
+ * `cpm`, `ttl`, `width` and friends in front of every tab regardless of whether they meant anything
+ * there. Each field map already declares its own numeric fields; that constant exists to tell the
+ * query engine which fields compare numerically, not to advertise them.
+ */
+const keyOnlyOptions = (fieldKeys: string[] = []) => Array.from(new Set(fieldKeys || [])).sort((a, b) => a.localeCompare(b));
 
 const getOptionsForQuery = (query: string = '', fieldKeys: string[] = [], options?: string[]) => {
   const input = query || '';

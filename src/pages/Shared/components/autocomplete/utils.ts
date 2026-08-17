@@ -115,9 +115,8 @@ export const getAutocompleteOptions = (query: string, fieldKeys: string[], optio
     const tokens = input.trim().split(/\s+/);
     const queryLastToken = (tokens.pop() ?? '').toLowerCase();
 
-    const numericKeys = Array.from(NUMERIC_FIELD_KEYS);
-    const allKeys = new Set([...fieldKeys, ...numericKeys]);
-    const keyOnlyOptions = Array.from(allKeys).map((k) => `${k}:`).sort((a, b) => a.localeCompare(b));
+    // Only the caller's own keys - see the note in AutoComplete.tsx
+    const keyOnlyOptions = Array.from(new Set(fieldKeys)).map((k) => `${k}:`).sort((a, b) => a.localeCompare(b));
 
     // If no query or query is an operator, show key suggestions
     if (['or', 'and'].includes(queryLastToken)) {

@@ -14,6 +14,8 @@ import { EventRecord, BidderRequest } from 'prebid.js';
 
 import AppStateContext from '../../../Shared/contexts/appStateContext';
 import JSONViewerComponent from '../../../Shared/components/JSONViewerComponent';
+import { getPreAuctionTimeline, IPreAuctionRow } from '../../../Shared/components/timeline/preAuctionTimeline';
+import { getProviderDiagnostics, IProviderDiagnostic } from '../../../Shared/components/preAuction/providerDiagnostics';
 
 export type BidderRequestWithStart = BidderRequest<string> & {
   start: number;
@@ -26,6 +28,7 @@ interface IGanttChartProps {
   auctionEndEvents?: EventRecord<'auctionEnd'>[];
   mode?: TimelineViewMode;
   query?: string;
+  showPreAuction?: boolean;
 }
 
 interface IBidderRowData {
@@ -44,7 +47,19 @@ interface IBidderRowData {
   isSectionHeader?: boolean;
   sectionTitle?: string;
   sectionDuration?: number;
+  // Set on the phases prebid runs before the first bidder is called; these sit left of the 0ms auction start.
+  preAuctionRow?: IPreAuctionRow;
+  preAuctionDepth?: number;
+  preAuctionNotes?: string[];
+  /** Set when the Pre-Auction tab found this phase's provider lost a race; see providerDiagnostics. */
+  preAuctionWarning?: string;
 }
+
+const PRE_AUCTION_COLOR: { [variant in IPreAuctionRow['variant']]: string } = {
+  phase: '#6a1b9a',
+  unattributed: '#9e9e9e',
+  afterAuctionStart: '#0288d1',
+};
 
 const BidJsonDialog = ({
   open,
@@ -57,6 +72,28 @@ const BidJsonDialog = ({
 }) => {
   const { topics } = useContext(AppStateContext);
   if (!rowData || rowData.isSectionHeader) return null;
+
+  if (rowData.preAuctionRow) {
+    return (
+      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth onClick={(e) => e.stopPropagation()}>
+        <DialogTitle sx={{ m: 0, p: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f5f5f5' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6" component="span" sx={{ fontWeight: 700 }}>
+              {rowData.bidderCode}
+            </Typography>
+            <Chip label="PRE-AUCTION" size="small" color="secondary" />
+            <Chip label={`${rowData.latencyMs}ms`} size="small" variant="outlined" />
+          </Box>
+          <IconButton aria-label="close" onClick={onClose} size="small">
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 1.5, backgroundColor: '#fafafa' }}>
+          <JSONViewerComponent src={rowData.preAuctionRow} name={rowData.bidderCode} collapsed={2} displayObjectSize={false} displayDataTypes={false} />
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   const statusLabel = rowData.hasBid
     ? `BID ${rowData.cpm !== undefined ? `$${rowData.cpm}` : ''}`
@@ -99,7 +136,72 @@ const BidJsonDialog = ({
   );
 };
 
-const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single', query = '' }: IGanttChartProps): JSX.Element => {
+const round = (input: number): number => Math.round(input * 100) / 100;
+
+/** One-line summary of a provider's problems, or undefined when it behaved. */
+const warnAbout = (providers: IProviderDiagnostic[]): string | undefined => {
+  if (providers.length === 0) return undefined;
+  const notAwaited = providers.filter(({ awaited }) => !awaited).map(({ name }) => name);
+  const late = providers.filter((p) => p.auctions.some(({ verdict }) => verdict === 'late')).map(({ name }) => name);
+  const parts = [notAwaited.length ? `not awaited: ${notAwaited.join(', ')}` : '', late.length ? `data missed an auction: ${late.join(', ')}` : ''].filter(Boolean);
+  return parts.length ? parts.join(' · ') : undefined;
+};
+
+/**
+ * Links a pre-auction row back to the Pre-Auction tab's verdicts. Phase rows aggregate their whole
+ * provider type; the user id sub-rows carry the module name, so they match a provider directly.
+ */
+const buildWarningLookup = (providers: IProviderDiagnostic[]) => {
+  const byName = new Map(providers.map((provider) => [provider.name.toLowerCase(), provider]));
+  const rtdWarning = warnAbout(providers.filter(({ type }) => type === 'rtd'));
+  const identityWarning = warnAbout(providers.filter(({ type }) => type === 'identity'));
+
+  return (label: string, depth: number): string | undefined => {
+    if (depth > 0) {
+      const provider = byName.get(label.toLowerCase());
+      return provider ? warnAbout([provider]) : undefined;
+    }
+    if (label === 'Real Time Data') return rtdWarning;
+    if (label === 'User Ids') return identityWarning;
+    return undefined;
+  };
+};
+
+/**
+ * Flattens the pre-auction phases - and the per-module breakdown of the user id phase - into chart rows.
+ * Their offsets are negative, because prebid does this work before the auction start that marks 0ms.
+ */
+const buildPreAuctionRows = (
+  auctionEndEvent: EventRecord<'auctionEnd'>,
+  config: any,
+  auctionStartTimestamp: number,
+  shortId: string,
+  auctionIndex: number,
+  getWarning: (label: string, depth: number) => string | undefined
+): IBidderRowData[] => {
+  const timeline = getPreAuctionTimeline(auctionEndEvent, config);
+  if (!timeline) return [];
+
+  const toRow = (label: string, start: number, end: number, duration: number, depth: number, row: IPreAuctionRow, notes: string[]): IBidderRowData => ({
+    bidderCode: label,
+    auctionLabel: shortId,
+    auctionIndex,
+    startMs: start - auctionStartTimestamp,
+    endMs: end - auctionStartTimestamp,
+    latencyMs: round(duration),
+    hasBid: false,
+    isTimeout: false,
+    bidderRequest: null,
+    preAuctionRow: row,
+    preAuctionDepth: depth,
+    preAuctionNotes: notes,
+    preAuctionWarning: getWarning(label, depth),
+  });
+
+  return timeline.rows.flatMap((row) => [toRow(row.label, row.start, row.end, row.duration, 0, row, row.notes), ...row.children.map((child) => toRow(child.label, child.start, child.end, child.duration, 1, row, []))]);
+};
+
+const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single', query = '', showPreAuction = false }: IGanttChartProps): JSX.Element => {
   const { prebid } = useContext(AppStateContext);
   const { events, config } = prebid || {};
   const [activeRow, setActiveRow] = useState<IBidderRowData | null>(null);
@@ -118,6 +220,7 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
 
   const displayRows: IBidderRowData[] = [];
   let globalMaxDuration = 100;
+  const getWarning: (label: string, depth: number) => string | undefined = showPreAuction ? buildWarningLookup(getProviderDiagnostics(prebid, targetAuctions).providers) : () => undefined;
 
   targetAuctions.forEach((aeEvent, aIdx) => {
     const { auctionEnd, bidderRequests, timestamp, auctionId } = aeEvent?.args || {};
@@ -144,6 +247,10 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
         sectionTitle: auctionLabel,
         sectionDuration: auctionDuration,
       });
+    }
+
+    if (showPreAuction) {
+      displayRows.push(...buildPreAuctionRows(aeEvent, config, auctionStartTimestamp, shortId, aIdx + 1, getWarning).filter((r) => !query || r.bidderCode.toLowerCase().includes(query.toLowerCase())));
     }
 
     const rowsForAuction: IBidderRowData[] = (bidderRequests as BidderRequestWithStart[])
@@ -263,11 +370,15 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
   const FOOTER_HEIGHT = 24;
   const SVG_HEIGHT = HEADER_HEIGHT + displayRows.length * ROW_HEIGHT + FOOTER_HEIGHT;
 
-  const timeToX = (timeMs: number) => LABEL_WIDTH + (Math.max(0, timeMs) / maxTimeMs) * PLOT_WIDTH;
+  // The pre-auction phase runs before the auction starts, so the axis has to reach into negative time.
+  const minTimeMs = Math.min(0, ...displayRows.filter((r) => r.preAuctionRow).map((r) => r.startMs));
+  const spanMs = maxTimeMs - minTimeMs;
 
-  const tickStep = maxTimeMs <= 300 ? 50 : maxTimeMs <= 1000 ? 100 : maxTimeMs <= 2500 ? 250 : 500;
+  const timeToX = (timeMs: number) => LABEL_WIDTH + ((Math.max(minTimeMs, timeMs) - minTimeMs) / spanMs) * PLOT_WIDTH;
+
+  const tickStep = spanMs <= 300 ? 50 : spanMs <= 1000 ? 100 : spanMs <= 2500 ? 250 : 500;
   const ticks: number[] = [];
-  for (let t = 0; t <= maxTimeMs; t += tickStep) {
+  for (let t = Math.ceil(minTimeMs / tickStep) * tickStep; t <= maxTimeMs; t += tickStep) {
     ticks.push(t);
   }
 
@@ -294,6 +405,16 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
                 </g>
               );
             })}
+
+            {/* Auction Start Line (Purple) - only drawn once the plot reaches back before it */}
+            {minTimeMs < 0 && (
+              <g>
+                <line x1={timeToX(0)} y1={HEADER_HEIGHT - 4} x2={timeToX(0)} y2={SVG_HEIGHT - FOOTER_HEIGHT + 2} stroke="#6a1b9a" strokeWidth="2" />
+                <text x={timeToX(0)} y={SVG_HEIGHT - 6} fontSize="11" fontWeight="bold" fill="#6a1b9a" textAnchor="middle" fontFamily="Roboto, sans-serif">
+                  Auction Start
+                </text>
+              </g>
+            )}
 
             {/* Auction End Line (Blue) for single auction view */}
             {mode === 'single' && globalMaxDuration > 0 && (
@@ -365,6 +486,38 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
                     <rect x="0" y={y + 2} width={SVG_WIDTH} height={ROW_HEIGHT - 6} fill="#e3f2fd" rx="4" />
                     <text x="12" y={y + 18} fontSize="11" fontWeight="700" fill="#0d47a1" fontFamily="Roboto, sans-serif">
                       {row.sectionTitle} {row.sectionDuration ? `— Duration: ${row.sectionDuration}ms` : ''}
+                    </text>
+                  </g>
+                );
+              }
+
+              // Pre-Auction Phase Row (purple, sub-rows dashed for the per-module user id breakdown)
+              if (row.preAuctionRow) {
+                const phaseColor = row.preAuctionWarning ? '#d32f2f' : PRE_AUCTION_COLOR[row.preAuctionRow.variant];
+                const isChild = row.preAuctionDepth > 0;
+                const phaseX = timeToX(row.startMs);
+                const phaseWidth = Math.max(3, timeToX(row.endMs) - phaseX);
+                return (
+                  <g key={idx} style={{ cursor: 'pointer' }} onClick={() => handleRowClick(row)}>
+                    <rect x="0" y={y} width={SVG_WIDTH} height={ROW_HEIGHT - 4} fill="transparent" className="gantt-row" />
+                    <text x={isChild ? 22 : 8} y={y + 18} fontSize={isChild ? 11 : 12} fontWeight={isChild ? 400 : 600} fill={isChild ? '#616161' : '#212121'} fontFamily="Roboto, sans-serif">
+                      {isChild ? `└ ${row.bidderCode}` : row.bidderCode}
+                    </text>
+                    <rect x={phaseX} y={y + 4} width={phaseWidth} height="19" rx="3" ry="3" fill={phaseColor} opacity={isChild ? 0.4 : 0.85} stroke={phaseColor} strokeWidth={isChild ? 1 : 0} strokeDasharray={isChild ? '3 2' : undefined} />
+                    <text x={phaseX + phaseWidth + 6} y={y + 18} fontSize="11" fontWeight="600" fill="#333333" fontFamily="Roboto, sans-serif">
+                      {row.latencyMs}ms
+                      {row.preAuctionNotes?.length ? (
+                        <tspan fill="#9e9e9e" fontWeight="400">
+                          {' '}
+                          · {row.preAuctionNotes.join(', ')}
+                        </tspan>
+                      ) : null}
+                      {row.preAuctionWarning ? (
+                        <tspan fill="#d32f2f" fontWeight="700">
+                          {' '}
+                          ⚠ {row.preAuctionWarning}
+                        </tspan>
+                      ) : null}
                     </text>
                   </g>
                 );

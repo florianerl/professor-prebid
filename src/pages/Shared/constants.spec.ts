@@ -17,7 +17,7 @@ describe('Shared Constants', () => {
 
     describe('PAGES', () => {
         it('has expected page entries', () => {
-            expect(PAGES.length).toBe(9);
+            expect(PAGES.length).toBe(10);
             const labels = PAGES.map(p => p.label);
             expect(labels).toEqual([
                 'Ad Units',
@@ -25,6 +25,7 @@ describe('Shared Constants', () => {
                 'Config',
                 'Events',
                 'Network Inspector',
+                'Pre-Auction',
                 'Timeline',
                 'Tools',
                 'User Id',

@@ -9,6 +9,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import CodeIcon from '@mui/icons-material/Code';
 import DownloadIcon from '@mui/icons-material/Download';
+import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 
 import GanttChartComponent, { TimelineViewMode } from '../../../Popup/components/timeline/GanttChartComponent';
 import AppStateContext from '../../contexts/appStateContext';
@@ -17,6 +18,7 @@ import JSONViewerComponent from '../JSONViewerComponent';
 import { AutoComplete } from '../autocomplete/AutoComplete';
 import { replaceLastToken } from '../autocomplete/utils';
 import { download, conditionalPluralization as cP } from '../../utils';
+import { getPreAuctionTimeline } from './preAuctionTimeline';
 
 const TimeLineComponent = (): JSX.Element => {
   const { prebid, auctionEndEvents } = useContext(AppStateContext);
@@ -24,6 +26,7 @@ const TimeLineComponent = (): JSX.Element => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [query, setQuery] = useState('');
   const [showJson, setShowJson] = useState(false);
+  const [showPreAuction, setShowPreAuction] = useState(false);
 
   const { events, config } = prebid || {};
   const timeoutMs = config?.bidderTimeout || 3000;
@@ -66,6 +69,11 @@ const TimeLineComponent = (): JSX.Element => {
     ? activeAuction.args.auctionEnd - activeAuction.args.timestamp
     : 0;
 
+  // What prebid spent on consent, user ids, real time data and first party data before bidding started
+  const preAuctionDuration = isAllAuctions
+    ? Math.max(0, ...auctionEndEvents.map((ae) => getPreAuctionTimeline(ae, config)?.duration ?? 0))
+    : getPreAuctionTimeline(activeAuction, config)?.duration ?? 0;
+
   return (
     <Grid container sx={{ width: '100%', height: '100%', flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       {/* Header Bar */}
@@ -83,7 +91,7 @@ const TimeLineComponent = (): JSX.Element => {
         </GridCell>
 
         {/* Search Bar */}
-        <Grid size={{ xs: 4.5 }} sx={{ display: 'flex', alignItems: 'center', border: 0, '& .MuiInputBase-input': { paddingLeft: '4px !important', paddingTop: '4px !important' } }}>
+        <Grid size={{ xs: 4 }} sx={{ display: 'flex', alignItems: 'center', border: 0, '& .MuiInputBase-input': { paddingLeft: '4px !important', paddingTop: '4px !important' } }}>
           <AutoComplete
             fieldKeys={['bidder']}
             options={suggestions}
@@ -93,6 +101,17 @@ const TimeLineComponent = (): JSX.Element => {
             query={query}
           />
         </Grid>
+
+        {/* Pre-Auction Toggle Button */}
+        <GridCell cols={0.5} sx={{ display: 'flex', alignItems: 'center', border: 0 }}>
+          <Tooltip title={preAuctionDuration > 0 ? `${showPreAuction ? 'Hide' : 'Show'} the pre-auction phase — consent, user ids, real time data and first party data took ${Math.round(preAuctionDuration)}ms` : 'Prebid reported no pre-auction metrics for this auction'} arrow>
+            <span>
+              <IconButton size="small" disabled={preAuctionDuration <= 0} onClick={() => setShowPreAuction(!showPreAuction)} color={showPreAuction ? 'secondary' : 'default'} sx={{ p: 0.5, fontSize: '1.05rem', height: 'auto' }}>
+                <HourglassTopIcon fontSize="inherit" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </GridCell>
 
         {/* JSON Toggle Button */}
         <GridCell cols={0.5} sx={{ display: 'flex', alignItems: 'center', border: 0 }}>
@@ -183,6 +202,7 @@ const TimeLineComponent = (): JSX.Element => {
           auctionEndEvents={auctionEndEvents}
           mode={mode}
           query={query}
+          showPreAuction={showPreAuction}
         />
       )}
     </Grid>

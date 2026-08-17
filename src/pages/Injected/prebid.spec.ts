@@ -211,6 +211,51 @@ describe('Prebid Injected Script', () => {
             expect(url).toBe('blob:http://example.com/mock-blob-url');
         });
 
+        // These assert the serialized payload, not just that a blob url came back: a bid replaced by
+        // the string '[Circular]' still produces a valid url, which is how it reached the Bids tab.
+        const serializedEvents = async (instance: any): Promise<any[]> => {
+            const createObjectURL = global.URL.createObjectURL as any;
+            instance.getEventsObjUrl();
+            const blob = createObjectURL.mock.calls.at(-1)[0] as Blob;
+            return JSON.parse(await blob.text());
+        };
+
+        it('keeps objects shared between branches intact instead of calling them circular', async () => {
+            const instance = new Prebid('pbjs', 'frame1');
+            // prebid holds the very same bid object in both places
+            const noBid = { bidder: 'appnexus', adUnitCode: 'div-1', cpm: 1.5 };
+            instance.events = [
+                {
+                    eventType: 'auctionEnd',
+                    args: { noBids: [noBid], bidderRequests: [{ bidderCode: 'appnexus', bids: [noBid] }] },
+                },
+            ];
+
+            const [event] = await serializedEvents(instance);
+            expect(event.args.noBids[0]).toEqual(noBid);
+            expect(event.args.bidderRequests[0].bids[0]).toEqual(noBid);
+        });
+
+        it('still replaces a genuine reference cycle', async () => {
+            const instance = new Prebid('pbjs', 'frame1');
+            const cyclic: any = { bidder: 'appnexus' };
+            cyclic.self = cyclic;
+            instance.events = [{ eventType: 'auctionEnd', args: { noBids: [cyclic] } }];
+
+            const [event] = await serializedEvents(instance);
+            expect(event.args.noBids[0].bidder).toBe('appnexus');
+            expect(event.args.noBids[0].self).toBe('[Circular]');
+        });
+
+        it('replaces DOM nodes without disturbing the rest of the payload', async () => {
+            const instance = new Prebid('pbjs', 'frame1');
+            const el = Object.create(HTMLElement.prototype);
+            instance.events = [{ eventType: 'auctionEnd', args: { noBids: [{ bidder: 'appnexus', el }] } }];
+
+            const [event] = await serializedEvents(instance);
+            expect(event.args.noBids[0]).toEqual({ bidder: 'appnexus', el: '[DOM Node]' });
+        });
+
         it('catches serialization errors and fallback stringifies error metadata', () => {
             const instance = new Prebid('pbjs', 'frame1');
             const throwingObj = {

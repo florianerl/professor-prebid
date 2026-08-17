@@ -2,6 +2,8 @@ import React, { createContext, useEffect, useState } from 'react';
 import { getTabId } from '../utils';
 import { useDebounce } from '../hooks/useDebounce';
 import { fetchEvents } from './fetchEvents';
+import { PRE_AUCTION_HAR } from '../constants';
+import { IHarEntry } from '../components/preAuction/harCorrelation';
 
 const InspectedPageContext = createContext<IPageContext | undefined>(undefined);
 
@@ -15,6 +17,9 @@ export const InspectedPageContextProvider = ({ children }: ChromeStorageProvider
   const [initReqChainData, setInitReqChainData] = useState<initReqChainResult>({});
   const initReqChainResult = useDebounce(initReqChainData, 2000);
   const [downloadingUrls, setDownloadingUrls] = useState<string[]>([]);
+  // Empty outside the devtools panel, which is the graceful degradation path for the Pre-Auction tab.
+  const [harLogData, setHarLogData] = useState<IHarEntry[]>([]);
+  const harLog = useDebounce(harLogData, 1000);
 
   useEffect(() => {
     // Read initial value from chrome.storage.local
@@ -72,11 +77,37 @@ export const InspectedPageContextProvider = ({ children }: ChromeStorageProvider
     };
   }, []);
 
+  useEffect(() => {
+    const read = (raw: string) => {
+      try {
+        setHarLogData(JSON.parse(raw) || []);
+      } catch (error) {
+        setHarLogData([]);
+      }
+    };
+
+    chrome.storage?.local?.get(PRE_AUCTION_HAR, (result) => {
+      if (result?.[PRE_AUCTION_HAR]) read(result[PRE_AUCTION_HAR]);
+    });
+
+    const handler = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: 'local' | 'sync' | 'managed' | 'session') => {
+      if (areaName === 'local' && changes[PRE_AUCTION_HAR] && changes[PRE_AUCTION_HAR].newValue) {
+        read(changes[PRE_AUCTION_HAR].newValue);
+      }
+    };
+    chrome.storage.onChanged.addListener(handler);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handler);
+    };
+  }, []);
+
   const contextValue: IPageContext = {
     frames,
     downloading,
     syncState: syncInfo,
     initReqChainResult,
+    harLog,
   };
 
   return <InspectedPageContext.Provider value={contextValue}>{children}</InspectedPageContext.Provider>;
@@ -89,4 +120,5 @@ export interface IPageContext {
   downloading: string;
   syncState: string;
   initReqChainResult: any;
+  harLog: IHarEntry[];
 }

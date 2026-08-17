@@ -48,6 +48,12 @@ describe('Content Script', () => {
   describe('Module Initialization & Script Injection', () => {
     it('injects script into document head when not on Cloudflare', async () => {
       expect(document.head.appendChild).toHaveBeenCalled();
+      const appendedScript = (document.head.appendChild as any).mock.calls[0]?.[0];
+      if (appendedScript) {
+        appendedScript.remove = vi.fn();
+        appendedScript.dispatchEvent(new Event('load'));
+        expect(appendedScript.remove).toHaveBeenCalled();
+      }
     });
 
     it('defers injection via requestIdleCallback on Cloudflare domains', async () => {

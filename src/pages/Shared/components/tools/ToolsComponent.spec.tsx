@@ -22,6 +22,14 @@ describe('Tools & OverlayControl components', () => {
       },
       scripting: {
         executeScript: vi.fn().mockImplementation((opts, cb) => {
+          if (typeof opts?.func === 'function') {
+            (window as any).googletag = {
+              openConsole: vi.fn(),
+              cmd: [],
+            };
+            opts.func();
+            ((window as any).googletag.cmd || []).forEach((fn: any) => fn());
+          }
           const result = [{ result: JSON.stringify({ enabled: false, bidders: [], bids: [] }) }];
           if (cb) cb(result);
           return Promise.resolve(result);
@@ -87,5 +95,53 @@ describe('Tools & OverlayControl components', () => {
     );
 
     expect(screen.getByText('Quick Actions & Utilities')).toBeTruthy();
+  });
+
+  it('handles empty prebid version and invalid semver gracefully', () => {
+    const invalidVerState: any = {
+      prebid: { version: 'invalid-semver-string' },
+      prebids: undefined,
+    };
+
+    render(
+      <AppStateContext.Provider value={invalidVerState}>
+        <ToolsComponent />
+      </AppStateContext.Provider>
+    );
+
+    expect(screen.getByText('Quick Actions & Utilities')).toBeTruthy();
+
+    // Test download with undefined prebids (line 56 early return)
+    const downloadBtn = screen.getByText('Download Session JSON');
+    fireEvent.click(downloadBtn);
+  });
+
+  it('handles Google GAM Console fallback when googletag.openConsole is not defined', async () => {
+    global.chrome.scripting.executeScript = vi.fn().mockImplementation((opts) => {
+      if (typeof opts?.func === 'function') {
+        (window as any).googletag = { cmd: [] };
+        opts.func();
+        ((window as any).googletag.cmd || []).forEach((fn: any) => fn());
+      }
+      return Promise.resolve([{ result: null }]);
+    });
+
+    const mockAppState: any = {
+      prebid: { version: '8.0.0' },
+      prebids: { test: '1' },
+    };
+
+    render(
+      <AppStateContext.Provider value={mockAppState}>
+        <ToolsComponent />
+      </AppStateContext.Provider>
+    );
+
+    const gamBtn = screen.getByText('Google GAM Console');
+    await act(async () => {
+      fireEvent.click(gamBtn);
+    });
+
+    expect(global.chrome.scripting.executeScript).toHaveBeenCalled();
   });
 });

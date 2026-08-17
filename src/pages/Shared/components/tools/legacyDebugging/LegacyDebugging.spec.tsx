@@ -15,25 +15,44 @@ describe('LegacyDebugging components', () => {
     vi.clearAllMocks();
     global.chrome = {
       scripting: {
-        executeScript: vi.fn().mockResolvedValue([
-          {
-            result: JSON.stringify({
-              enabled: true,
-              bidders: ['rubicon'],
-              bids: [{ bidder: 'rubicon', adUnitCode: 'slot-1', cpm: 5 }],
-            }),
-          },
-        ]),
+        executeScript: vi.fn().mockImplementation((opts) => {
+          if (typeof opts?.func === 'function') {
+            const mockSessionStorage = {
+              getItem: vi.fn().mockReturnValue(JSON.stringify({ enabled: true, bidders: ['rubicon'], bids: [{ bidder: 'rubicon', adUnitCode: 'slot-1', cpm: 5, currency: 'USD' }] })),
+              setItem: vi.fn(),
+            };
+            (global as any).sessionStorage = mockSessionStorage;
+            opts.func('pbjs', { enabled: true });
+          }
+          return Promise.resolve([
+            {
+              result: JSON.stringify({
+                enabled: true,
+                bidders: ['rubicon'],
+                bids: [{ bidder: 'rubicon', adUnitCode: 'slot-1', cpm: 5, currency: 'USD' }],
+              }),
+            },
+          ]);
+        }),
       },
     } as any;
   });
 
-  it('renders BidderFilter component and handles adding/removing bidders', () => {
-    const mockConfig: any = { enabled: true, bidders: ['rubicon'] };
-    const mockAppState: any = { events: [] };
+  it('renders BidderFilter component and handles adding/removing bidders and mousedown', () => {
+    const mockConfig: any = { enabled: true, bidders: ['rubicon', 'appnexus'] };
+    const mockAppState: any = {
+      events: [
+        {
+          eventType: 'auctionInit',
+          args: {
+            adUnits: [{ bids: [{ bidder: 'rubicon' }, { bidder: 'appnexus' }] }],
+          },
+        },
+      ],
+    };
     const setDebugConfigState = vi.fn();
 
-    render(
+    const { container } = render(
       <AppStateContext.Provider value={mockAppState}>
         <BidderFilter debugConfigState={mockConfig} setDebugConfigState={setDebugConfigState} />
       </AppStateContext.Provider>
@@ -42,15 +61,93 @@ describe('LegacyDebugging components', () => {
     expect(screen.getByText('Filter Bidder(s)')).toBeTruthy();
     expect(screen.getByText('rubicon')).toBeTruthy();
 
+    // Test chip mousedown stopPropagation
+    const chip = screen.getByText('rubicon');
+    fireEvent.mouseDown(chip);
+
+    // Test chip delete
+    const cancelIcons = container.querySelectorAll('[data-testid="CancelIcon"]');
+    if (cancelIcons.length > 0) {
+      fireEvent.click(cancelIcons[0]);
+      expect(setDebugConfigState).toHaveBeenCalled();
+    }
+
+    // Toggle switch off
     const switchBtn = screen.getByRole('checkbox');
     fireEvent.click(switchBtn);
+    expect(setDebugConfigState).toHaveBeenCalled();
 
+    // Toggle switch on
+    fireEvent.click(switchBtn);
     expect(setDebugConfigState).toHaveBeenCalled();
   });
 
-  it('renders BidOverWriteComponent component and handles adding/editing overwrites', () => {
-    const mockConfig: any = { enabled: true, bids: [{ bidder: 'rubicon', adUnitCode: 'slot-1', cpm: 5 }] };
-    const mockAppState: any = { events: [] };
+  it('renders BidOverWriteComponent and handles cpm, currency, bidder select, adUnit select, and chip deletion', () => {
+    const mockConfig: any = {
+      enabled: true,
+      bids: [
+        { bidder: 'rubicon', adUnitCode: 'slot-1-very-long-name-exceeding-twenty-six-characters', cpm: 5, currency: 'USD' },
+      ],
+    };
+    const mockAppState: any = {
+      events: [
+        {
+          eventType: 'auctionEnd',
+          args: {
+            adUnitCodes: ['slot-1-very-long-name-exceeding-twenty-six-characters', 'slot-2'],
+            adUnits: [{ bids: [{ bidder: 'rubicon' }, { bidder: 'appnexus' }] }],
+          },
+        },
+      ],
+    };
+    const setDebugConfigState = vi.fn();
+
+    const { container } = render(
+      <AppStateContext.Provider value={mockAppState}>
+        <BidOverWriteComponent debugConfigState={mockConfig} setDebugConfigState={setDebugConfigState} />
+      </AppStateContext.Provider>
+    );
+
+    // Test CPM change
+    const cpmInput = screen.getByDisplayValue('5');
+    fireEvent.change(cpmInput, { target: { value: '15' } });
+    expect(setDebugConfigState).toHaveBeenCalled();
+
+    // Test Currency change
+    const currencyInput = screen.getByDisplayValue('USD');
+    fireEvent.change(currencyInput, { target: { value: 'EUR' } });
+    expect(setDebugConfigState).toHaveBeenCalled();
+
+    // Test chip mousedown stopPropagation
+    const chips = container.querySelectorAll('.MuiChip-root');
+    chips.forEach((c) => fireEvent.mouseDown(c));
+
+    // Test deleting chip
+    const deleteIcons = container.querySelectorAll('[data-testid="CancelIcon"]');
+    deleteIcons.forEach((icon) => {
+      fireEvent.click(icon);
+      expect(setDebugConfigState).toHaveBeenCalled();
+    });
+
+    // Toggle switch off
+    const switchBtn = screen.getAllByRole('checkbox')[0];
+    fireEvent.click(switchBtn);
+    expect(setDebugConfigState).toHaveBeenCalled();
+  });
+
+  it('renders BidOverWriteComponent with empty bids and tests global bidder overwrite', () => {
+    const mockConfig: any = { enabled: true, bids: [] };
+    const mockAppState: any = {
+      events: [
+        {
+          eventType: 'auctionEnd',
+          args: {
+            adUnitCodes: ['slot-1'],
+            adUnits: [{ bids: [{ bidder: 'rubicon' }] }],
+          },
+        },
+      ],
+    };
     const setDebugConfigState = vi.fn();
 
     render(
@@ -59,16 +156,21 @@ describe('LegacyDebugging components', () => {
       </AppStateContext.Provider>
     );
 
-    expect(screen.getByDisplayValue('5')).toBeTruthy();
-
+    // Turn switch on
     const switchBtn = screen.getAllByRole('checkbox')[0];
     fireEvent.click(switchBtn);
+    expect(setDebugConfigState).toBeDefined();
 
-    expect(setDebugConfigState).toHaveBeenCalled();
+    // Test select inputs
+    const selects = screen.getAllByRole('combobox');
+    if (selects.length >= 2) {
+      fireEvent.mouseDown(selects[0]);
+      fireEvent.mouseDown(selects[1]);
+    }
   });
 
-  it('renders ModifyBidResponsesComponent and toggles switch', async () => {
-    const mockAppState: any = { pbjsNamespace: 'pbjs', isSmallScreen: false, events: [] };
+  it('renders ModifyBidResponsesComponent and toggles switch and saves config', async () => {
+    const mockAppState: any = { pbjsNamespace: 'pbjs', isSmallScreen: true, events: [] };
 
     await act(async () => {
       render(

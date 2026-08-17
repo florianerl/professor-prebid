@@ -135,6 +135,32 @@ describe('InitiatorComponent', () => {
     expect(chrome.devtools.inspectedWindow.reload).toHaveBeenCalledWith({ ignoreCache: true });
   });
 
+  it('shows and closes toast message when clicking refresh while feature or root URL is disabled', async () => {
+    global.chrome.storage.local.get = vi.fn((key, cb) => cb({ [INITIATOR_TOGGLE]: false, [INITIATOR_ROOT_URL]: '' }));
+
+    render(
+      <AppStateContext.Provider value={{ isRefresh: false, initDataLoaded: false, setInitiatorOutput: vi.fn(), setInitDataLoaded: vi.fn(), setIsRefresh: vi.fn() }}>
+        <InspectedPageContext.Provider value={{ initReqChainResult: {} }}>
+          <InitiatorComponent />
+        </InspectedPageContext.Provider>
+      </AppStateContext.Provider>
+    );
+
+    const refreshIcon = document.querySelector('.initiator__refresh-icon')!;
+    fireEvent.click(refreshIcon);
+
+    expect(screen.getByText(/Make sure that the Network Inspector tool is enabled/)).toBeTruthy();
+
+    // Test clicking Set URL when rootUrl is empty
+    const setUrlBtn = screen.getByText('Set URL');
+    fireEvent.click(setUrlBtn);
+
+    const closeToastBtn = screen.getByRole('button', { name: /close/i });
+    act(() => {
+      fireEvent.click(closeToastBtn);
+    });
+  });
+
   it('renders loading state when isRefresh is true', () => {
     const mockAppState: any = {
       isRefresh: true,

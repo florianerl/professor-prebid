@@ -1,26 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BadgeService } from './BadgeService';
 
-// Mock getTabId
 vi.mock('../Shared/utils', () => ({
     getTabId: vi.fn()
 }));
 
 import { getTabId } from '../Shared/utils';
 
-const mockSetBadgeBackgroundColor = vi.fn();
-const mockSetBadgeText = vi.fn();
-
-global.chrome = {
-    action: {
-        setBadgeBackgroundColor: mockSetBadgeBackgroundColor,
-        setBadgeText: mockSetBadgeText
-    }
-} as any;
-
 describe('BadgeService', () => {
+    let mockSetBadgeBackgroundColor: any;
+    let mockSetBadgeText: any;
+
     beforeEach(() => {
         vi.clearAllMocks();
+        mockSetBadgeBackgroundColor = vi.fn();
+        mockSetBadgeText = vi.fn();
+        global.chrome = {
+            ...(global.chrome || {}),
+            action: {
+                setBadgeBackgroundColor: mockSetBadgeBackgroundColor,
+                setBadgeText: mockSetBadgeText
+            }
+        } as any;
     });
 
     it('does nothing if tabId is undefined', async () => {

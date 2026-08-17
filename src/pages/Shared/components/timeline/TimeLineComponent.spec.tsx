@@ -113,4 +113,52 @@ describe('TimeLineComponent', () => {
 
     expect(utils.download).toHaveBeenCalledWith(mockAuctionEvents, 'timeline-auctions');
   });
+
+  it('handles pre-auction toggle button click when metrics exist', () => {
+    const eventsWithTiming: any = [
+      {
+        args: {
+          auctionId: 'auction-1',
+          auctionEnd: 2000,
+          timestamp: 1000,
+          metrics: {
+            'module.userSync.total': 50,
+          },
+          bidderRequests: [{ bidderCode: 'rubicon' }],
+        },
+      },
+    ];
+
+    render(
+      <AppStateContext.Provider value={{ prebid: { events: eventsWithTiming }, auctionEndEvents: eventsWithTiming }}>
+        <TimeLineComponent />
+      </AppStateContext.Provider>
+    );
+
+    const preAuctionBtn = screen.getByTestId('HourglassTopIcon').closest('button');
+    if (preAuctionBtn) {
+      fireEvent.click(preAuctionBtn);
+    }
+  });
+
+  it('handles auction without timestamp or auctionEnd in single mode', () => {
+    const invalidAuction: any = [
+      {
+        args: {
+          auctionId: 'auction-incomplete',
+          bidderRequests: [{ bidderCode: 'rubicon' }],
+        },
+      },
+    ];
+
+    render(
+      <AppStateContext.Provider value={{ prebid: { events: invalidAuction }, auctionEndEvents: invalidAuction }}>
+        <TimeLineComponent />
+      </AppStateContext.Provider>
+    );
+
+    const auctionTab = screen.getByText(/Auction #1/);
+    fireEvent.click(auctionTab);
+    expect(screen.getByText('Duration: 0ms')).toBeTruthy();
+  });
 });

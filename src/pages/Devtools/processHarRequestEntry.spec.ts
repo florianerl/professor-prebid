@@ -470,6 +470,40 @@ describe('processHarRequestEntry helpers', () => {
             await _processHarRequestEntry(harEntry, initReqChainObj, redirectSet, 'https://root.com');
             expect(mockSet).not.toHaveBeenCalled();
         });
+
+        it('updates currentRootUrl if initiator stack contains an existing url in initReqChainObj', async () => {
+            const redirectSet = new Set<string>();
+            const initReqChainObj: any = {
+                'https://known-root.com': { fullUrl: 'https://known-root.com', initiated: [] }
+            };
+
+            const harEntry = {
+                request: {
+                    url: 'https://known-root.com/sub',
+                    headers: [],
+                    queryString: {},
+                    cookies: [],
+                    method: 'GET',
+                },
+                response: {
+                    redirectURL: '',
+                    cookies: [],
+                    headers: [],
+                },
+                _initiator: {
+                    stack: {
+                        callFrames: [{ url: 'https://known-root.com/file.js' }]
+                    }
+                },
+                _resourceType: 'script',
+                startedDateTime: '2024-01-01T00:00:00.000Z',
+                time: 10,
+                timings: {},
+            };
+
+            await _processHarRequestEntry(harEntry, initReqChainObj, redirectSet, 'https://initial-root.com');
+            expect(initReqChainObj['https://known-root.com']).toBeDefined();
+        });
     });
 
     describe('getInitReqChainByUrl', () => {

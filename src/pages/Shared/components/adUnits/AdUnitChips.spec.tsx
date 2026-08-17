@@ -34,6 +34,10 @@ describe('AdUnitChips components', () => {
     // Click chip to open Popover
     fireEvent.click(chip);
     expect(screen.getByText(/\/12345\/slot/)).toBeTruthy();
+
+    // Close Popover
+    const popover = screen.getByRole('presentation');
+    fireEvent.keyDown(popover, { key: 'Escape' });
   });
 
   it('renders MediaTypeChipComponent with winner and non-winner colors', () => {
@@ -55,6 +59,9 @@ describe('AdUnitChips components', () => {
 
       const res = func('slot-1');
       expect(res).toBe(true);
+
+      // Advance 5000ms inside injected script
+      vi.advanceTimersByTime(5000);
 
       document.body.removeChild(dummyElem);
 
@@ -92,7 +99,10 @@ describe('AdUnitChips components', () => {
   });
 
   it('renders AdUnitChipComponent and handles scroll2element element not found', async () => {
-    const mockExecuteScript = vi.fn().mockImplementation((opts, cb) => {
+    const mockExecuteScript = vi.fn().mockImplementation(({ func }, cb) => {
+      if (typeof func === 'function') {
+        func('non-existent');
+      }
       cb([{ result: false }]);
     });
 

@@ -95,18 +95,44 @@ describe('ConfigComponent & ExpandableTile', () => {
     expect(utils.download).toHaveBeenCalledWith({ bidderTimeout: 3000 }, 'prebid-config');
   });
 
-  it('handles tile component error gracefully using ErrorBoundary fallback', () => {
-    const ProblematicTile = () => {
-      throw new Error('Tile rendering error');
-    };
-
-    // Suppress console.error output for expected error boundary test
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
+  it('handles empty prebid and config gracefully', () => {
     render(
-      <ConfigComponent />
+      <AppStateContext.Provider value={{ prebid: {} }}>
+        <ConfigComponent />
+      </AppStateContext.Provider>
     );
 
-    spy.mockRestore();
+    expect(screen.getByPlaceholderText('Filter config...')).toBeTruthy();
+  });
+
+  it('renders ErrorFallback and resets when a tile throws an error', () => {
+    const originalConsoleError = console.error;
+    console.error = vi.fn();
+
+    // Trigger an error in one tile by mocking a throwing getter
+    const mockContext: any = {
+      prebid: {
+        config: {
+          get userSync() {
+            throw new Error('Test tile crash');
+          },
+        },
+      },
+    };
+
+    render(
+      <AppStateContext.Provider value={mockContext}>
+        <ConfigComponent />
+      </AppStateContext.Provider>
+    );
+
+    expect(screen.getAllByText(/An error occurred: Test tile crash/i).length).toBeGreaterThanOrEqual(1);
+
+    // Fast-forward 1000ms timer
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    console.error = originalConsoleError;
   });
 });

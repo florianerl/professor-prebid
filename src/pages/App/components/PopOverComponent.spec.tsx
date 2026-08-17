@@ -1,67 +1,114 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import PopOverComponent from './PopOverComponent';
 
-// Mock child components to isolate PopOverComponent testing
-vi.mock('./GamDetailsComponent', () => {
-  return {
-    default: ({ elementId, inPopOver }: any) => (
-      <div data-testid="mock-gam-details">
-        GamDetails: {elementId} - inPopOver: {inPopOver ? 'true' : 'false'}
-      </div>
-    )
-  };
-});
-
-vi.mock('../../Shared/components/adUnits/AdUnitsComponent', () => {
-  return {
-    default: ({ elementId }: any) => (
-      <div data-testid="mock-ad-units">
-        AdUnits: {elementId}
-      </div>
-    )
-  };
-});
-
 describe('PopOverComponent', () => {
+  const mockSetAnchorEl = vi.fn();
   const defaultProps = {
     elementId: 'div-gpt-ad-1234567-0',
     winningBidder: 'appnexus',
     winningCPM: 2.5,
     currency: 'USD',
     timeToRespond: 300,
-    setAnchorEl: vi.fn(),
-    anchorEl: document.createElement('button')
+    setAnchorEl: mockSetAnchorEl,
+    anchorEl: document.createElement('button'),
+    pbjsNameSpace: 'pbjs',
   };
 
-  it('renders correctly when anchorEl is provided', () => {
+  const mockPbjs: any = {
+    version: '8.50.0',
+    getBidResponsesForAdUnitCode: vi.fn().mockReturnValue({
+      bids: [
+        { bidder: 'appnexus', cpm: 2.5, timeToRespond: 120 },
+        { bidder: 'rubicon', cpm: 1.2, timeToRespond: 200 },
+      ],
+    }),
+    getAllWinningBids: vi.fn().mockReturnValue([
+      {
+        adUnitCode: 'div-gpt-ad-1234567-0',
+        bidder: 'appnexus',
+        cpm: 2.5,
+        ad: '<div>Ad Creative Banner</div>',
+        native: { title: 'Native Title' },
+      },
+    ]),
+    adUnits: [{ code: 'div-gpt-ad-1234567-0', mediaTypes: { banner: { sizes: [[300, 250]] } } }],
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (window as any).pbjs = mockPbjs;
+    (window as any).parent = {
+      googletag: {
+        pubads: () => ({
+          getSlots: () => [
+            {
+              getSlotElementId: () => 'div-gpt-ad-1234567-0',
+              getAdUnitPath: () => '/12345,67890/homepage',
+              getTargetingKeys: () => ['key1'],
+              getTargeting: (k: string) => (k === 'key1' ? ['val1'] : []),
+              getResponseInformation: () => ({
+                creativeId: 111,
+                lineItemId: 222,
+              }),
+            },
+          ],
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+        }),
+      },
+    };
+    (global as any).googletag = (window as any).parent.googletag;
+    Object.defineProperty(navigator, 'clipboard', {
+      value: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+      writable: true,
+      configurable: true,
+    });
+  });
+
+  it('renders correctly with prebid and GAM cards when anchorEl is provided', () => {
     render(<PopOverComponent {...defaultProps} />);
-    
-    // Check header
-    expect(screen.getByText('div-gpt-ad-1234567-0')).toBeDefined();
-    
-    // Check prebid winning bid details
-    expect(screen.getByText('appnexus')).toBeDefined();
-    expect(screen.getByText('2.5 USD')).toBeDefined();
-    expect(screen.getByText('300ms')).toBeDefined();
-    
+
+    expect(screen.getAllByText('div-gpt-ad-1234567-0').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('appnexus').length).toBeGreaterThan(0);
+    expect(screen.getByText('2.5 USD')).toBeTruthy();
+    expect(screen.getByText('300ms')).toBeTruthy();
+    expect(screen.getByText('8.50.0')).toBeTruthy();
+    expect(screen.getByText('/12345,67890/homepage')).toBeTruthy();
+  });
+
+  it('handles copying info card text to clipboard', () => {
+    render(<PopOverComponent {...defaultProps} />);
+
+    const copyButtons = screen.getAllByRole('button');
+    // Click one of the copy icon buttons inside info cards
+    if (copyButtons.length > 1) {
+      fireEvent.click(copyButtons[1]);
+      expect(navigator.clipboard.writeText).toHaveBeenCalled();
+    }
+  });
+
+  it('toggles expandable sections when clicked', () => {
+    render(<PopOverComponent {...defaultProps} />);
+
+    const adUnitSection = screen.getByText('AdUnit Info');
+    fireEvent.click(adUnitSection);
   });
 
   it('does not render content when anchorEl is null', () => {
-    const { container } = render(<PopOverComponent {...defaultProps} anchorEl={null} />);
-    
-    // MUI Popover is not open, but might render empty div in DOM depending on keepMounted prop, usually it renders nothing or hidden
+    render(<PopOverComponent {...defaultProps} anchorEl={null} />);
     expect(screen.queryByText('div-gpt-ad-1234567-0')).toBeNull();
   });
 
   it('calls setAnchorEl when close button is clicked', () => {
     render(<PopOverComponent {...defaultProps} />);
-    
-    // Find the close IconButton (it's the only button in the popover header)
-    const closeButton = screen.getByRole('button');
-    fireEvent.click(closeButton);
-    
-    expect(defaultProps.setAnchorEl).toHaveBeenCalled();
+
+    const buttons = screen.getAllByRole('button');
+    fireEvent.click(buttons[0]);
+
+    expect(mockSetAnchorEl).toHaveBeenCalledWith(null);
   });
 });

@@ -53,9 +53,25 @@ describe('UserIdsComponent', () => {
     const userIdsTab = screen.getByText('User IDs: 1');
     fireEvent.click(userIdsTab);
     expect(screen.getByText('criteo.com')).toBeTruthy();
+
+    // Type query in autocomplete filter
+    const input = screen.getByPlaceholderText('Filter by source, ID or module name...');
+    fireEvent.change(input, { target: { value: 'criteo' } });
+    expect(screen.getByText('criteo.com')).toBeTruthy();
   });
 
-  it('handles download button click', () => {
+  it('handles empty prebid and config gracefully', () => {
+    render(
+      <AppStateContext.Provider value={{ prebid: {} }}>
+        <UserIdsComponent />
+      </AppStateContext.Provider>
+    );
+
+    expect(screen.getByText('User IDs: 0')).toBeTruthy();
+    expect(screen.getByText('Modules: 0')).toBeTruthy();
+  });
+
+  it('handles download button click and raw JSON toggle', () => {
     const downloadSpy = vi.spyOn(utils, 'download').mockImplementation(() => {});
     render(
       <AppStateContext.Provider value={mockContext}>
@@ -63,9 +79,18 @@ describe('UserIdsComponent', () => {
       </AppStateContext.Provider>
     );
 
-    const downloadBtn = screen.getByLabelText('Download User ID session data as JSON');
-    fireEvent.click(downloadBtn);
-
+    const downloadBtns = screen.getAllByLabelText('Download User ID session data as JSON');
+    fireEvent.click(downloadBtns[downloadBtns.length - 1]);
     expect(downloadSpy).toHaveBeenCalled();
+
+    // Toggle Raw JSON view
+    const jsonBtn = screen.getByLabelText('Switch to raw JSON view');
+    fireEvent.click(jsonBtn);
+    expect(screen.getByText('Raw User ID Data Object:')).toBeTruthy();
+
+    // Toggle back to list view
+    const listBtn = screen.getByLabelText('Switch to list view');
+    fireEvent.click(listBtn);
+    expect(screen.queryByText('Raw User ID Data Object:')).toBeNull();
   });
 });

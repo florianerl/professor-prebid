@@ -148,17 +148,18 @@ const PbjsVersionInfoContent = ({ close }: PbjsVersionInfoContentProps): JSX.Ele
   };
 
   const fetchReleaseInfo = async (page: number, trackingData: any) => {
-    // console.log('calling github: ', `https://api.github.com/repos/prebid/Prebid.js/releases?per_page=100&page=${page}&owner=prebid&repo=Prebid.js`);
-    const response = await fetch(`https://api.github.com/repos/prebid/Prebid.js/releases?per_page=100&page=${page}&owner=prebid&repo=Prebid.js`);
+    try {
+      const response = await fetch(`https://api.github.com/repos/prebid/Prebid.js/releases?per_page=100&page=${page}&owner=prebid&repo=Prebid.js`);
 
-    if (!response.ok) {
-      const message = `An error has occured: ${response.status}`;
-      throw new Error(message);
+      if (!response.ok) {
+        return;
+      }
+
+      const releaseData = await response.json();
+      processReleaseData(releaseData, trackingData, page);
+    } catch (error) {
+      // Gracefully handle network/API errors
     }
-
-    const releaseData = await response.json();
-
-    processReleaseData(releaseData, trackingData, page);
   };
 
   if (prebid && prebid.version && Object.keys(prebidReleaseInfo).length === 0) {

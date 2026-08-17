@@ -104,5 +104,13 @@ describe('AdUnitsComponent & Grid', () => {
     expect(header).toBeTruthy();
     fireEvent.click(header);
     expect(onClick).toHaveBeenCalled();
+
+    // Test with children prop
+    render(
+      <HeaderGridItem>
+        <div>Child Content</div>
+      </HeaderGridItem>
+    );
+    expect(screen.getByText('Child Content')).toBeTruthy();
   });
 });

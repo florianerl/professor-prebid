@@ -151,6 +151,12 @@ describe('autocomplete/utils', () => {
       expect(predicate({ name: 'appnexus', cpm: 1 })).toBe(false);
     });
 
+    it('supports quoted queries and case-insensitive AND separation', () => {
+      const predicate = engine.runQuery('name:"app nexus" AND "exact match"');
+      expect(predicate({ name: 'app nexus exact match', cpm: 1 })).toBe(true);
+      expect(predicate({ name: 'other', cpm: 1 })).toBe(false);
+    });
+
     it('handles empty query string', () => {
       expect(engine.runQuery('')({ name: 'a', cpm: 1 })).toBe(true);
     });

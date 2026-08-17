@@ -239,7 +239,7 @@ describe('InjectedApp Component', () => {
     expect(screen.getByText(/Bidder: bidderB/)).toBeTruthy();
   });
 
-  it('throttles rapid SAVE_MASKS events to maximum 1 call per second', () => {
+  it('throttles rapid SAVE_MASKS events and executes scheduled update when interval passes', () => {
     const elem = document.createElement('div');
     elem.id = 'slot_throttle';
     document.body.appendChild(elem);
@@ -265,7 +265,17 @@ describe('InjectedApp Component', () => {
       document.dispatchEvent(new CustomEvent(SAVE_MASKS, { detail: 'pbjs' }));
     });
 
-    expect(getEventsMock).toHaveBeenCalled();
+    expect(getEventsMock).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      document.dispatchEvent(new CustomEvent(SAVE_MASKS, { detail: 'pbjs' }));
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(1100);
+    });
+
+    expect(getEventsMock).toHaveBeenCalledTimes(2);
   });
 
   it('does not update masks on timeout if consoleState becomes false before timeout fires', () => {

@@ -164,11 +164,12 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
       setSlotAdUnitPath(slot?.getAdUnitPath());
       setNetworkId(slot?.getAdUnitPath()?.split('/')[1]?.split(','));
       setSlotTargeting(slot?.getTargetingKeys().map((key, id) => ({ key, value: slot.getTargeting(key), id })));
-      setSlotResponseInfo(slot?.getResponseInformation());
+      const responseInfo = slot?.getResponseInformation();
+      setSlotResponseInfo(responseInfo);
       setQueryId(document.getElementById(slot?.getSlotElementId())?.getAttribute('data-google-query-id') || null);
 
-      if (slotResponseInfo) {
-        const { creativeId, lineItemId, sourceAgnosticCreativeId, sourceAgnosticLineItemId } = slotResponseInfo as any;
+      if (responseInfo) {
+        const { creativeId, lineItemId, sourceAgnosticCreativeId, sourceAgnosticLineItemId } = responseInfo as any;
         setCreativeId(creativeId || sourceAgnosticCreativeId);
         setLineItemId(lineItemId || sourceAgnosticLineItemId);
       }
@@ -185,7 +186,7 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
         pubads.removeEventListener('slotRenderEnded', eventHandler);
       };
     }
-  }, [elementId, slotResponseInfo]);
+  }, [elementId]);
 
   return (
     <Popover

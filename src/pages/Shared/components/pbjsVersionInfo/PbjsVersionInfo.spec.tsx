@@ -23,7 +23,7 @@ describe('PbjsVersionInfo components', () => {
     latestVersion: '8.1.0',
     latestVersionPublishedAt: '2026-05-01T00:00:00Z',
     installedVersion: '8.0.0',
-    installedVersionPublishedAt: '2026-01-01T00:00:00Z',
+    installedVersionPublishedAt: '2023-01-01T00:00:00Z',
     featureCountSinceInstalledVersion: 5,
     maintenanceCountSinceInstalledVersion: 3,
     bugfixCountSinceInstalledVersion: 10,
@@ -54,7 +54,6 @@ describe('PbjsVersionInfo components', () => {
 
     expect(screen.getByText(/Installed PBJS Version/i)).toBeTruthy();
 
-    // Click close button
     const closeBtn = screen.getByRole('button');
     fireEvent.click(closeBtn);
     expect(closeFn).toHaveBeenCalled();
@@ -120,7 +119,7 @@ describe('PbjsVersionInfo components', () => {
     expect(screen.getByText('v8.1.0 Release')).toBeTruthy();
   });
 
-  it('fetches release info from GitHub API when cached data is missing', async () => {
+  it('fetches release info from GitHub API when cached data is missing and processes markdown headers', async () => {
     const setPrebidReleaseInfo = vi.fn();
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -128,8 +127,8 @@ describe('PbjsVersionInfo components', () => {
         Promise.resolve([
           {
             tag_name: '8.0.0',
-            published_at: '2026-01-01T00:00:00Z',
-            body: '## <h2 id="newfeatures">New Features</h2><ul><li>Feature 1</li></ul>',
+            published_at: '2023-01-01T00:00:00Z',
+            body: '<h2 id="newfeatures">New Features</h2><ul><li>Feature 1</li></ul><h2 id="maintenance">Maintenance</h2><ul><li>Maint 1</li></ul><h2 id="bugfixes">Bug Fixes</h2><ul><li>Bug 1</li></ul>',
           },
         ]),
     });
@@ -150,5 +149,154 @@ describe('PbjsVersionInfo components', () => {
     });
 
     expect(mockFetch).toHaveBeenCalled();
+    expect(setPrebidReleaseInfo).toHaveBeenCalled();
+  });
+
+  it('handles paginated releases when first page has 100 items and installed version is on page 2', async () => {
+    const setPrebidReleaseInfo = vi.fn();
+    const page1Releases = Array.from({ length: 100 }, (_, i) => ({
+      tag_name: `9.${i}.0`,
+      published_at: '2026-01-01T00:00:00Z',
+      body: '<h2 id="newfeatures">New</h2><ul><li>F</li></ul>',
+    }));
+    const page2Releases = [
+      {
+        tag_name: '8.0.0',
+        published_at: '2025-05-01T00:00:00Z',
+        body: '<h2 id="newfeatures">New</h2><ul><li>F</li></ul>',
+      },
+    ];
+
+    const mockFetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('&page=1&')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(page1Releases) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(page2Releases) });
+    });
+    global.fetch = mockFetch;
+
+    const mockContext: any = {
+      prebid: { version: 'v8.0.0' },
+      prebidReleaseInfo: {},
+      setPrebidReleaseInfo,
+    };
+
+    await act(async () => {
+      render(
+        <AppStateContext.Provider value={mockContext}>
+          <PbjsVersionInfoContent />
+        </AppStateContext.Provider>
+      );
+    });
+
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses cached release info from chrome.storage when valid and unexpired, and falls back to fetch when not in cache', async () => {
+    const cachedData = [
+      {
+        tag_name: '7.50.0', // does not match installed v8.0.0 -> triggers !page fallback fetch
+        published_at: '2025-01-01T00:00:00Z',
+        cached_at: Date.now(),
+        body: '<h2 id="newfeatures">New Features</h2><ul><li>Feature 1</li></ul>',
+      },
+    ];
+
+    global.chrome.storage.local.get = vi.fn((key, cb) => cb({ pbjsReleasesData: JSON.stringify(cachedData) }));
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve([
+          {
+            tag_name: '8.0.0',
+            published_at: '2025-01-01T00:00:00Z',
+            body: '<h2 id="newfeatures">New</h2>',
+          },
+        ]),
+    });
+    global.fetch = mockFetch;
+
+    const setPrebidReleaseInfo = vi.fn();
+    const mockContext: any = {
+      prebid: { version: 'v8.0.0' },
+      prebidReleaseInfo: {},
+      setPrebidReleaseInfo,
+    };
+
+    await act(async () => {
+      render(
+        <AppStateContext.Provider value={mockContext}>
+          <PbjsVersionInfoContent />
+        </AppStateContext.Provider>
+      );
+    });
+
+    expect(mockFetch).toHaveBeenCalled();
+  });
+
+  it('handles expired cache and fetches new releases from GitHub', async () => {
+    const expiredData = [
+      {
+        tag_name: '8.0.0',
+        published_at: '2024-01-01T00:00:00Z',
+        cached_at: Date.now() - 1000 * 60 * 60 * 48, // 2 days ago
+        body: '',
+      },
+    ];
+
+    global.chrome.storage.local.get = vi.fn((key, cb) => cb({ pbjsReleasesData: JSON.stringify(expiredData) }));
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve([
+          {
+            tag_name: '8.0.0',
+            published_at: '2024-01-01T00:00:00Z',
+            body: '<h2 id="newfeatures">New</h2><ul><li>1</li></ul>',
+          },
+        ]),
+    });
+    global.fetch = mockFetch;
+
+    const mockContext: any = {
+      prebid: { version: 'v8.0.0' },
+      prebidReleaseInfo: {},
+      setPrebidReleaseInfo: vi.fn(),
+    };
+
+    await act(async () => {
+      render(
+        <AppStateContext.Provider value={mockContext}>
+          <PbjsVersionInfoContent />
+        </AppStateContext.Provider>
+      );
+    });
+
+    expect(mockFetch).toHaveBeenCalled();
+  });
+
+  it('handles fetch API errors gracefully', async () => {
+    global.chrome.storage.local.get = vi.fn((key, cb) => cb({}));
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+    });
+
+    const mockContext: any = {
+      prebid: { version: 'v8.0.0' },
+      prebidReleaseInfo: {},
+      setPrebidReleaseInfo: vi.fn(),
+    };
+
+    await act(async () => {
+      render(
+        <AppStateContext.Provider value={mockContext}>
+          <PbjsVersionInfoContent />
+        </AppStateContext.Provider>
+      );
+    });
+
+    expect(screen.getByText('Attempting to fetch data about PBJS releases..')).toBeTruthy();
   });
 });

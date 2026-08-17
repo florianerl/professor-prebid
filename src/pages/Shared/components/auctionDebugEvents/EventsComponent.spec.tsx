@@ -45,6 +45,21 @@ describe('EventsComponent & EventsState', () => {
       elapsedTime: 60,
       args: { bidder: 'rubicon', cpm: 2.5, adUnitCode: 'slot-1' },
     },
+    {
+      eventType: 'auctionDebug',
+      elapsedTime: 70,
+      args: { type: 'INFO', message: 'Info log' },
+    },
+    {
+      eventType: 'adRenderFailed',
+      elapsedTime: 80,
+      args: { reason: 'timeout', slot: 'top', detail: { code: 1 } },
+    },
+    {
+      eventType: 'adRenderSucceeded',
+      elapsedTime: 90,
+      args: { doc: 'iframe' },
+    },
   ];
 
   const mockContext: any = {
@@ -58,7 +73,7 @@ describe('EventsComponent & EventsState', () => {
       </AppStateContext.Provider>
     );
 
-    expect(screen.getByText(/Events: 6/)).toBeTruthy();
+    expect(screen.getByText(/Events: 9/)).toBeTruthy();
     expect(screen.getByText(/Warning: 1/)).toBeTruthy();
     expect(screen.getByText(/Error: 1/)).toBeTruthy();
 
@@ -92,7 +107,7 @@ describe('EventsComponent & EventsState', () => {
     expect(screen.getByPlaceholderText('Filter events...')).toHaveValue('eventtype:auctionDebug argstype:ERROR');
 
     // Click Event button to clear filter
-    const eventBtn = screen.getByText(/Events: 6/);
+    const eventBtn = screen.getByText(/Events: 9/);
     fireEvent.click(eventBtn);
     expect(screen.getByPlaceholderText('Filter events...')).toHaveValue('');
   });
@@ -108,7 +123,7 @@ describe('EventsComponent & EventsState', () => {
     const codeBtn = screen.getByLabelText('Switch to raw JSON view');
     fireEvent.click(codeBtn);
 
-    expect(screen.getByText('6 Events')).toBeTruthy();
+    expect(screen.getByText('9 Events')).toBeTruthy();
 
     // Click download button
     const downloadBtn = screen.getByLabelText('Download filtered events as JSON');

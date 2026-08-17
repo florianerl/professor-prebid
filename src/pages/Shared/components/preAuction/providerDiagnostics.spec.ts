@@ -322,14 +322,28 @@ describe('getProviderDiagnostics - endpoint hosts', () => {
 });
 
 describe('getProviderDiagnostics - auctions', () => {
-  it('records the earliest bidder start per auction', () => {
-    const { auctions } = getProviderDiagnostics(makePrebid({}), [makeAuction({ starts: [AUCTION_START + 90, AUCTION_START + 40] })]);
-    expect(auctions[0].firstBidderStart).toBe(AUCTION_START + 40);
-  });
+  it('finds eid evidence on bids.userIdAsEids when not present on ortb2.user.ext.eids', () => {
+    const prebid = makePrebid({ userSync: { userIds: [{ name: 'sharedId' }] } });
+    const auctionEvent: any = {
+      eventType: 'auctionEnd',
+      args: {
+        auctionId: 'a1',
+        timestamp: AUCTION_START,
+        bidderRequests: [
+          {
+            bids: [
+              {
+                userIdAsEids: [{ source: 'sharedid.org', uids: [{ id: '123' }] }],
+              },
+            ],
+          },
+        ],
+      },
+    };
 
-  it('falls back to the auction timestamp when no bidder request carries a start', () => {
-    const { auctions } = getProviderDiagnostics(makePrebid({}), [makeAuction({ starts: [] })]);
-    expect(auctions[0].firstBidderStart).toBe(AUCTION_START);
+    const { providers } = getProviderDiagnostics(prebid, [auctionEvent]);
+    expect(providers[0].auctions[0].verdict).toBe('landed');
+    expect(providers[0].auctions[0].evidenceDetail?.['sharedid.org']?.at).toBe('bids[].userIdAsEids[]');
   });
 
   it('survives an empty config and no auctions', () => {

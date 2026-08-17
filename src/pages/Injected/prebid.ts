@@ -210,13 +210,6 @@ export class Prebid {
         fn();
       }, remaining);
     }
-    if (!this.updateTimeout) {
-      this.updateTimeout = setTimeout(() => {
-        this.sendToContentScriptPending = false;
-        this.throttle(fn);
-      }, this.updateRateInterval - (now - this.lastTimeUpdateSentToContentScript));
-    }
-
   };
 }
 

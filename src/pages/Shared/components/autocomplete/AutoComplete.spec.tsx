@@ -15,37 +15,133 @@ describe('AutoComplete component', () => {
     expect(onQueryChange).toHaveBeenCalledWith('bidder');
   });
 
-  it('handles option pick directly via onPick or onQueryChange', () => {
+  it('handles selecting key option without operator', async () => {
     const onPick = vi.fn();
-    const onQueryChange = vi.fn();
-
     render(
       <AutoComplete
-        query="bidder"
-        onQueryChange={onQueryChange}
+        query="bid"
+        onQueryChange={vi.fn()}
         onPick={onPick}
+        placeholder="Search..."
+        fieldKeys={['bidder', 'cpm']}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('Search...');
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    const option = await screen.findByRole('option', { name: 'bidder' });
+    fireEvent.click(option);
+
+    expect(onPick).toHaveBeenCalledWith('bidder:');
+  });
+
+  it('handles selecting value option with colon and no operator', async () => {
+    const onQueryChange = vi.fn();
+    render(
+      <AutoComplete
+        query="bidder:rub"
+        onQueryChange={onQueryChange}
+        placeholder="Search..."
+        fieldKeys={['bidder']}
+        options={['bidder:rubicon', 'bidder:appnexus']}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('Search...');
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    const option = await screen.findByRole('option', { name: 'rubicon' });
+    fireEvent.click(option);
+
+    expect(onQueryChange).toHaveBeenCalledWith('bidder:rubicon');
+  });
+
+  it('handles selecting value option after AND operator', async () => {
+    const onQueryChange = vi.fn();
+    render(
+      <AutoComplete
+        query="cpm>1 AND bidder:rub"
+        onQueryChange={onQueryChange}
+        placeholder="Search..."
+        fieldKeys={['bidder', 'cpm']}
+        options={['bidder:rubicon', 'bidder:appnexus']}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('Search...');
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    const option = await screen.findByRole('option', { name: 'rubicon' });
+    fireEvent.click(option);
+
+    expect(onQueryChange).toHaveBeenCalledWith('cpm>1 AND bidder:rubicon');
+  });
+
+  it('handles selecting key option after OR operator', async () => {
+    const onQueryChange = vi.fn();
+    render(
+      <AutoComplete
+        query="cpm>1 OR bid"
+        onQueryChange={onQueryChange}
+        placeholder="Search..."
+        fieldKeys={['bidder', 'cpm']}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('Search...');
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    const option = await screen.findByRole('option', { name: 'bidder' });
+    fireEvent.click(option);
+
+    expect(onQueryChange).toHaveBeenCalledWith('cpm>1 OR bidder:');
+  });
+
+  it('renders suggestions when query ends in OR or AND operator', () => {
+    render(
+      <AutoComplete
+        query="cpm>1 AND"
+        onQueryChange={vi.fn()}
+        placeholder="Search..."
+        fieldKeys={['bidder', 'cpm']}
+      />
+    );
+    expect(screen.getByPlaceholderText('Search...')).toBeTruthy();
+  });
+
+  it('handles clear or blur (reason !== selectOption)', () => {
+    const onQueryChange = vi.fn();
+    render(
+      <AutoComplete
+        query="test"
+        onQueryChange={onQueryChange}
         placeholder="Search..."
         fieldKeys={['bidder']}
       />
     );
 
     const input = screen.getByPlaceholderText('Search...');
-    fireEvent.change(input, { target: { value: 'bidder:rubicon' } });
-
-    expect(onQueryChange).toHaveBeenCalledWith('bidder:rubicon');
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: 'custom text' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.blur(input);
   });
 
-  it('renders help tooltip icon when query has keys or options', () => {
+  it('handles empty options with colon query gracefully', () => {
     render(
       <AutoComplete
-        query="bidder:criteo AND size:"
+        query="unknownKey:someval"
         onQueryChange={vi.fn()}
         placeholder="Search..."
-        options={['size:300x250']}
-        fieldKeys={['bidder', 'size']}
+        fieldKeys={['knownKey']}
+        options={[]}
       />
     );
-
     expect(screen.getByPlaceholderText('Search...')).toBeTruthy();
   });
 });

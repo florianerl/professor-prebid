@@ -5,6 +5,7 @@ import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import DownloadIcon from '@mui/icons-material/Download';
+import CodeIcon from '@mui/icons-material/Code';
 import AppStateContext from '../../contexts/appStateContext';
 import UserIdsTab from './UserIdsTab';
 import ConfigTab from './UserIdsConfigTab';
@@ -83,7 +84,7 @@ const UserIdsComponent = (): JSX.Element => {
         </Tooltip>
       </GridCell>
 
-      <Grid size={{ xs: 7.5 }} sx={{ display: 'flex', alignItems: 'center', border: 0, '& .MuiInputBase-input': { paddingLeft: '4px !important', paddingTop: '4px !important' } }}>
+      <Grid size={{ xs: 7 }} sx={{ display: 'flex', alignItems: 'center', border: 0, '& .MuiInputBase-input': { paddingLeft: '4px !important', paddingTop: '4px !important' } }}>
         <AutoComplete
           query={query}
           onQueryChange={setQuery}
@@ -93,7 +94,12 @@ const UserIdsComponent = (): JSX.Element => {
         />
       </Grid>
 
-      <GridCell cols={0.5} sx={{ display: 'flex', alignItems: 'center', border: 0 }}>
+      <GridCell cols={1} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', border: 0 }}>
+        <Tooltip title={showRawJson ? 'Switch to list view' : 'Switch to raw JSON view'} arrow>
+          <IconButton size="small" onClick={() => setShowRawJson(!showRawJson)} color={showRawJson ? 'primary' : 'default'} sx={{ p: 0.5, fontSize: '1.05rem', height: 'auto' }}>
+            <CodeIcon fontSize="inherit" />
+          </IconButton>
+        </Tooltip>
         <Tooltip title="Download User ID session data as JSON" arrow>
           <IconButton size="small" onClick={() => download({ eids: prebid?.eids, userSync: prebid?.config?.userSync }, 'prebid-user-ids.json')} sx={{ p: 0.5, fontSize: '1.05rem', height: 'auto' }}>
             <DownloadIcon fontSize="inherit" />

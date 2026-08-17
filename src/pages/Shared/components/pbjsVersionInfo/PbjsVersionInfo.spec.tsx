@@ -24,6 +24,9 @@ describe('PbjsVersionInfo components', () => {
     latestVersionPublishedAt: '2026-05-01T00:00:00Z',
     installedVersion: '8.0.0',
     installedVersionPublishedAt: '2023-01-01T00:00:00Z',
+    timeElapsedSinceLatestVersion: {
+      text: '3 years, 4 months',
+    },
     featureCountSinceInstalledVersion: 5,
     maintenanceCountSinceInstalledVersion: 3,
     bugfixCountSinceInstalledVersion: 10,
@@ -33,7 +36,8 @@ describe('PbjsVersionInfo components', () => {
         name: 'v8.1.0 Release',
         published_at: '2026-05-01T00:00:00Z',
         html_url: 'https://github.com/prebid/Prebid.js/releases/tag/v8.1.0',
-        doc: { body: { innerHTML: '<p>Release details</p>' } },
+        doc: { body: { innerHTML: '<p>Release details for 8.1.0</p>' } },
+        body: 'Release details for 8.1.0',
       },
     ],
   };
@@ -52,9 +56,9 @@ describe('PbjsVersionInfo components', () => {
       </AppStateContext.Provider>
     );
 
-    expect(screen.getByText(/Installed PBJS Version/i)).toBeTruthy();
+    expect(screen.getByText(/Installed Version/i)).toBeTruthy();
 
-    const closeBtn = screen.getByRole('button');
+    const closeBtn = screen.getAllByRole('button')[0];
     fireEvent.click(closeBtn);
     expect(closeFn).toHaveBeenCalled();
   });
@@ -72,10 +76,10 @@ describe('PbjsVersionInfo components', () => {
       </AppStateContext.Provider>
     );
 
-    expect(screen.getByText(/Installed PBJS Version/i)).toBeTruthy();
+    expect(screen.getByText(/Installed Version/i)).toBeTruthy();
   });
 
-  it('renders latest version message when installed version matches latest version', () => {
+  it('renders latest version message and documentation links when installed version matches latest', () => {
     const latestReleaseInfo: any = {
       ...mockReleaseInfo,
       latestVersion: '8.0.0',
@@ -94,10 +98,12 @@ describe('PbjsVersionInfo components', () => {
       </AppStateContext.Provider>
     );
 
-    expect(screen.getByText('You are using the latest version of Prebid.js!')).toBeTruthy();
+    expect(screen.getByText('Up to date')).toBeTruthy();
+    expect(screen.getByText(/All latest features and bug fixes are present/)).toBeTruthy();
+    expect(screen.getByText('Prebid.org Docs')).toBeTruthy();
   });
 
-  it('toggles changelog view when installed version is older', () => {
+  it('renders metric cards and toggles changelog release accordions when installed version is older', () => {
     const mockContext: any = {
       prebid: { version: '8.0.0' },
       prebidReleaseInfo: mockReleaseInfo,
@@ -110,13 +116,90 @@ describe('PbjsVersionInfo components', () => {
       </AppStateContext.Provider>
     );
 
-    expect(screen.getByText('New Features:')).toBeTruthy();
+    expect(screen.getByText('New Features')).toBeTruthy();
     expect(screen.getByText('5')).toBeTruthy();
-
-    const changelogLink = screen.getByText(/View Full Release Changelog/);
-    fireEvent.click(changelogLink);
+    expect(screen.getByText('Maintenance Updates')).toBeTruthy();
+    expect(screen.getByText('3')).toBeTruthy();
+    expect(screen.getByText('Bug Fixes')).toBeTruthy();
+    expect(screen.getByText('10')).toBeTruthy();
+    expect(screen.getByText('3 years, 4 months')).toBeTruthy();
 
     expect(screen.getByText('v8.1.0 Release')).toBeTruthy();
+
+    // Test expanding changelog accordion
+    const expandBtn = screen.getByText('Expand All');
+    fireEvent.click(expandBtn);
+    expect(screen.getByText('Collapse All')).toBeTruthy();
+    expect(screen.getByText(/Release details for 8.1.0/)).toBeTruthy();
+  });
+
+  it('filters changelog items with search query', () => {
+    const multiReleaseInfo: any = {
+      ...mockReleaseInfo,
+      releasesSinceInstalledVersion: [
+        {
+          tag_name: '8.1.0',
+          name: 'v8.1.0 Release',
+          published_at: '2026-05-01T00:00:00Z',
+          html_url: 'https://github.com/prebid/Prebid.js/releases/tag/v8.1.0',
+          body: 'Special Feature X Added',
+        },
+        {
+          tag_name: '8.0.1',
+          name: 'v8.0.1 Patch',
+          published_at: '2026-02-01T00:00:00Z',
+          html_url: 'https://github.com/prebid/Prebid.js/releases/tag/v8.0.1',
+          body: 'Bug fix for Y',
+        },
+      ],
+    };
+
+    const mockContext: any = {
+      prebid: { version: '8.0.0' },
+      prebidReleaseInfo: multiReleaseInfo,
+      setPrebidReleaseInfo: vi.fn(),
+    };
+
+    render(
+      <AppStateContext.Provider value={mockContext}>
+        <PbjsVersionInfoContent />
+      </AppStateContext.Provider>
+    );
+
+    expect(screen.getByText('v8.1.0 Release')).toBeTruthy();
+    expect(screen.getByText('v8.0.1 Patch')).toBeTruthy();
+
+    const searchInput = screen.getByPlaceholderText('Filter changelog...');
+    fireEvent.change(searchInput, { target: { value: 'Feature X' } });
+
+    expect(screen.getByText('v8.1.0 Release')).toBeTruthy();
+    expect(screen.queryByText('v8.0.1 Patch')).toBeNull();
+  });
+
+  it('handles copy summary action', () => {
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: writeTextMock },
+      configurable: true,
+      writable: true,
+    });
+
+    const mockContext: any = {
+      prebid: { version: '8.0.0' },
+      prebidReleaseInfo: mockReleaseInfo,
+      setPrebidReleaseInfo: vi.fn(),
+    };
+
+    render(
+      <AppStateContext.Provider value={mockContext}>
+        <PbjsVersionInfoContent />
+      </AppStateContext.Provider>
+    );
+
+    const copyBtn = screen.getByLabelText(/Copy version summary/i);
+    fireEvent.click(copyBtn);
+
+    expect(writeTextMock).toHaveBeenCalled();
   });
 
   it('fetches release info from GitHub API when cached data is missing and processes markdown headers', async () => {
@@ -276,7 +359,7 @@ describe('PbjsVersionInfo components', () => {
     expect(mockFetch).toHaveBeenCalled();
   });
 
-  it('handles fetch API errors gracefully', async () => {
+  it('handles fetch API errors gracefully and provides retry button', async () => {
     global.chrome.storage.local.get = vi.fn((key, cb) => cb({}));
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
@@ -297,6 +380,7 @@ describe('PbjsVersionInfo components', () => {
       );
     });
 
-    expect(screen.getByText('Attempting to fetch data about PBJS releases..')).toBeTruthy();
+    expect(screen.getByText(/GitHub API returned status 500/i)).toBeTruthy();
+    expect(screen.getByText('Retry')).toBeTruthy();
   });
 });

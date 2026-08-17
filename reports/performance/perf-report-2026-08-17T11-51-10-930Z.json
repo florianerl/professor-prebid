@@ -1,0 +1,138 @@
+[
+  {
+    "site": "eatpicks.com",
+    "url": "https://www.eatpicks.com/",
+    "baseline": {
+      "ttfb": 633,
+      "fcp": 1772,
+      "lcp": 1772,
+      "dcl": 2112,
+      "loadTime": 5112,
+      "longTasksCount": 15,
+      "tbt": 2885,
+      "jsHeapUsedMB": 37.53,
+      "scriptDurationMs": 3540,
+      "layoutDurationMs": 68,
+      "taskDurationMs": 5422,
+      "domNodes": 3856,
+      "jsEventListeners": 867
+    },
+    "withExtension": {
+      "ttfb": 158,
+      "fcp": 996,
+      "lcp": 996,
+      "dcl": 1371,
+      "loadTime": 4444,
+      "longTasksCount": 17,
+      "tbt": 2917,
+      "jsHeapUsedMB": 54.17,
+      "scriptDurationMs": 3531,
+      "layoutDurationMs": 98,
+      "taskDurationMs": 5436,
+      "domNodes": 3789,
+      "jsEventListeners": 1042
+    },
+    "delta": {
+      "fcp": {
+        "val": -776,
+        "pct": -43.8
+      },
+      "lcp": {
+        "val": -776,
+        "pct": -43.8
+      },
+      "dcl": {
+        "val": -741,
+        "pct": -35.1
+      },
+      "loadTime": {
+        "val": -668,
+        "pct": -13.1
+      },
+      "tbt": {
+        "val": 32,
+        "pct": 1.1
+      },
+      "longTasksCount": {
+        "val": 2,
+        "pct": 13.3
+      },
+      "scriptDurationMs": {
+        "val": -9,
+        "pct": -0.3
+      },
+      "jsHeapUsedMB": {
+        "val": 16.64,
+        "pct": 44.3
+      }
+    }
+  },
+  {
+    "site": "heise.de",
+    "url": "https://www.heise.de/",
+    "baseline": {
+      "ttfb": 127,
+      "fcp": 856,
+      "lcp": 1044,
+      "dcl": 847,
+      "loadTime": 934,
+      "longTasksCount": 3,
+      "tbt": 149,
+      "jsHeapUsedMB": 8.47,
+      "scriptDurationMs": 295,
+      "layoutDurationMs": 89,
+      "taskDurationMs": 1003,
+      "domNodes": 6075,
+      "jsEventListeners": 423
+    },
+    "withExtension": {
+      "ttfb": 44,
+      "fcp": 716,
+      "lcp": 1028,
+      "dcl": 772,
+      "loadTime": 1925,
+      "longTasksCount": 2,
+      "tbt": 117,
+      "jsHeapUsedMB": 10.32,
+      "scriptDurationMs": 342,
+      "layoutDurationMs": 96,
+      "taskDurationMs": 1022,
+      "domNodes": 6079,
+      "jsEventListeners": 698
+    },
+    "delta": {
+      "fcp": {
+        "val": -140,
+        "pct": -16.4
+      },
+      "lcp": {
+        "val": -16,
+        "pct": -1.5
+      },
+      "dcl": {
+        "val": -75,
+        "pct": -8.9
+      },
+      "loadTime": {
+        "val": 991,
+        "pct": 106.1
+      },
+      "tbt": {
+        "val": -32,
+        "pct": -21.5
+      },
+      "longTasksCount": {
+        "val": -1,
+        "pct": -33.3
+      },
+      "scriptDurationMs": {
+        "val": 47,
+        "pct": 15.9
+      },
+      "jsHeapUsedMB": {
+        "val": 1.85,
+        "pct": 21.8
+      }
+    }
+  }
+]

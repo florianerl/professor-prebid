@@ -1,0 +1,1022 @@
+[
+  {
+    "site": "eatpicks.com",
+    "url": "https://eatpicks.com/",
+    "baseline": {
+      "ttfb": 632,
+      "fcp": 972,
+      "lcp": 972,
+      "dcl": 1279,
+      "loadTime": 4689,
+      "longTasksCount": 15,
+      "tbt": 3105,
+      "jsHeapUsedMB": 56.45,
+      "scriptDurationMs": 3793,
+      "layoutDurationMs": 59,
+      "taskDurationMs": 5641,
+      "domNodes": 3875,
+      "jsEventListeners": 983
+    },
+    "withExtension": {
+      "ttfb": 667,
+      "fcp": 1084,
+      "lcp": 1084,
+      "dcl": 1177,
+      "loadTime": 4534,
+      "longTasksCount": 16,
+      "tbt": 3262,
+      "jsHeapUsedMB": 46.13,
+      "scriptDurationMs": 4001,
+      "layoutDurationMs": 54,
+      "taskDurationMs": 5866,
+      "domNodes": 4051,
+      "jsEventListeners": 982
+    },
+    "delta": {
+      "fcp": {
+        "val": 112,
+        "pct": 11.5
+      },
+      "lcp": {
+        "val": 112,
+        "pct": 11.5
+      },
+      "dcl": {
+        "val": -102,
+        "pct": -8
+      },
+      "loadTime": {
+        "val": -155,
+        "pct": -3.3
+      },
+      "tbt": {
+        "val": 157,
+        "pct": 5.1
+      },
+      "longTasksCount": {
+        "val": 1,
+        "pct": 6.7
+      },
+      "scriptDurationMs": {
+        "val": 208,
+        "pct": 5.5
+      },
+      "jsHeapUsedMB": {
+        "val": -10.32,
+        "pct": -18.3
+      }
+    }
+  },
+  {
+    "site": "idrlabs.com",
+    "url": "https://www.idrlabs.com/anti-hero/test.php",
+    "baseline": {
+      "ttfb": 167,
+      "fcp": 524,
+      "lcp": 536,
+      "dcl": 488,
+      "loadTime": 1641,
+      "longTasksCount": 17,
+      "tbt": 386,
+      "jsHeapUsedMB": 56.8,
+      "scriptDurationMs": 1548,
+      "layoutDurationMs": 68,
+      "taskDurationMs": 3580,
+      "domNodes": 3424,
+      "jsEventListeners": 591
+    },
+    "withExtension": {
+      "ttfb": 179,
+      "fcp": 560,
+      "lcp": 588,
+      "dcl": 524,
+      "loadTime": 1840,
+      "longTasksCount": 26,
+      "tbt": 1495,
+      "jsHeapUsedMB": 59.14,
+      "scriptDurationMs": 2266,
+      "layoutDurationMs": 74,
+      "taskDurationMs": 5565,
+      "domNodes": 2702,
+      "jsEventListeners": 652
+    },
+    "delta": {
+      "fcp": {
+        "val": 36,
+        "pct": 6.9
+      },
+      "lcp": {
+        "val": 52,
+        "pct": 9.7
+      },
+      "dcl": {
+        "val": 36,
+        "pct": 7.4
+      },
+      "loadTime": {
+        "val": 199,
+        "pct": 12.1
+      },
+      "tbt": {
+        "val": 1109,
+        "pct": 287.3
+      },
+      "longTasksCount": {
+        "val": 9,
+        "pct": 52.9
+      },
+      "scriptDurationMs": {
+        "val": 718,
+        "pct": 46.4
+      },
+      "jsHeapUsedMB": {
+        "val": 2.34,
+        "pct": 4.1
+      }
+    }
+  },
+  {
+    "site": "recipetineats.com",
+    "url": "https://www.recipetineats.com/easy-maple-sticky-glazed-ham/",
+    "baseline": {
+      "ttfb": 976,
+      "fcp": 1436,
+      "lcp": 1436,
+      "dcl": 1560,
+      "loadTime": 2642,
+      "longTasksCount": 19,
+      "tbt": 621,
+      "jsHeapUsedMB": 45.2,
+      "scriptDurationMs": 1455,
+      "layoutDurationMs": 205,
+      "taskDurationMs": 4359,
+      "domNodes": 7168,
+      "jsEventListeners": 1215
+    },
+    "withExtension": {
+      "ttfb": 21,
+      "fcp": 468,
+      "lcp": 468,
+      "dcl": 693,
+      "loadTime": 1792,
+      "longTasksCount": 14,
+      "tbt": 534,
+      "jsHeapUsedMB": 54.6,
+      "scriptDurationMs": 1276,
+      "layoutDurationMs": 180,
+      "taskDurationMs": 3510,
+      "domNodes": 6955,
+      "jsEventListeners": 1324
+    },
+    "delta": {
+      "fcp": {
+        "val": -968,
+        "pct": -67.4
+      },
+      "lcp": {
+        "val": -968,
+        "pct": -67.4
+      },
+      "dcl": {
+        "val": -867,
+        "pct": -55.6
+      },
+      "loadTime": {
+        "val": -850,
+        "pct": -32.2
+      },
+      "tbt": {
+        "val": -87,
+        "pct": -14
+      },
+      "longTasksCount": {
+        "val": -5,
+        "pct": -26.3
+      },
+      "scriptDurationMs": {
+        "val": -179,
+        "pct": -12.3
+      },
+      "jsHeapUsedMB": {
+        "val": 9.4,
+        "pct": 20.8
+      }
+    }
+  },
+  {
+    "site": "linuxhint.com",
+    "url": "https://linuxhint.com/install-alpine-linux-vmware-workstation-17-pro-virtual-machine/",
+    "baseline": {
+      "ttfb": 374,
+      "fcp": 960,
+      "lcp": 960,
+      "dcl": 1083,
+      "loadTime": 4105,
+      "longTasksCount": 5,
+      "tbt": 2619,
+      "jsHeapUsedMB": 21.48,
+      "scriptDurationMs": 3101,
+      "layoutDurationMs": 95,
+      "taskDurationMs": 3956,
+      "domNodes": 3563,
+      "jsEventListeners": 480
+    },
+    "withExtension": {
+      "ttfb": 822,
+      "fcp": 1276,
+      "lcp": 1276,
+      "dcl": 1408,
+      "loadTime": 4271,
+      "longTasksCount": 2,
+      "tbt": 2576,
+      "jsHeapUsedMB": 10.03,
+      "scriptDurationMs": 2890,
+      "layoutDurationMs": 30,
+      "taskDurationMs": 3251,
+      "domNodes": 2215,
+      "jsEventListeners": 214
+    },
+    "delta": {
+      "fcp": {
+        "val": 316,
+        "pct": 32.9
+      },
+      "lcp": {
+        "val": 316,
+        "pct": 32.9
+      },
+      "dcl": {
+        "val": 325,
+        "pct": 30
+      },
+      "loadTime": {
+        "val": 166,
+        "pct": 4
+      },
+      "tbt": {
+        "val": -43,
+        "pct": -1.6
+      },
+      "longTasksCount": {
+        "val": -3,
+        "pct": -60
+      },
+      "scriptDurationMs": {
+        "val": -211,
+        "pct": -6.8
+      },
+      "jsHeapUsedMB": {
+        "val": -11.45,
+        "pct": -53.3
+      }
+    }
+  },
+  {
+    "site": "accuweather.com",
+    "url": "https://www.accuweather.com/",
+    "baseline": {
+      "ttfb": 186,
+      "fcp": 764,
+      "lcp": 944,
+      "dcl": 910,
+      "loadTime": 1652,
+      "longTasksCount": 3,
+      "tbt": 377,
+      "jsHeapUsedMB": 16.6,
+      "scriptDurationMs": 689,
+      "layoutDurationMs": 18,
+      "taskDurationMs": 1406,
+      "domNodes": 2974,
+      "jsEventListeners": 383
+    },
+    "withExtension": {
+      "ttfb": 169,
+      "fcp": 616,
+      "lcp": 808,
+      "dcl": 780,
+      "loadTime": 1575,
+      "longTasksCount": 3,
+      "tbt": 390,
+      "jsHeapUsedMB": 18.03,
+      "scriptDurationMs": 763,
+      "layoutDurationMs": 18,
+      "taskDurationMs": 1460,
+      "domNodes": 2989,
+      "jsEventListeners": 537
+    },
+    "delta": {
+      "fcp": {
+        "val": -148,
+        "pct": -19.4
+      },
+      "lcp": {
+        "val": -136,
+        "pct": -14.4
+      },
+      "dcl": {
+        "val": -130,
+        "pct": -14.3
+      },
+      "loadTime": {
+        "val": -77,
+        "pct": -4.7
+      },
+      "tbt": {
+        "val": 13,
+        "pct": 3.4
+      },
+      "longTasksCount": {
+        "val": 0,
+        "pct": 0
+      },
+      "scriptDurationMs": {
+        "val": 74,
+        "pct": 10.7
+      },
+      "jsHeapUsedMB": {
+        "val": 1.43,
+        "pct": 8.6
+      }
+    }
+  },
+  {
+    "site": "trumpexcel.com",
+    "url": "https://trumpexcel.com/excel-functions/",
+    "baseline": {
+      "ttfb": 91,
+      "fcp": 636,
+      "lcp": 636,
+      "dcl": 608,
+      "loadTime": 1524,
+      "longTasksCount": 19,
+      "tbt": 659,
+      "jsHeapUsedMB": 61.33,
+      "scriptDurationMs": 1520,
+      "layoutDurationMs": 101,
+      "taskDurationMs": 4373,
+      "domNodes": 7174,
+      "jsEventListeners": 1629
+    },
+    "withExtension": {
+      "ttfb": 33,
+      "fcp": 632,
+      "lcp": 632,
+      "dcl": 606,
+      "loadTime": 1619,
+      "longTasksCount": 22,
+      "tbt": 692,
+      "jsHeapUsedMB": 74.04,
+      "scriptDurationMs": 1819,
+      "layoutDurationMs": 108,
+      "taskDurationMs": 4940,
+      "domNodes": 8357,
+      "jsEventListeners": 1799
+    },
+    "delta": {
+      "fcp": {
+        "val": -4,
+        "pct": -0.6
+      },
+      "lcp": {
+        "val": -4,
+        "pct": -0.6
+      },
+      "dcl": {
+        "val": -2,
+        "pct": -0.3
+      },
+      "loadTime": {
+        "val": 95,
+        "pct": 6.2
+      },
+      "tbt": {
+        "val": 33,
+        "pct": 5
+      },
+      "longTasksCount": {
+        "val": 3,
+        "pct": 15.8
+      },
+      "scriptDurationMs": {
+        "val": 299,
+        "pct": 19.7
+      },
+      "jsHeapUsedMB": {
+        "val": 12.71,
+        "pct": 20.7
+      }
+    }
+  },
+  {
+    "site": "macrumors.com",
+    "url": "https://www.macrumors.com/",
+    "baseline": {
+      "ttfb": 41,
+      "fcp": 620,
+      "lcp": 620,
+      "dcl": 617,
+      "loadTime": 2038,
+      "longTasksCount": 11,
+      "tbt": 476,
+      "jsHeapUsedMB": 26.55,
+      "scriptDurationMs": 847,
+      "layoutDurationMs": 97,
+      "taskDurationMs": 2739,
+      "domNodes": 5984,
+      "jsEventListeners": 382
+    },
+    "withExtension": {
+      "ttfb": 33,
+      "fcp": 560,
+      "lcp": 588,
+      "dcl": 448,
+      "loadTime": 1946,
+      "longTasksCount": 14,
+      "tbt": 833,
+      "jsHeapUsedMB": 53.76,
+      "scriptDurationMs": 1070,
+      "layoutDurationMs": 93,
+      "taskDurationMs": 3129,
+      "domNodes": 6234,
+      "jsEventListeners": 731
+    },
+    "delta": {
+      "fcp": {
+        "val": -60,
+        "pct": -9.7
+      },
+      "lcp": {
+        "val": -32,
+        "pct": -5.2
+      },
+      "dcl": {
+        "val": -169,
+        "pct": -27.4
+      },
+      "loadTime": {
+        "val": -92,
+        "pct": -4.5
+      },
+      "tbt": {
+        "val": 357,
+        "pct": 75
+      },
+      "longTasksCount": {
+        "val": 3,
+        "pct": 27.3
+      },
+      "scriptDurationMs": {
+        "val": 223,
+        "pct": 26.3
+      },
+      "jsHeapUsedMB": {
+        "val": 27.21,
+        "pct": 102.5
+      }
+    }
+  },
+  {
+    "site": "fut.gg",
+    "url": "https://www.fut.gg/players/150516-lukas-podolski/24-50482164/",
+    "baseline": {
+      "ttfb": 35,
+      "fcp": 436,
+      "lcp": 436,
+      "dcl": 614,
+      "loadTime": 3341,
+      "longTasksCount": 9,
+      "tbt": 587,
+      "jsHeapUsedMB": 33.85,
+      "scriptDurationMs": 1172,
+      "layoutDurationMs": 135,
+      "taskDurationMs": 1887,
+      "domNodes": 3491,
+      "jsEventListeners": 513
+    },
+    "withExtension": {
+      "ttfb": 41,
+      "fcp": 452,
+      "lcp": 452,
+      "dcl": 540,
+      "loadTime": 3338,
+      "longTasksCount": 8,
+      "tbt": 612,
+      "jsHeapUsedMB": 39.19,
+      "scriptDurationMs": 1248,
+      "layoutDurationMs": 134,
+      "taskDurationMs": 1942,
+      "domNodes": 3494,
+      "jsEventListeners": 655
+    },
+    "delta": {
+      "fcp": {
+        "val": 16,
+        "pct": 3.7
+      },
+      "lcp": {
+        "val": 16,
+        "pct": 3.7
+      },
+      "dcl": {
+        "val": -74,
+        "pct": -12.1
+      },
+      "loadTime": {
+        "val": -3,
+        "pct": -0.1
+      },
+      "tbt": {
+        "val": 25,
+        "pct": 4.3
+      },
+      "longTasksCount": {
+        "val": -1,
+        "pct": -11.1
+      },
+      "scriptDurationMs": {
+        "val": 76,
+        "pct": 6.5
+      },
+      "jsHeapUsedMB": {
+        "val": 5.34,
+        "pct": 15.8
+      }
+    }
+  },
+  {
+    "site": "biancazapatka.com",
+    "url": "https://biancazapatka.com/en/bircher-muesli-recipe/",
+    "baseline": {
+      "ttfb": 1012,
+      "fcp": 1624,
+      "lcp": 1624,
+      "dcl": 1872,
+      "loadTime": 2840,
+      "longTasksCount": 8,
+      "tbt": 235,
+      "jsHeapUsedMB": 17.32,
+      "scriptDurationMs": 603,
+      "layoutDurationMs": 333,
+      "taskDurationMs": 1531,
+      "domNodes": 4520,
+      "jsEventListeners": 862
+    },
+    "withExtension": {
+      "ttfb": 1005,
+      "fcp": 1512,
+      "lcp": 1512,
+      "dcl": 1779,
+      "loadTime": 2688,
+      "longTasksCount": 8,
+      "tbt": 233,
+      "jsHeapUsedMB": 21.13,
+      "scriptDurationMs": 654,
+      "layoutDurationMs": 318,
+      "taskDurationMs": 1555,
+      "domNodes": 4705,
+      "jsEventListeners": 1069
+    },
+    "delta": {
+      "fcp": {
+        "val": -112,
+        "pct": -6.9
+      },
+      "lcp": {
+        "val": -112,
+        "pct": -6.9
+      },
+      "dcl": {
+        "val": -93,
+        "pct": -5
+      },
+      "loadTime": {
+        "val": -152,
+        "pct": -5.4
+      },
+      "tbt": {
+        "val": -2,
+        "pct": -0.9
+      },
+      "longTasksCount": {
+        "val": 0,
+        "pct": 0
+      },
+      "scriptDurationMs": {
+        "val": 51,
+        "pct": 8.5
+      },
+      "jsHeapUsedMB": {
+        "val": 3.81,
+        "pct": 22
+      }
+    }
+  },
+  {
+    "site": "britannica.com",
+    "url": "https://www.britannica.com/quiz/that-90s-quiz",
+    "baseline": {
+      "ttfb": 233,
+      "fcp": 1388,
+      "lcp": 1756,
+      "dcl": 1380,
+      "loadTime": 1737,
+      "longTasksCount": 15,
+      "tbt": 896,
+      "jsHeapUsedMB": 37.27,
+      "scriptDurationMs": 1953,
+      "layoutDurationMs": 87,
+      "taskDurationMs": 3106,
+      "domNodes": 1628,
+      "jsEventListeners": 536
+    },
+    "withExtension": {
+      "ttfb": 176,
+      "fcp": 1112,
+      "lcp": 1540,
+      "dcl": 1081,
+      "loadTime": 2121,
+      "longTasksCount": 16,
+      "tbt": 876,
+      "jsHeapUsedMB": 32.85,
+      "scriptDurationMs": 1957,
+      "layoutDurationMs": 85,
+      "taskDurationMs": 3131,
+      "domNodes": 1553,
+      "jsEventListeners": 637
+    },
+    "delta": {
+      "fcp": {
+        "val": -276,
+        "pct": -19.9
+      },
+      "lcp": {
+        "val": -216,
+        "pct": -12.3
+      },
+      "dcl": {
+        "val": -299,
+        "pct": -21.7
+      },
+      "loadTime": {
+        "val": 384,
+        "pct": 22.1
+      },
+      "tbt": {
+        "val": -20,
+        "pct": -2.2
+      },
+      "longTasksCount": {
+        "val": 1,
+        "pct": 6.7
+      },
+      "scriptDurationMs": {
+        "val": 4,
+        "pct": 0.2
+      },
+      "jsHeapUsedMB": {
+        "val": -4.42,
+        "pct": -11.9
+      }
+    }
+  },
+  {
+    "site": "expressandstar.com",
+    "url": "https://www.expressandstar.com/news/business/2024/01/10/wolverhampton-shop-to-have-its-licence-reviewed-after-being-caught-selling-single-cans-of-high-strength-alcohol-out-of-hours/?criteo=true",
+    "baseline": {
+      "ttfb": 31,
+      "fcp": 340,
+      "lcp": 340,
+      "dcl": 471,
+      "loadTime": 2134,
+      "longTasksCount": 16,
+      "tbt": 3045,
+      "jsHeapUsedMB": 87.06,
+      "scriptDurationMs": 4118,
+      "layoutDurationMs": 127,
+      "taskDurationMs": 6703,
+      "domNodes": 2547,
+      "jsEventListeners": 600
+    },
+    "withExtension": {
+      "ttfb": 29,
+      "fcp": 432,
+      "lcp": 432,
+      "dcl": 428,
+      "loadTime": 1677,
+      "longTasksCount": 17,
+      "tbt": 2493,
+      "jsHeapUsedMB": 71.15,
+      "scriptDurationMs": 3839,
+      "layoutDurationMs": 115,
+      "taskDurationMs": 5430,
+      "domNodes": 2833,
+      "jsEventListeners": 767
+    },
+    "delta": {
+      "fcp": {
+        "val": 92,
+        "pct": 27.1
+      },
+      "lcp": {
+        "val": 92,
+        "pct": 27.1
+      },
+      "dcl": {
+        "val": -43,
+        "pct": -9.1
+      },
+      "loadTime": {
+        "val": -457,
+        "pct": -21.4
+      },
+      "tbt": {
+        "val": -552,
+        "pct": -18.1
+      },
+      "longTasksCount": {
+        "val": 1,
+        "pct": 6.3
+      },
+      "scriptDurationMs": {
+        "val": -279,
+        "pct": -6.8
+      },
+      "jsHeapUsedMB": {
+        "val": -15.91,
+        "pct": -18.3
+      }
+    }
+  },
+  {
+    "site": "voici.fr",
+    "url": "https://www.voici.fr/",
+    "baseline": {
+      "ttfb": 1,
+      "fcp": 756,
+      "lcp": 756,
+      "dcl": 879,
+      "loadTime": 2389,
+      "longTasksCount": 19,
+      "tbt": 1128,
+      "jsHeapUsedMB": 75.68,
+      "scriptDurationMs": 2459,
+      "layoutDurationMs": 151,
+      "taskDurationMs": 9015,
+      "domNodes": 6423,
+      "jsEventListeners": 412
+    },
+    "withExtension": {
+      "ttfb": 0,
+      "fcp": 584,
+      "lcp": 584,
+      "dcl": 738,
+      "loadTime": 0,
+      "longTasksCount": 12,
+      "tbt": 419,
+      "jsHeapUsedMB": 47.29,
+      "scriptDurationMs": 1470,
+      "layoutDurationMs": 128,
+      "taskDurationMs": 3570,
+      "domNodes": 5749,
+      "jsEventListeners": 320
+    },
+    "delta": {
+      "fcp": {
+        "val": -172,
+        "pct": -22.8
+      },
+      "lcp": {
+        "val": -172,
+        "pct": -22.8
+      },
+      "dcl": {
+        "val": -141,
+        "pct": -16
+      },
+      "loadTime": {
+        "val": -2389,
+        "pct": -100
+      },
+      "tbt": {
+        "val": -709,
+        "pct": -62.9
+      },
+      "longTasksCount": {
+        "val": -7,
+        "pct": -36.8
+      },
+      "scriptDurationMs": {
+        "val": -989,
+        "pct": -40.2
+      },
+      "jsHeapUsedMB": {
+        "val": -28.39,
+        "pct": -37.5
+      }
+    }
+  },
+  {
+    "site": "welingelichtekringen.nl",
+    "url": "https://www.welingelichtekringen.nl/",
+    "baseline": {
+      "ttfb": 235,
+      "fcp": 496,
+      "lcp": 496,
+      "dcl": 547,
+      "loadTime": 589,
+      "longTasksCount": 3,
+      "tbt": 14,
+      "jsHeapUsedMB": 17.62,
+      "scriptDurationMs": 432,
+      "layoutDurationMs": 47,
+      "taskDurationMs": 923,
+      "domNodes": 1268,
+      "jsEventListeners": 617
+    },
+    "withExtension": {
+      "ttfb": 22,
+      "fcp": 500,
+      "lcp": 500,
+      "dcl": 462,
+      "loadTime": 2057,
+      "longTasksCount": 9,
+      "tbt": 336,
+      "jsHeapUsedMB": 29.06,
+      "scriptDurationMs": 948,
+      "layoutDurationMs": 53,
+      "taskDurationMs": 2033,
+      "domNodes": 1381,
+      "jsEventListeners": 758
+    },
+    "delta": {
+      "fcp": {
+        "val": 4,
+        "pct": 0.8
+      },
+      "lcp": {
+        "val": 4,
+        "pct": 0.8
+      },
+      "dcl": {
+        "val": -85,
+        "pct": -15.5
+      },
+      "loadTime": {
+        "val": 1468,
+        "pct": 249.2
+      },
+      "tbt": {
+        "val": 322,
+        "pct": 2300
+      },
+      "longTasksCount": {
+        "val": 6,
+        "pct": 200
+      },
+      "scriptDurationMs": {
+        "val": 516,
+        "pct": 119.4
+      },
+      "jsHeapUsedMB": {
+        "val": 11.44,
+        "pct": 64.9
+      }
+    }
+  },
+  {
+    "site": "heise.de",
+    "url": "https://www.heise.de/hintergrund/Die-Entwickler-des-Open-Source-Lautsprechers-Teufel-Mynd-im-Interview-10490607.html",
+    "baseline": {
+      "ttfb": 40,
+      "fcp": 656,
+      "lcp": 908,
+      "dcl": 830,
+      "loadTime": 1322,
+      "longTasksCount": 3,
+      "tbt": 62,
+      "jsHeapUsedMB": 9.16,
+      "scriptDurationMs": 326,
+      "layoutDurationMs": 90,
+      "taskDurationMs": 873,
+      "domNodes": 3593,
+      "jsEventListeners": 468
+    },
+    "withExtension": {
+      "ttfb": 49,
+      "fcp": 804,
+      "lcp": 1020,
+      "dcl": 924,
+      "loadTime": 2652,
+      "longTasksCount": 3,
+      "tbt": 60,
+      "jsHeapUsedMB": 10.98,
+      "scriptDurationMs": 382,
+      "layoutDurationMs": 85,
+      "taskDurationMs": 945,
+      "domNodes": 3597,
+      "jsEventListeners": 739
+    },
+    "delta": {
+      "fcp": {
+        "val": 148,
+        "pct": 22.6
+      },
+      "lcp": {
+        "val": 112,
+        "pct": 12.3
+      },
+      "dcl": {
+        "val": 94,
+        "pct": 11.3
+      },
+      "loadTime": {
+        "val": 1330,
+        "pct": 100.6
+      },
+      "tbt": {
+        "val": -2,
+        "pct": -3.2
+      },
+      "longTasksCount": {
+        "val": 0,
+        "pct": 0
+      },
+      "scriptDurationMs": {
+        "val": 56,
+        "pct": 17.2
+      },
+      "jsHeapUsedMB": {
+        "val": 1.82,
+        "pct": 19.9
+      }
+    }
+  },
+  {
+    "site": "figma.com (proto)",
+    "url": "https://www.figma.com/proto/SPBOeYuFeApTozU8cD53Kg/COMPAS---Healthcare-Exchange?node-id=695-93367",
+    "baseline": {
+      "ttfb": 738,
+      "fcp": 0,
+      "lcp": 0,
+      "dcl": 3988,
+      "loadTime": 4082,
+      "longTasksCount": 11,
+      "tbt": 3201,
+      "jsHeapUsedMB": 147.05,
+      "scriptDurationMs": 2552,
+      "layoutDurationMs": 2,
+      "taskDurationMs": 4860,
+      "domNodes": 1635,
+      "jsEventListeners": 710
+    },
+    "withExtension": {
+      "ttfb": 610,
+      "fcp": 6428,
+      "lcp": 6428,
+      "dcl": 3789,
+      "loadTime": 4405,
+      "longTasksCount": 15,
+      "tbt": 3483,
+      "jsHeapUsedMB": 122.8,
+      "scriptDurationMs": 3406,
+      "layoutDurationMs": 31,
+      "taskDurationMs": 6053,
+      "domNodes": 1750,
+      "jsEventListeners": 768
+    },
+    "delta": {
+      "fcp": {
+        "val": 6428,
+        "pct": 0
+      },
+      "lcp": {
+        "val": 6428,
+        "pct": 0
+      },
+      "dcl": {
+        "val": -199,
+        "pct": -5
+      },
+      "loadTime": {
+        "val": 323,
+        "pct": 7.9
+      },
+      "tbt": {
+        "val": 282,
+        "pct": 8.8
+      },
+      "longTasksCount": {
+        "val": 4,
+        "pct": 36.4
+      },
+      "scriptDurationMs": {
+        "val": 854,
+        "pct": 33.5
+      },
+      "jsHeapUsedMB": {
+        "val": -24.25,
+        "pct": -16.5
+      }
+    }
+  }
+]

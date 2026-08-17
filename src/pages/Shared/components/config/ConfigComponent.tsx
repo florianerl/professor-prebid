@@ -53,18 +53,28 @@ const ConfigComponent = (): JSX.Element => {
 
   const fullConfig = (prebid?.config || {}) as Record<string, any>;
   const fieldKeys = useMemo(() => Object.keys(fullConfig), [fullConfig]);
+  const options = useMemo(() => Object.keys(fullConfig).map((k) => `${k}:`), [fullConfig]);
 
   const filteredConfig = useMemo(() => {
     if (!query.trim()) return {};
-    const q = query.toLowerCase().trim();
+    const q = query.trim().toLowerCase();
     const result: Record<string, any> = {};
 
-    Object.keys(fullConfig).forEach((key) => {
-      const val = fullConfig[key];
-      const matchKey = key.toLowerCase().includes(q);
-      const matchVal = typeof val === 'object' ? JSON.stringify(val).toLowerCase().includes(q) : String(val).toLowerCase().includes(q);
+    const colonIndex = q.indexOf(':');
+    const targetKey = colonIndex >= 0 ? q.slice(0, colonIndex).trim() : '';
+    const targetVal = colonIndex >= 0 ? q.slice(colonIndex + 1).trim() : '';
 
-      if (matchKey || matchVal) {
+    Object.keys(fullConfig).forEach((key) => {
+      const lowerKey = key.toLowerCase();
+      const val = fullConfig[key];
+      const valStr = typeof val === 'object' ? JSON.stringify(val).toLowerCase() : String(val).toLowerCase();
+
+      if (colonIndex >= 0) {
+        const keyMatch = lowerKey.includes(targetKey);
+        if (keyMatch && (!targetVal || valStr.includes(targetVal))) {
+          result[key] = val;
+        }
+      } else if (lowerKey.includes(q) || valStr.includes(q)) {
         result[key] = val;
       }
     });
@@ -79,6 +89,7 @@ const ConfigComponent = (): JSX.Element => {
         <AutoComplete
           query={query}
           fieldKeys={fieldKeys}
+          options={options}
           onPick={(opt) => setQuery((cur) => replaceLastToken(cur, opt))}
           onQueryChange={setQuery}
           placeholder="Filter config..."

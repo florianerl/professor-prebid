@@ -37,6 +37,27 @@ describe('AutoComplete component', () => {
     expect(onPick).toHaveBeenCalledWith('bidder:');
   });
 
+  it('handles selecting key option when onPick is omitted', async () => {
+    const onQueryChange = vi.fn();
+    render(
+      <AutoComplete
+        query="bid"
+        onQueryChange={onQueryChange}
+        placeholder="Search..."
+        fieldKeys={['bidder', 'cpm']}
+      />
+    );
+
+    const input = screen.getByPlaceholderText('Search...');
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    const option = await screen.findByRole('option', { name: 'bidder' });
+    fireEvent.click(option);
+
+    expect(onQueryChange).toHaveBeenCalledWith('bidder:');
+  });
+
   it('handles selecting value option with colon and no operator', async () => {
     const onQueryChange = vi.fn();
     render(

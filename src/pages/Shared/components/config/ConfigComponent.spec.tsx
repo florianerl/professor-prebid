@@ -69,6 +69,10 @@ describe('ConfigComponent & ExpandableTile', () => {
     fireEvent.change(input, { target: { value: 'bidderTimeout' } });
     expect(screen.getByText('config')).toBeTruthy();
 
+    // Search matching key with colon
+    fireEvent.change(input, { target: { value: 'bidderTimeout:' } });
+    expect(screen.getByText('config')).toBeTruthy();
+
     // Search non-matching key
     fireEvent.change(input, { target: { value: 'nonExistentParam' } });
     expect(screen.getByText('No matching configuration parameters')).toBeTruthy();

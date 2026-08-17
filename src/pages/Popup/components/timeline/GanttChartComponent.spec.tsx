@@ -157,6 +157,20 @@ describe('Popup GanttChartComponent', () => {
     expect(screen.getByText(/No bidders matched your filter query/i)).toBeTruthy();
   });
 
+  it('filters bidders correctly with structured bidder: prefix query', () => {
+    const auctionEndEvent = makeAuctionEndEvent([
+      makeBidderRequest({ bidderCode: 'rubicon' }),
+      makeBidderRequest({ bidderCode: 'appnexus' }),
+    ]);
+    render(
+      <Wrapper>
+        <GanttChartComponent mode="single" auctionEndEvent={auctionEndEvent} query="bidder:rubicon" />
+      </Wrapper>
+    );
+    expect(screen.getByText('rubicon')).toBeTruthy();
+    expect(screen.queryByText('appnexus')).toBeNull();
+  });
+
   it('renders stacked mode with a section header', () => {
     const events = [makeAuctionEndEvent(), makeAuctionEndEvent([makeBidderRequest({ bidderCode: 'rubicon' })])];
     render(

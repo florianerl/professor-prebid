@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -9,21 +9,22 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import StorageIcon from '@mui/icons-material/Storage';
 import AppStateContext from '../../contexts/appStateContext';
 import JSONViewerComponent from '../JSONViewerComponent';
+import { createQueryEngine } from '../autocomplete/utils';
+
+export const USER_ID_MODULE_FIELD_MAP = {
+  name: (m: any) => m?.name,
+  storage: (m: any) => [m?.storage?.name, m?.storage?.type].filter(Boolean).join(' '),
+  bidder: (m: any) => (m?.bidders || []).join(' '),
+} as const;
+
+const userIdModuleQueryEngine = createQueryEngine<any>(USER_ID_MODULE_FIELD_MAP);
 
 const ConfigTab = ({ searchQuery = '' }: { searchQuery?: string }): JSX.Element => {
   const { prebid } = useContext(AppStateContext);
 
   const modules = prebid?.config?.userSync?.userIds || [];
-
-  const filteredModules = modules.filter((m) => {
-    if (!m) return false;
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase().trim();
-    const nameMatch = m.name?.toLowerCase().includes(q);
-    const storageMatch = m.storage?.name?.toLowerCase().includes(q) || m.storage?.type?.toLowerCase().includes(q);
-    const bidderMatch = m.bidders?.some((b) => b?.toLowerCase().includes(q));
-    return nameMatch || storageMatch || bidderMatch;
-  });
+  const filterFn = useMemo(() => userIdModuleQueryEngine.runQuery(searchQuery), [searchQuery]);
+  const filteredModules = useMemo(() => modules.filter((m) => m && filterFn(m)), [modules, filterFn]);
 
   if (!filteredModules || filteredModules.length === 0) {
     return (

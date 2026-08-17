@@ -73,15 +73,15 @@ describe('autocomplete/utils', () => {
   describe('getAutocompleteOptions', () => {
     it('returns key options for empty query or operator query', () => {
       const keys = ['bidder', 'adunit'];
-      expect(getAutocompleteOptions('', keys)).toContain('bidder:');
-      expect(getAutocompleteOptions('bidder:rubicon AND', keys)).toContain('bidder:');
-      expect(getAutocompleteOptions('bidder:rubicon OR', keys)).toContain('adunit:');
+      expect(getAutocompleteOptions('', keys)).toContain('bidder');
+      expect(getAutocompleteOptions('bidder:rubicon AND', keys)).toContain('bidder');
+      expect(getAutocompleteOptions('bidder:rubicon OR', keys)).toContain('adunit');
     });
 
     it('filters keys matching query prefix when no colon is typed', () => {
       const keys = ['bidder', 'adunit', 'cpm'];
       const res = getAutocompleteOptions('bi', keys);
-      expect(res).toEqual(['bidder:']);
+      expect(res).toEqual(['bidder']);
     });
 
     it('filters options matching key prefix when colon is typed', () => {

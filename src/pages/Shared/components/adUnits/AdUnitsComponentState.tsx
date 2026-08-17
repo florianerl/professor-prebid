@@ -1,7 +1,7 @@
 import { useState, useContext, useMemo } from 'react';
 import type { AdUnit, EventRecord } from 'prebid.js/types.d.ts';
 import StateContext from '../../contexts/appStateContext';
-import { createQueryEngine, distinct, NUMERIC_FIELD_KEYS } from '../autocomplete/utils';
+import { createQueryEngine, distinct } from '../autocomplete/utils';
 
 const merge = (target: any, source: any) => {
   for (const key in source) {
@@ -95,12 +95,12 @@ const adUnitsQueryEngine = (() => createQueryEngine<any>(ADUNIT_FIELD_MAP))();
 
 const buildAdUnitSuggestions = (adUnits: AdUnit[], allSizes: string[]): string[] => {
   const keySuggestions = (Object.keys(ADUNIT_FIELD_MAP) as string[]).map((key) => `${key}:`);
-  const numericStubs = (NUMERIC_FIELD_KEYS as readonly string[]).flatMap((key) => [`${key}>`, `${key}>=`, `${key}<`, `${key}<=`, `${key}=`]);
+  const sizeSuggestions = allSizes.map((s) => `size:${s}`);
   const adUnitCodeSuggestions = distinct(adUnits.map((adUnit) => (adUnit?.code ? `adunitcode:${String(adUnit.code)}` : undefined)).filter((s): s is string => !!s));
   const bidderSuggestions = distinct(adUnits.flatMap((adUnit) => (Array.isArray(adUnit?.bids) ? adUnit.bids.map((b) => (b?.bidder ? `bidder:${String(b.bidder)}` : undefined)) : [])));
   const mediaTypes = distinct(adUnits.flatMap((adUnit) => (adUnit?.mediaTypes ? Object.keys(adUnit.mediaTypes).map((mt) => `mediatype:${mt}`) : [])));
 
-  const suggestions = Array.from(new Set<string>([...keySuggestions, ...numericStubs, ...adUnitCodeSuggestions, ...bidderSuggestions, ...mediaTypes, ...allSizes])).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+  const suggestions = Array.from(new Set<string>([...keySuggestions, ...sizeSuggestions, ...adUnitCodeSuggestions, ...bidderSuggestions, ...mediaTypes, ...allSizes])).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
   return suggestions;
 };
 

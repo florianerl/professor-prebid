@@ -71,6 +71,15 @@ describe('UserIdsTab', () => {
     expect(screen.getByText('sharedid.org')).toBeTruthy();
     expect(screen.queryByText('criteo.com')).toBeNull();
 
+    // Structured source: query
+    rerender(
+      <AppStateContext.Provider value={mockContext}>
+        <UserIdsTab searchQuery="source:criteo" />
+      </AppStateContext.Provider>
+    );
+    expect(screen.getByText('criteo.com')).toBeTruthy();
+    expect(screen.queryByText('sharedid.org')).toBeNull();
+
     // Non-matching query
     rerender(
       <AppStateContext.Provider value={mockContext}>

@@ -26,17 +26,18 @@ const UserIdsComponent = (): JSX.Element => {
   // Build autocomplete options list from EID sources & module names
   const options = useMemo(() => {
     const setOptions = new Set<string>();
+    ['source:', 'id:', 'name:'].forEach((k) => setOptions.add(k));
     (prebid?.eids || []).forEach((e) => {
-      if (e?.source) setOptions.add(e.source);
+      if (e?.source) setOptions.add(`source:${e.source}`);
       (e?.uids || []).forEach((u) => {
-        if (u?.id) setOptions.add(u.id);
+        if (u?.id) setOptions.add(`id:${u.id}`);
       });
     });
     (prebid?.config?.userSync?.userIds || []).forEach((m) => {
-      if (m?.name) setOptions.add(m.name);
-      if (m?.storage?.name) setOptions.add(m.storage.name);
+      if (m?.name) setOptions.add(`name:${m.name}`);
+      if (m?.storage?.name) setOptions.add(`name:${m.storage.name}`);
     });
-    return Array.from(setOptions);
+    return Array.from(setOptions).sort();
   }, [prebid]);
 
   return (

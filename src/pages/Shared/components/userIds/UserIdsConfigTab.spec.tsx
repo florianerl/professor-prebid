@@ -60,6 +60,15 @@ describe('UserIdsConfigTab (ConfigTab)', () => {
     expect(screen.getByText('id5Id')).toBeTruthy();
     expect(screen.queryByText('criteoId')).toBeNull();
 
+    // Structured name: query
+    rerender(
+      <AppStateContext.Provider value={mockContext}>
+        <ConfigTab searchQuery="name:criteo" />
+      </AppStateContext.Provider>
+    );
+    expect(screen.getByText('criteoId')).toBeTruthy();
+    expect(screen.queryByText('id5Id')).toBeNull();
+
     // Non-matching query
     rerender(
       <AppStateContext.Provider value={mockContext}>

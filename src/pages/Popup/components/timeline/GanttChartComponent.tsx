@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -16,6 +16,7 @@ import AppStateContext from '../../../Shared/contexts/appStateContext';
 import JSONViewerComponent from '../../../Shared/components/JSONViewerComponent';
 import { getPreAuctionTimeline, IPreAuctionRow } from '../../../Shared/components/timeline/preAuctionTimeline';
 import { getProviderDiagnostics, IProviderDiagnostic } from '../../../Shared/components/preAuction/providerDiagnostics';
+import { createQueryEngine } from '../../../Shared/components/autocomplete/utils';
 
 export type BidderRequestWithStart = BidderRequest<string> & {
   start: number;
@@ -54,6 +55,12 @@ interface IBidderRowData {
   /** Set when the Pre-Auction tab found this phase's provider lost a race; see providerDiagnostics. */
   preAuctionWarning?: string;
 }
+
+export const TIMELINE_FIELD_MAP = {
+  bidder: (r: IBidderRowData) => r.bidderCode,
+} as const;
+
+const timelineQueryEngine = createQueryEngine<IBidderRowData>(TIMELINE_FIELD_MAP);
 
 const PRE_AUCTION_COLOR: { [variant in IPreAuctionRow['variant']]: string } = {
   phase: '#6a1b9a',
@@ -222,6 +229,8 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
   let globalMaxDuration = 100;
   const getWarning: (label: string, depth: number) => string | undefined = showPreAuction ? buildWarningLookup(getProviderDiagnostics(prebid, targetAuctions).providers) : () => undefined;
 
+  const filterFn = useMemo(() => timelineQueryEngine.runQuery(query), [query]);
+
   targetAuctions.forEach((aeEvent, aIdx) => {
     const { auctionEnd, bidderRequests, timestamp, auctionId } = aeEvent?.args || {};
     if (!bidderRequests || !bidderRequests.length) return;
@@ -234,24 +243,9 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
     const shortId = auctionId ? auctionId.slice(0, 8) : `A${aIdx + 1}`;
     const auctionLabel = `Auction #${aIdx + 1} (${shortId})`;
 
-    if (mode === 'stacked') {
-      displayRows.push({
-        bidderCode: '',
-        startMs: 0,
-        endMs: 0,
-        latencyMs: 0,
-        hasBid: false,
-        isTimeout: false,
-        bidderRequest: null,
-        isSectionHeader: true,
-        sectionTitle: auctionLabel,
-        sectionDuration: auctionDuration,
-      });
-    }
-
-    if (showPreAuction) {
-      displayRows.push(...buildPreAuctionRows(aeEvent, config, auctionStartTimestamp, shortId, aIdx + 1, getWarning).filter((r) => !query || r.bidderCode.toLowerCase().includes(query.toLowerCase())));
-    }
+    const preAuctionRows = showPreAuction
+      ? buildPreAuctionRows(aeEvent, config, auctionStartTimestamp, shortId, aIdx + 1, getWarning).filter(filterFn)
+      : [];
 
     const rowsForAuction: IBidderRowData[] = (bidderRequests as BidderRequestWithStart[])
       .map((bidderRequest) => {
@@ -341,10 +335,27 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
           noBidEvent: firstNoBid ? noBidEvents?.[0] : undefined,
         };
       })
-      .filter((r) => !query || r.bidderCode.toLowerCase().includes(query.toLowerCase()))
+      .filter(filterFn)
       .sort((a, b) => a.startMs - b.startMs || b.latencyMs - a.latencyMs);
 
-    displayRows.push(...rowsForAuction);
+    if (rowsForAuction.length > 0 || preAuctionRows.length > 0) {
+      if (mode === 'stacked') {
+        displayRows.push({
+          bidderCode: '',
+          startMs: 0,
+          endMs: 0,
+          latencyMs: 0,
+          hasBid: false,
+          isTimeout: false,
+          bidderRequest: null,
+          isSectionHeader: true,
+          sectionTitle: auctionLabel,
+          sectionDuration: auctionDuration,
+        });
+      }
+      displayRows.push(...preAuctionRows);
+      displayRows.push(...rowsForAuction);
+    }
   });
 
   if (!displayRows.length) {

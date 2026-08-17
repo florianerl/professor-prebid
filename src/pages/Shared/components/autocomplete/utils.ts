@@ -110,16 +110,15 @@ const tokenize = (query: string): string[] => {
     return tokens;
 };
 
-export const getAutocompleteOptions = (query: string, fieldKeys: string[], options: string[] = []): string[] => {
+export const getAutocompleteOptions = (query: string = '', fieldKeys: string[] = [], options: string[] = []): string[] => {
     const input = query || '';
     const tokens = input.trim().split(/\s+/);
     const queryLastToken = (tokens.pop() ?? '').toLowerCase();
 
-    // Only the caller's own keys - see the note in AutoComplete.tsx
-    const keyOnlyOptions = Array.from(new Set(fieldKeys)).map((k) => `${k}:`).sort((a, b) => a.localeCompare(b));
+    const keyOnlyOptions = Array.from(new Set((fieldKeys || []).map((k) => k.replace(/:$/, '')))).sort((a, b) => a.localeCompare(b));
 
-    // If no query or query is an operator, show key suggestions
-    if (['or', 'and'].includes(queryLastToken)) {
+    // If no query or query ends in an operator, show key suggestions
+    if (!queryLastToken || ['or', 'and'].includes(queryLastToken)) {
         return keyOnlyOptions;
     }
 
@@ -142,7 +141,7 @@ export const getAutocompleteOptions = (query: string, fieldKeys: string[], optio
             .map((option) => String(option).slice(keyPrefix.length)) // Remove the key: prefix
             .filter((value) => !val || value.toLowerCase().includes(val.toLowerCase()))
             .filter((s) => s); // Remove empty strings
-        return filtered;
+        return Array.from(new Set(filtered));
     }
     return [];
 };

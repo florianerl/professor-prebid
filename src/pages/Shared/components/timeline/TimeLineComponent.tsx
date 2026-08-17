@@ -34,9 +34,10 @@ const TimeLineComponent = (): JSX.Element => {
   // AutoComplete suggestions
   const suggestions = useMemo(() => {
     const set = new Set<string>();
+    set.add('bidder:');
     (auctionEndEvents || []).forEach((ae) => {
       (ae.args?.bidderRequests || []).forEach((br: any) => {
-        if (br.bidderCode) set.add(br.bidderCode.toLowerCase());
+        if (br.bidderCode) set.add(`bidder:${br.bidderCode.toLowerCase()}`);
       });
     });
     return Array.from(set).sort();

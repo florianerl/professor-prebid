@@ -206,6 +206,23 @@ async function measurePagePerformance(
         viewport: { width: 1440, height: 900 }
     });
 
+    if (withExtension) {
+        // Enable InjectedApp AdUnit Overlays in extension storage
+        let sw = context.serviceWorkers()[0];
+        if (!sw) {
+            try {
+                sw = await context.waitForEvent('serviceworker', { timeout: 3000 });
+            } catch (_) {}
+        }
+        if (sw) {
+            try {
+                await sw.evaluate(() => {
+                    return chrome.storage.local.set({ PP_CONSOLE_STATE: true });
+                });
+            } catch (_) {}
+        }
+    }
+
     const page = await context.newPage();
 
     // Attach CDP session to gather Chrome DevTools performance metrics
@@ -213,7 +230,7 @@ async function measurePagePerformance(
     await client.send('Performance.enable');
 
     // Injected script to capture Long Tasks & LCP before page scripts start running
-    await page.addInitScript(() => {
+    await page.addInitScript(({ withExtension: isExt }) => {
         (window as any).__perfData = {
             longTasks: [] as number[],
             lcp: 0
@@ -237,7 +254,13 @@ async function measurePagePerformance(
             });
             lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
         } catch (_) {}
-    });
+
+        if (isExt) {
+            window.addEventListener('DOMContentLoaded', () => {
+                document.dispatchEvent(new CustomEvent('PP_CONSOLE_STATE', { detail: true }));
+            });
+        }
+    }, { withExtension });
 
     try {
         await page.goto(url, { waitUntil: 'load', timeout: 45000 });
@@ -359,6 +382,7 @@ test.describe('Real-World Performance Benchmark', () => {
 
         console.log(`\n======================================================`);
         console.log(`  PROFESSOR PREBID PERFORMANCE BENCHMARK SUITE`);
+        console.log(`  InjectedApp Overlays: ACTIVE (PP_CONSOLE_STATE = true)`);
         console.log(`  Iterations per condition: ${ITERATIONS}`);
         console.log(`======================================================\n`);
 
@@ -430,8 +454,9 @@ test.describe('Real-World Performance Benchmark', () => {
         fs.writeFileSync(jsonPath, JSON.stringify(summaries, null, 2));
 
         // Generate Markdown Report
-        let mdReport = `# Professor Prebid - Performance Impact Benchmark Report\n\n`;
+        let mdReport = `# Professor Prebid - Performance Impact Benchmark Report (InjectedApp Overlays ACTIVE)\n\n`;
         mdReport += `**Date:** ${new Date().toUTCString()}  \n`;
+        mdReport += `**Configuration:** On-Page InjectedApp AdUnit Overlays Active (\`PP_CONSOLE_STATE = true\`)  \n`;
         mdReport += `**Iterations:** ${ITERATIONS} per condition (Median values reported)  \n\n`;
 
         for (const s of summaries) {

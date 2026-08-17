@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -15,6 +15,14 @@ import CodeIcon from '@mui/icons-material/Code';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AppStateContext from '../../contexts/appStateContext';
 import JSONViewerComponent from '../JSONViewerComponent';
+import { createQueryEngine } from '../autocomplete/utils';
+
+export const EID_FIELD_MAP = {
+  source: (eid: any) => eid?.source,
+  id: (eid: any) => eid?.uids?.map((u: any) => u?.id).join(' ') || '',
+} as const;
+
+const eidQueryEngine = createQueryEngine<any>(EID_FIELD_MAP);
 
 const UserIdsTab = ({ searchQuery = '' }: { searchQuery?: string }): JSX.Element => {
   const { prebid } = useContext(AppStateContext);
@@ -32,15 +40,8 @@ const UserIdsTab = ({ searchQuery = '' }: { searchQuery?: string }): JSX.Element
   };
 
   const eids = prebid?.eids || [];
-
-  const filteredEids = eids.filter((eid) => {
-    if (!eid) return false;
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase().trim();
-    const sourceMatch = eid.source?.toLowerCase().includes(q);
-    const uidMatch = eid.uids?.some((u) => u?.id?.toLowerCase().includes(q));
-    return sourceMatch || uidMatch;
-  });
+  const filterFn = useMemo(() => eidQueryEngine.runQuery(searchQuery), [searchQuery]);
+  const filteredEids = useMemo(() => eids.filter((eid) => eid && filterFn(eid)), [eids, filterFn]);
 
   if (!filteredEids || filteredEids.length === 0) {
     return (

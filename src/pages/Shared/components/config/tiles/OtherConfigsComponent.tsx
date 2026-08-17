@@ -1,6 +1,8 @@
 import React, { useContext, useState } from 'react';
 import TuneIcon from '@mui/icons-material/Tune';
 import CodeIcon from '@mui/icons-material/Code';
+import Chip from '@mui/material/Chip';
+import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
@@ -77,15 +79,24 @@ const OtherConfigsComponent = (): JSX.Element | null => {
         </Grid>
       ) : (
         <Grid size={{ xs: 12 }}>
-          {otherKeys.map((key) => {
-            const val = config[key];
-            const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
-            return (
-              <Typography key={key} variant="body2" sx={{ fontSize: '0.75rem', mb: 0.25 }}>
-                <strong>{key}: </strong> {strVal}
-              </Typography>
-            );
-          })}
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: 'text.secondary', fontSize: '0.75rem' }}>
+            Custom Parameters
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+            {otherKeys.map((key) => {
+              const val = config[key];
+              const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
+              return (
+                <Chip
+                  key={key}
+                  label={<><strong>{key}: </strong>{strVal}</>}
+                  size="small"
+                  variant="outlined"
+                  sx={{ height: 22, fontSize: '0.7rem', maxWidth: '100%' }}
+                />
+              );
+            })}
+          </Box>
         </Grid>
       )}
     </ExpandableTile>

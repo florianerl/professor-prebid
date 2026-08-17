@@ -3,6 +3,7 @@ import { IPrebidConfigPriceBucket } from '../../../../Injected/prebid';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
+import Chip from '@mui/material/Chip';
 import StraightenIcon from '@mui/icons-material/Straighten';
 import Box from '@mui/system/Box';
 import AppStateContext from '../../../contexts/appStateContext';
@@ -24,11 +25,12 @@ const defaultBuckets: IDefaultBuckets = {
   ],
 };
 
-const PriceGranularityComponent = () => {
+const PriceGranularityComponent = (): JSX.Element | null => {
   const { prebid } = useContext(AppStateContext);
-  const {
-    config: { priceGranularity, customPriceBucket, mediaTypePriceGranularity },
-  } = prebid;
+  const config = prebid?.config || {};
+  const { priceGranularity, customPriceBucket, mediaTypePriceGranularity } = config;
+
+  if (!priceGranularity) return null;
 
   const hasMediaTypePriceGranularityBuckets = (() => {
     if (!mediaTypePriceGranularity) {
@@ -40,14 +42,21 @@ const PriceGranularityComponent = () => {
     return Object.values(typedMediaTypePg).some((value) => Array.isArray(value.buckets) && value.buckets.length > 0);
   })();
 
-  return (
+  const activeBucket = defaultBuckets[priceGranularity] || (customPriceBucket?.buckets as any);
 
-    <ExpandableTile icon={<StraightenIcon />} title="Price Granularity" subtitle={`${priceGranularity} (${Object.keys(defaultBuckets)?.includes(priceGranularity) ? 'default' : 'custom'})`} defaultMaxWidth={4} expandedMaxWidth={12}>
+  return (
+    <ExpandableTile
+      icon={<StraightenIcon />}
+      title="Price Granularity"
+      subtitle={`${priceGranularity} (${Object.keys(defaultBuckets)?.includes(priceGranularity) ? 'default' : 'custom'})`}
+      defaultMaxWidth={4}
+      expandedMaxWidth={12}
+    >
       {/* Media-type specific price granularities */}
       {hasMediaTypePriceGranularityBuckets && (
         <Box sx={{ mb: 2, width: '100%' }}>
-          <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Media type price granularity (overrides global priceGranularity when present):
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: 'text.secondary', fontSize: '0.75rem' }}>
+            Media Type Overrides
           </Typography>
 
           <Grid container spacing={2}>
@@ -59,9 +68,9 @@ const PriceGranularityComponent = () => {
 
                 return (
                   <Grid size={{ xs: 12 }} key={mediaType}>
-                    <Box sx={{ backgroundColor: 'text.disabled', p: 0.25, borderRadius: 1 }}>
-                      <Typography variant="body1" sx={{ mb: 0.5, ml: 0.5 }}>
-                        <strong>{mediaType}</strong>
+                    <Box sx={{ backgroundColor: 'action.hover', p: 0.5, borderRadius: 1 }}>
+                      <Typography variant="body2" sx={{ mb: 0.5, ml: 0.5, fontWeight: 600 }}>
+                        {mediaType}
                       </Typography>
                       <BucketTable buckets={buckets} type={mediaType} />
                     </Box>
@@ -72,37 +81,42 @@ const PriceGranularityComponent = () => {
         </Box>
       )}
 
-      <Grid container spacing={2} sx={{ width: '100%' }}>
+      <Grid container spacing={1} sx={{ width: '100%' }}>
         {/* Summary Stats */}
-        {(() => {
-          if (['auto', 'dense', 'custom', 'medium', 'high'].includes(priceGranularity)) {
-            return (
-              <React.Fragment>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="body1">
-                    <strong>Min: </strong> {(defaultBuckets[priceGranularity] || (customPriceBucket?.buckets as any))?.[0]?.min}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="body1">
-                    <strong>Max: </strong> {(defaultBuckets[priceGranularity] || customPriceBucket?.buckets)?.[0]?.max}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="body1">
-                    <strong>Precision: </strong>
-                    {(defaultBuckets[priceGranularity] || customPriceBucket?.buckets)?.[0]?.precision || 2}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="body1">
-                    <strong>Increment: </strong> {(defaultBuckets[priceGranularity] || customPriceBucket?.buckets)?.[0]?.increment}
-                  </Typography>
-                </Grid>
-              </React.Fragment>
-            );
-          }
-        })()}
+        {activeBucket?.[0] && (
+          <Grid size={{ xs: 12 }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+              <Chip
+                label={`Min: ${activeBucket[0]?.min}`}
+                size="small"
+                variant="outlined"
+                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
+              />
+              <Chip
+                label={`Max: ${activeBucket[activeBucket.length - 1]?.max ?? activeBucket[0]?.max}`}
+                size="small"
+                variant="outlined"
+                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
+              />
+              <Chip
+                label={`Precision: ${activeBucket[0]?.precision ?? 2}`}
+                size="small"
+                color="info"
+                variant="outlined"
+                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
+              />
+              {activeBucket.length === 1 && (
+                <Chip
+                  label={`Increment: ${activeBucket[0]?.increment}`}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
+                />
+              )}
+            </Box>
+          </Grid>
+        )}
 
         <Grid size={{ xs: 12 }}>
           <PriceGranularityTable priceGranularity={priceGranularity} customPriceBucket={customPriceBucket as any} />

@@ -60,15 +60,21 @@ const UserIdModuleComponent = (): JSX.Element | null => {
           {userIds.map((userId, index) => {
             if (!userId.params || Object.keys(userId.params).length === 0) return null;
             return (
-              <Box key={`${userId.name}-${index}`} sx={{ mt: 0.75 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary' }}>
+              <Box key={`${userId.name}-${index}`} sx={{ mt: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', mb: 0.5 }}>
                   {userId.name} Parameters:
                 </Typography>
-                {Object.entries(userId.params).map(([k, v]) => (
-                  <Typography key={k} variant="body2" sx={{ fontSize: '0.75rem', pl: 1 }}>
-                    <strong>{k}:</strong> {typeof v === 'object' ? JSON.stringify(v) : String(v)}
-                  </Typography>
-                ))}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {Object.entries(userId.params).map(([k, v]) => (
+                    <Chip
+                      key={k}
+                      label={<><strong>{k}: </strong>{typeof v === 'object' ? JSON.stringify(v) : String(v)}</>}
+                      size="small"
+                      variant="outlined"
+                      sx={{ height: 20, fontSize: '0.675rem' }}
+                    />
+                  ))}
+                </Box>
               </Box>
             );
           })}

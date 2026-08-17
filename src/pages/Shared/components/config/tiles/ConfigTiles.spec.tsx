@@ -16,6 +16,7 @@ import PrivacyComponent from './PrivacyComponent';
 import RtdComponent from './RtdComponent';
 import UserIdModule from './UserIdModule';
 import UserSyncComponent from './UserSyncComponent';
+import PrebidConfigComponent from '../../../../Popup/components/config/PrebidConfigComponent';
 
 describe('Config Tiles components', () => {
   const mockPrebid: any = {
@@ -119,8 +120,13 @@ describe('Config Tiles components', () => {
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
 
-    // Test fallback ortb2 keys
-    const fallbackOrtb2 = { config: { ortb2: { app: { name: 'test-app' } } } };
+    // Test app context and fallback ortb2 keys
+    const appOrtb2 = { config: { ortb2: { app: { name: 'test-app' } } } };
+    const { unmount: unmountApp } = renderWithContext(FirstPartyDataComponent, appOrtb2);
+    expect(screen.getByText('test-app')).toBeTruthy();
+    unmountApp();
+
+    const fallbackOrtb2 = { config: { ortb2: { customField: 'customValue' } } };
     const { unmount: unmountFallback } = renderWithContext(FirstPartyDataComponent, fallbackOrtb2);
     expect(screen.getByText(/top-level ortb2 key/)).toBeTruthy();
     unmountFallback();
@@ -268,5 +274,18 @@ describe('Config Tiles components', () => {
     renderWithContext(CurrencyComponent, stringCurrencyPrebid);
     expect(screen.getByText('Currency')).toBeTruthy();
     expect(screen.getByText('Ad Server Currency:')).toBeTruthy();
+  });
+
+  it('renders PrebidConfigComponent with data, toggles view, and handles empty state', () => {
+    const { unmount } = renderWithContext(PrebidConfigComponent);
+    expect(screen.getByText('Prebid Config')).toBeTruthy();
+    expect(screen.getByText('3000ms')).toBeTruthy();
+    expect(screen.getByText(/Bidder Timeout:/)).toBeTruthy();
+    const jsonBtn = screen.queryByLabelText('Switch to raw JSON view');
+    if (jsonBtn) fireEvent.click(jsonBtn);
+    unmount();
+
+    renderWithContext(PrebidConfigComponent, { config: undefined });
+    expect(screen.queryByText('Prebid Config')).toBeNull();
   });
 });

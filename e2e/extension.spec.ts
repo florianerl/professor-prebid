@@ -7,18 +7,23 @@ test.describe('Professor Prebid Extension', () => {
 
     test.beforeAll(async () => {
         const pathToExtension = path.join(__dirname, '../build');
-        const userDataDir = '/tmp/test_user_data_dir_' + Date.now();
+        const userDataDir = path.join(__dirname, '../test-results/test_user_data_dir_' + Date.now());
+
+        const isHeadless = process.env.HEADED !== 'true' && process.env.HEADLESS !== 'false';
+        const args = [
+            `--disable-extensions-except=${pathToExtension}`,
+            `--load-extension=${pathToExtension}`,
+            '--no-sandbox',
+            '--disable-web-security',
+        ];
+        if (isHeadless) {
+            args.push('--headless=new');
+        }
 
         browserContext = await chromium.launchPersistentContext(userDataDir, {
-            headless: false, // Set to false to see if it runs (in CI headless might be forced via environment or config)
-            // Actually, in this environment I must run headless. 
-            // But passing 'headless: false' to launchPersistentContext might be overridden or I should use args.
-            // Let's use args for headless=new
-            args: [
-                `--disable-extensions-except=${pathToExtension}`,
-                `--load-extension=${pathToExtension}`,
-                '--headless=new', // Explicit new headless mode
-            ],
+            headless: false,
+            bypassCSP: true,
+            args,
         });
 
         // Wait for the extension to load (serviceworker)
@@ -54,7 +59,9 @@ test.describe('Professor Prebid Extension', () => {
     });
 
     test.afterAll(async () => {
-        await browserContext.close();
+        if (browserContext) {
+            await browserContext.close();
+        }
     });
 
     test('injects content script and detects Prebid', async () => {
@@ -214,5 +221,12 @@ test.describe('Professor Prebid Extension', () => {
         // Expect tab info to exist and contain data
         const tabInfoKeys = Object.keys(finalStorageData).filter(key => key.startsWith('tab_info_'));
         expect(tabInfoKeys.length).toBeGreaterThan(0);
+
+        // Also verify that the MCP bridge is available on page
+        const isBridgeReady = await page.evaluate(() => {
+            const win = window as any;
+            return typeof win.__PROFESSOR_PREBID_MCP__ !== 'undefined' && win.__PROFESSOR_PREBID_MCP__.bridgeVersion === '1.0.0';
+        });
+        expect(isBridgeReady).toBe(true);
     });
 });

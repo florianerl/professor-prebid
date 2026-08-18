@@ -10,6 +10,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import Tooltip from '@mui/material/Tooltip';
 import { gte } from 'semver';
 import OverlayControlComponent from './OverlayControlComponent';
+import McpToolsComponent from './mcp/McpToolsComponent';
 import AppStateContext from '../../contexts/appStateContext';
 import { getTabId } from '../../../Shared/utils';
 import DebuggingModuleComponent from './debugging/DebuggingModuleComponent';
@@ -100,6 +101,11 @@ const ToolsComponent = (): JSX.Element => {
             </Tooltip>
           </Box>
         </Paper>
+      </Grid>
+
+      {/* Model Context Protocol (MCP) & AI Diagnostics */}
+      <Grid size={{ xs: 12 }}>
+        <McpToolsComponent />
       </Grid>
 
       {/* On-Page AdUnit Overlay Control */}

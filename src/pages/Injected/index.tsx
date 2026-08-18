@@ -4,12 +4,14 @@ import InjectedApp from '../App/InjectedApp';
 import { googleAdManager } from './googleAdManager';
 import { addEventListenersForPrebid } from './prebid';
 import { iabTcf } from './tcf';
+import { initProfessorPrebidMcpBridge } from './mcpBridge';
 import { detectIframe, generateUniqueId } from '../Shared/utils';
 
 const frameId = detectIframe() ? `${window.location.href}-${generateUniqueId()}` : 'top-window';
 googleAdManager.init();
 addEventListenersForPrebid(frameId);
 iabTcf.init();
+initProfessorPrebidMcpBridge();
 
 const injectApp = () => {
   if (document.body) {

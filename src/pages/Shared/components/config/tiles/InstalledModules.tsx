@@ -60,7 +60,14 @@ const InstalledModulesComponent = (): JSX.Element | null => {
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
             {others.map((m) => (
-              <Chip key={m} label={m} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
+              <Chip
+                key={m}
+                label={m === 'devtoolsMcp' ? 'devtoolsMcp (AI MCP)' : m}
+                size="small"
+                variant={m === 'devtoolsMcp' ? 'filled' : 'outlined'}
+                color={m === 'devtoolsMcp' ? 'success' : undefined}
+                sx={{ height: 22, fontSize: '0.7rem', fontWeight: m === 'devtoolsMcp' ? 600 : 400 }}
+              />
             ))}
           </Box>
         </Grid>

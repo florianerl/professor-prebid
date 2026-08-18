@@ -319,6 +319,8 @@ describe('InjectedApp Component', () => {
     act(() => {
       document.dispatchEvent(new CustomEvent(CONSOLE_TOGGLE, { detail: true }));
       document.dispatchEvent(new CustomEvent(SAVE_MASKS, { detail: 'pbjs' }));
+      // Second dispatch within throttle window creates a scheduled timeout
+      document.dispatchEvent(new CustomEvent(SAVE_MASKS, { detail: 'pbjs' }));
     });
 
     unmount();

@@ -5,7 +5,13 @@ import AdOverlayPortal, { getMaxZIndex } from './AdOverlayPortal';
 
 vi.mock('./AdOverlayComponent', () => {
   return {
-    default: () => <div data-testid="mock-ad-overlay-component">AdOverlayComponentMock</div>
+    default: (props: any) => (
+      <div data-testid="mock-ad-overlay-component">
+        <button data-testid="close-portal-btn" onClick={props.closePortal}>
+          Close
+        </button>
+      </div>
+    ),
   };
 });
 
@@ -97,6 +103,28 @@ describe('AdOverlayPortal', () => {
       
       expect(div.style.width).toBe('500px');
       expect(div.style.height).toBe('250px');
+    });
+
+    it('hides the mask container when closePortal is triggered', () => {
+      render(
+        <AdOverlayPortal
+          container={container}
+          mask={mockMask}
+          consoleState={true}
+          pbjsNameSpace="pbjs"
+        />
+      );
+
+      const maskElement = document.getElementById(`prpb-mask--container-${mockMask.elementId}`);
+      expect(maskElement).not.toBeNull();
+
+      const closeBtn = screen.queryByTestId('close-portal-btn');
+      if (closeBtn) {
+        act(() => {
+          closeBtn.click();
+        });
+        expect(maskElement?.style.display).toBe('none');
+      }
     });
   });
 });

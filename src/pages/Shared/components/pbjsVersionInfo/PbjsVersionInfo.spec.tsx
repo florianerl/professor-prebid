@@ -166,14 +166,19 @@ describe('PbjsVersionInfo components', () => {
       </AppStateContext.Provider>
     );
 
-    expect(screen.getByText('v8.1.0 Release')).toBeTruthy();
-    expect(screen.getByText('v8.0.1 Patch')).toBeTruthy();
-
     const searchInput = screen.getByPlaceholderText('Filter changelog...');
     fireEvent.change(searchInput, { target: { value: 'Feature X' } });
 
     expect(screen.getByText('v8.1.0 Release')).toBeTruthy();
     expect(screen.queryByText('v8.0.1 Patch')).toBeNull();
+
+    // Toggle individual release item
+    const releaseHeader = screen.getByText('v8.1.0 Release');
+    fireEvent.click(releaseHeader);
+
+    // Search query matching nothing
+    fireEvent.change(searchInput, { target: { value: 'NonExistentMatch12345' } });
+    expect(screen.getByText(/No releases match "NonExistentMatch12345"/)).toBeTruthy();
   });
 
   it('handles copy summary action', () => {

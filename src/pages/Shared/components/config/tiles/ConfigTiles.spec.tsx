@@ -100,31 +100,45 @@ describe('Config Tiles components', () => {
   it('renders CurrencyComponent with data and empty fallback, and toggles JSON view', () => {
     const { unmount } = renderWithContext(CurrencyComponent);
     expect(screen.getByText('Currency')).toBeTruthy();
+    expect(screen.getByText('EUR: 0.9')).toBeTruthy();
     const jsonBtn = screen.queryByLabelText('Switch to raw JSON view');
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
+
+    // Test string currency format
+    const stringCurrency = { config: { currency: 'EUR' } };
+    const { unmount: unmountString } = renderWithContext(CurrencyComponent, stringCurrency);
+    expect(screen.getByText('Currency')).toBeTruthy();
+    unmountString();
 
     renderWithContext(CurrencyComponent, emptyPrebid);
     expect(screen.queryByText('Currency')).toBeNull();
   });
 
   it('renders FirstPartyDataComponent with full site/user data, fallback ortb2, and empty fallback', () => {
-    const { unmount } = renderWithContext(FirstPartyDataComponent);
+    const fullOrtb2 = {
+      config: {
+        ortb2: {
+          site: { name: 'example', domain: 'example.com', publisher: { id: 'pub-123' }, cat: ['IAB1', 'IAB2'] },
+          user: { gender: 'M', yob: 1990, id: 'user-xyz', buyeruid: 'buyer-abc' },
+          app: { name: 'test-app', bundle: 'com.example.app' },
+        },
+      },
+    };
+    const { unmount } = renderWithContext(FirstPartyDataComponent, fullOrtb2);
     expect(screen.getByText('First Party Data (ortb2)')).toBeTruthy();
     expect(screen.getByText('example.com')).toBeTruthy();
     expect(screen.getByText('pub-123')).toBeTruthy();
     expect(screen.getByText('IAB1, IAB2')).toBeTruthy();
     expect(screen.getByText('M')).toBeTruthy();
     expect(screen.getByText('1990')).toBeTruthy();
+    expect(screen.getByText('buyer-abc')).toBeTruthy();
+    expect(screen.getByText('test-app')).toBeTruthy();
+    expect(screen.getByText('com.example.app')).toBeTruthy();
+
     const jsonBtn = screen.queryByLabelText('Switch to raw JSON view');
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
-
-    // Test app context and fallback ortb2 keys
-    const appOrtb2 = { config: { ortb2: { app: { name: 'test-app' } } } };
-    const { unmount: unmountApp } = renderWithContext(FirstPartyDataComponent, appOrtb2);
-    expect(screen.getByText('test-app')).toBeTruthy();
-    unmountApp();
 
     const fallbackOrtb2 = { config: { ortb2: { customField: 'customValue' } } };
     const { unmount: unmountFallback } = renderWithContext(FirstPartyDataComponent, fallbackOrtb2);
@@ -136,22 +150,88 @@ describe('Config Tiles components', () => {
   });
 
   it('renders FloorsModuleComponent with data and empty fallback, and toggles JSON view', () => {
-    const { unmount } = renderWithContext(FloorsModuleComponent);
+    const fullFloors = {
+      config: {
+        floors: {
+          enabled: true,
+          floorMin: 0.5,
+          mode: 'custom',
+          enforcement: { enforceJS: true, floorDeals: true },
+          data: {
+            currency: 'USD',
+            modelTimestamp: 12345678,
+            modelVersion: 'v2.1',
+            schema: { fields: ['mediaType', 'size'] },
+          },
+          additionalRate: 0.1,
+        },
+      },
+    };
+    const { unmount } = renderWithContext(FloorsModuleComponent, fullFloors);
     expect(screen.getByText('Floors Module')).toBeTruthy();
+    expect(screen.getByText('Floor Min: 0.5')).toBeTruthy();
+    expect(screen.getByText('Mode: custom')).toBeTruthy();
+    expect(screen.getByText(/Enforcement: enforceJS, floorDeals/)).toBeTruthy();
+    expect(screen.getByText('Timestamp: 12345678')).toBeTruthy();
+    expect(screen.getByText('Version: v2.1')).toBeTruthy();
+    expect(screen.getByText('Schema: mediaType > size')).toBeTruthy();
+
     const jsonBtn = screen.queryByLabelText('Switch to raw JSON view');
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
+
+    // Test disabled floors with string enforcement
+    const disabledFloors = {
+      config: {
+        floors: {
+          enabled: false,
+          enforcement: 'enforceAll',
+        },
+      },
+    };
+    const { unmount: unmountDisabled } = renderWithContext(FloorsModuleComponent, disabledFloors);
+    expect(screen.getByText('Status: disabled')).toBeTruthy();
+    expect(screen.getByText('Enforcement: enforceAll')).toBeTruthy();
+    unmountDisabled();
 
     renderWithContext(FloorsModuleComponent, emptyPrebid);
     expect(screen.queryByText('Floors Module')).toBeNull();
   });
 
   it('renders GptPreAuctionComponent with data and empty fallback, and toggles JSON view', () => {
-    const { unmount } = renderWithContext(GptPreAuctionComponent);
+    const fullGpt = {
+      config: {
+        gptPreAuction: {
+          enabled: true,
+          mcmEnabled: true,
+          customGptSlots: ['slot1', 'slot2'],
+          customParam: 'val1',
+        },
+      },
+    };
+    const { unmount } = renderWithContext(GptPreAuctionComponent, fullGpt);
     expect(screen.getByText('GPT Pre-Auction Module')).toBeTruthy();
+    expect(screen.getByText('MCM Enabled: true')).toBeTruthy();
+    expect(screen.getByText('Custom Slots: 2')).toBeTruthy();
+    expect(screen.getByText('customParam: val1')).toBeTruthy();
+
     const jsonBtn = screen.queryByLabelText('Switch to raw JSON view');
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
+
+    // Test disabled state
+    const disabledGpt = {
+      config: {
+        gptPreAuction: {
+          enabled: false,
+          mcmEnabled: false,
+        },
+      },
+    };
+    const { unmount: unmountDisabled } = renderWithContext(GptPreAuctionComponent, disabledGpt);
+    expect(screen.getByText('Status: disabled')).toBeTruthy();
+    expect(screen.getByText('MCM Enabled: false')).toBeTruthy();
+    unmountDisabled();
 
     renderWithContext(GptPreAuctionComponent, emptyPrebid);
     expect(screen.queryByText('GPT Pre-Auction Module')).toBeNull();
@@ -179,12 +259,49 @@ describe('Config Tiles components', () => {
     expect(screen.queryByText('Additional Configs')).toBeNull();
   });
 
-  it('renders PrebidServerComponent with data and empty fallback, and toggles JSON view', () => {
-    const { unmount } = renderWithContext(PrebidServerComponent);
+  it('renders PrebidServerComponent with single/array data and empty fallback, and toggles JSON view', () => {
+    const fullS2S = {
+      config: {
+        s2sConfig: {
+          accountId: 'acc-123',
+          endpoint: 'https://prebid-server.rubicon.com',
+          defaultVendor: 'rubicon',
+          adapter: 'prebidServer',
+          timeout: 1000,
+          syncUrl: 'https://sync.rubicon.com',
+          bidders: ['rubicon', 'appnexus'],
+          extParam: 'extraVal',
+        },
+      },
+    };
+    const { unmount } = renderWithContext(PrebidServerComponent, fullS2S);
     expect(screen.getByText('Prebid Server')).toBeTruthy();
+    expect(screen.getByText('Account ID: acc-123')).toBeTruthy();
+    expect(screen.getByText('Endpoint: https://prebid-server.rubicon.com')).toBeTruthy();
+    expect(screen.getByText('Timeout: 1000ms')).toBeTruthy();
+    expect(screen.getByText('Adapter: prebidServer')).toBeTruthy();
+    expect(screen.getByText('Vendor: rubicon')).toBeTruthy();
+    expect(screen.getByText('Sync URL: https://sync.rubicon.com')).toBeTruthy();
+    expect(screen.getByText('rubicon')).toBeTruthy();
+    expect(screen.getByText('appnexus')).toBeTruthy();
+
     const jsonBtn = screen.queryByLabelText('Switch to raw JSON view');
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
+
+    // Test multiple s2sConfig array
+    const multiS2S = {
+      config: {
+        s2sConfig: [
+          { accountId: 'acc-1', endpoint: 'https://s2s-1.com' },
+          { endpoint: 'https://s2s-2.com' },
+        ],
+      },
+    };
+    const { unmount: unmountMulti } = renderWithContext(PrebidServerComponent, multiS2S);
+    expect(screen.getByText('Prebid Server #1')).toBeTruthy();
+    expect(screen.getByText('Prebid Server #2')).toBeTruthy();
+    unmountMulti();
 
     renderWithContext(PrebidServerComponent, emptyPrebid);
     expect(screen.queryByText('Prebid Server')).toBeNull();
@@ -214,11 +331,14 @@ describe('Config Tiles components', () => {
       v2: {
         consentData: 'CPz00000000000000000000000',
       },
+      v1: {
+        consentData: '',
+      },
     };
     const { unmount } = renderWithContext(PrivacyComponent, mockPrebid, mockTcf);
     expect(screen.getByText('Consent Management')).toBeTruthy();
     expect(screen.getByText(/Rule #1/)).toBeTruthy();
-    expect(screen.getByText(/TCF Version/)).toBeTruthy();
+    expect(screen.getAllByText(/TCF Version/).length).toBe(2);
 
     const jsonBtn = screen.queryByLabelText('Switch to raw JSON view');
     if (jsonBtn) fireEvent.click(jsonBtn);

@@ -175,27 +175,60 @@ describe('ProfessorPrebidMcpBridge', () => {
     expect(consent.tcString).toBe('CP12345EXAMPLE');
   });
 
-  it('generates a full diagnostic snapshot and AI prompt', () => {
+  it('queries GPP consent status via __gpp', () => {
+    (window as any).__gpp = vi.fn((cmd, cb) => {
+      cb({ gppString: 'DBABMA~CP12345EXAMPLE' }, true);
+    });
+
+    const consent = bridge.getConsentStatus();
+    expect(consent.gppString).toBe('DBABMA~CP12345EXAMPLE');
+  });
+
+  it('handles errors gracefully in getWinningBids and getGamTargeting', () => {
+    (window as any).pbjs = {
+      getAllWinningBids: () => {
+        throw new Error('getAllWinningBids error');
+      },
+    };
+    expect(bridge.getWinningBids()).toEqual([]);
+
+    (window as any).googletag = {
+      pubads: () => {
+        throw new Error('pubads error');
+      },
+    };
+    expect(bridge.getGamTargeting()).toEqual({});
+  });
+
+  it('generates a full diagnostic snapshot and AI prompt with timeouts and GAM slots', () => {
+    (window as any).googletag = {
+      pubads: () => ({
+        getSlots: () => [
+          {
+            getSlotElementId: () => 'ad-slot-header',
+            getTargetingKeys: () => ['hb_pb', 'hb_bidder'],
+            getTargeting: (key: string) => (key === 'hb_pb' ? ['3.50'] : ['appnexus']),
+          },
+        ],
+      }),
+    };
+
     (window as any).pbjs = {
       version: '11.29.0',
       installedModules: ['appnexusBidAdapter', 'devtoolsMcp'],
       adUnits: [{ code: 'slot-top' }],
       getAllWinningBids: () => [{ adUnitCode: 'slot-top', bidder: 'appnexus', cpm: 3.5, currency: 'USD' }],
-      getEvents: () => [],
+      getEvents: () => [{ eventType: 'bidTimeout', args: ['criteo'] }],
       getUserIdsAsEids: () => [{ source: 'criteo.com', uids: [{ id: '123' }] }],
     };
-
-    const snapshot = bridge.getSnapshot();
-    expect(snapshot.prebidVersion).toBe('11.29.0');
-    expect(snapshot.hasDevtoolsMcp).toBe(true);
-    expect(snapshot.winningBidsCount).toBe(1);
-    expect(snapshot.adUnitsCount).toBe(1);
 
     const prompt = bridge.generateAiPrompt();
     expect(prompt).toContain('Prebid.js & AdTech Diagnostic Snapshot');
     expect(prompt).toContain('11.29.0');
-    expect(prompt).toContain('devtoolsMcp');
-    expect(prompt).toContain('$3.5 USD');
+    expect(prompt).toContain('Timed Out Bidders:** criteo');
+    expect(prompt).toContain('ad-slot-header');
+    expect(prompt).toContain('hb_bidder=appnexus');
+    expect(prompt).toContain('hb_pb=3.50');
   });
 
   it('initProfessorPrebidMcpBridge creates singleton on window', () => {

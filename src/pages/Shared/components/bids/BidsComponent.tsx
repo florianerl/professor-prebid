@@ -35,7 +35,7 @@ export const BidsComponent = (): JSX.Element => {
       </Grid>
       <GridCell cols={0.5} sx={{ display: 'flex', alignItems: 'center', border: 0 }}>
         <Tooltip title="Download filtered bids as JSON" arrow>
-          <IconButton size="small" onClick={() => download(sortedBids, 'filtered-bids')} sx={{ p: 0.5, fontSize: '1.05rem', height: 'auto' }}>
+          <IconButton size="small" onClick={() => download(sortedBids.map(({ _stableKey, ...b }: any) => b), 'filtered-bids')} sx={{ p: 0.5, fontSize: '1.05rem', height: 'auto' }}>
             <DownloadIcon fontSize="inherit" />
           </IconButton>
         </Tooltip>
@@ -85,16 +85,19 @@ const formatCpm = (cpm?: any): string => {
 };
 const displaySize = (bid: Bid): string => (bid as any).size ?? (bid.width && bid.height ? `${bid.width} x ${bid.height}` : 'no size');
 
-const ExpandedRowComponent = React.memo(({ bid }: { bid: Bid }) => (
-  <>
-    <Grid size={{ xs: 0.62 }} />
-    <Grid size={{ xs: 11.38 }}>
-      <Paper sx={{ width: '100%', height: '100%' }}>
-        <JSONViewerComponent src={bid} />
-      </Paper>
-    </Grid>
-  </>
-));
+const ExpandedRowComponent = React.memo(({ bid }: { bid: Bid }) => {
+  const { _stableKey, ...cleanBid } = bid as any;
+  return (
+    <>
+      <Grid size={{ xs: 0.62 }} />
+      <Grid size={{ xs: 11.38 }}>
+        <Paper sx={{ width: '100%', height: '100%' }}>
+          <JSONViewerComponent src={cleanBid} />
+        </Paper>
+      </Grid>
+    </>
+  );
+});
 
 export const BidRowComponent = React.memo(({ bid, globalOpen }: { bid: Bid; globalOpen?: boolean }) => {
   const { open, toggle } = useRowExpand(globalOpen);

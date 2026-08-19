@@ -17,7 +17,7 @@ export const BID_FIELD_MAP = {
   size: (b: any) => b?.size ?? (b?.width && b?.height ? `${b.width}x${b.height}` : ''),
 } as const;
 
-export const getBidKey = (bid: any): string => bid.requestId ?? `${bid.auctionId || ''}-${bid.adUnitCode || ''}-${bid.bidder || ''}`;
+export const getBidKey = (bid: any): string => bid._stableKey ?? bid.requestId ?? `${bid.auctionId || ''}-${bid.adUnitCode || ''}-${bid.bidder || ''}`;
 
 const bidsQueryEngine = createQueryEngine<any>(BID_FIELD_MAP);
 
@@ -68,8 +68,8 @@ const BidsComponentState = () => {
 
   const { auctionEndEvents } = useContext(AppStateContext);
 
-  const bidsReceived = useMemo(() => auctionEndEvents.flatMap((e) => (e.args?.bidsReceived ?? []).map((b: any) => ({ ...b, auctionId: b.auctionId || e.args?.auctionId }))), [auctionEndEvents]);
-  const noBids = useMemo(() => auctionEndEvents.flatMap((e) => (e.args?.noBids ?? []).map((b: any) => ({ ...b, auctionId: b.auctionId || e.args?.auctionId }))), [auctionEndEvents]);
+  const bidsReceived = useMemo(() => auctionEndEvents.flatMap((e, eventIndex) => (e.args?.bidsReceived ?? []).map((b: any, i: number) => ({ ...b, auctionId: b.auctionId || e.args?.auctionId, _stableKey: `bidsReceived-${e.args?.auctionId || eventIndex}-${i}` }))), [auctionEndEvents]);
+  const noBids = useMemo(() => auctionEndEvents.flatMap((e, eventIndex) => (e.args?.noBids ?? []).map((b: any, i: number) => ({ ...b, auctionId: b.auctionId || e.args?.auctionId, _stableKey: `noBids-${e.args?.auctionId || eventIndex}-${i}` }))), [auctionEndEvents]);
 
   const counts = useMemo(
     () => ({

@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import Link from '@mui/material/Link';
-import moment from 'moment';
+import { timeFromNow } from '../../../utils';
 import ComputerIcon from '@mui/icons-material/Computer';
 import CloudDownloadOutlinedIcon from '@mui/icons-material/CloudDownloadOutlined';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
@@ -31,10 +31,10 @@ export const VersionComparisonCards: React.FC<VersionComparisonCardsProps> = ({
   const isLatest = cleanInstalled === cleanLatest;
 
   const installedDateStr = installedPublishedAt ? formatDate(installedPublishedAt) : 'Unknown';
-  const installedRelativeStr = installedPublishedAt ? moment(installedPublishedAt).fromNow() : '';
+  const installedRelativeStr = installedPublishedAt ? timeFromNow(installedPublishedAt) : '';
 
   const latestDateStr = latestPublishedAt ? formatDate(latestPublishedAt) : 'Unknown';
-  const latestRelativeStr = latestPublishedAt ? moment(latestPublishedAt).fromNow() : '';
+  const latestRelativeStr = latestPublishedAt ? timeFromNow(latestPublishedAt) : '';
 
   return (
     <>

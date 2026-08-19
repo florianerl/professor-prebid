@@ -367,12 +367,45 @@ describe('DebuggingModule', () => {
       });
       expect(screen.getByText(/Successfully imported 1 rule/i)).toBeTruthy();
 
+      // Test array format import
+      createFileReader(JSON.stringify([{ when: { bidder: 'rubicon' }, then: { cpm: 12 } }]));
+      await act(async () => {
+        fireEvent.change(fileInput, { target: { files: [file] } });
+      });
+      expect(screen.getByText(/Successfully imported 1 rule/i)).toBeTruthy();
+
+      // Test unrecognized object format
+      createFileReader(JSON.stringify({ someUnrecognizedKey: 123 }));
+      await act(async () => {
+        fireEvent.change(fileInput, { target: { files: [file] } });
+      });
+      expect(screen.getByText('Invalid rules JSON format!')).toBeTruthy();
+
       // Test invalid JSON format
       createFileReader('not valid json');
       await act(async () => {
         fireEvent.change(fileInput, { target: { files: [file] } });
       });
       expect(screen.getByText('Failed to parse JSON file!')).toBeTruthy();
+    });
+
+    it('persists rules to localStorage when storeRules is enabled', async () => {
+      global.chrome.storage.local.get = vi.fn((key, cb) => cb({ [STORE_RULES_TOGGLE]: true }));
+
+      renderWithContext();
+
+      const addBtn = screen.getByRole('button', { name: /Add Custom Intercept Rule/i });
+      await act(async () => {
+        fireEvent.click(addBtn);
+      });
+
+      expect(global.chrome.scripting.executeScript).toHaveBeenCalled();
+    });
+
+    it('handles error gracefully when initial state read fails', async () => {
+      (global.chrome.scripting.executeScript as any).mockRejectedValueOnce(new Error('Tab closed'));
+
+      renderWithContext();
     });
 
     it('loads initial state from storage on mount', async () => {

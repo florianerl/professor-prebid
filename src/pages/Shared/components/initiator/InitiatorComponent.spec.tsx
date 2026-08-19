@@ -151,6 +151,9 @@ describe('InitiatorComponent', () => {
 
     expect(screen.getByText(/Make sure that the Network Inspector tool is enabled/)).toBeTruthy();
 
+    // Click refresh again to trigger active toast message dismissal
+    fireEvent.click(refreshIcon);
+
     // Test clicking Set URL when rootUrl is empty
     const setUrlBtn = screen.getByText('Set URL');
     fireEvent.click(setUrlBtn);

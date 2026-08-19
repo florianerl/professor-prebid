@@ -8,14 +8,19 @@ import CloseIcon from '@mui/icons-material/Close';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
-import showdown from 'showdown';
 import AppStateContext from '../../contexts/appStateContext';
 import VersionStatusHero from './components/VersionStatusHero';
 import VersionComparisonCards from './components/VersionComparisonCards';
 import VersionStatsSummary from './components/VersionStatsSummary';
 import VersionReleaseList from './components/VersionReleaseList';
 
-const converter = new showdown.Converter();
+const getSectionCount = (text: string, titleStr: string) => {
+  const regex = new RegExp(`(?:^|\\n)#{1,5}\\s*(?:<a[^>]*>)?(?:[^\\n]*?)${titleStr}(?:[^\\n]*?)(?:<\\/a>)?\\s*\\n([\\s\\S]*?)(?=(?:^|\\n)#{1,5}|$)`, 'i');
+  const match = text.match(regex);
+  if (!match) return 0;
+  const listItems = match[1].match(/^[-*]\s+/gm);
+  return listItems ? listItems.length : 0;
+};
 
 export interface PbjsVersionInfoContentProps {
   close?: () => void;
@@ -112,17 +117,11 @@ export const PbjsVersionInfoContent: React.FC<PbjsVersionInfoContentProps> = ({ 
       const dataForCurrentUsedRelease = releaseData.find((release: ReleaseProps) => {
         try {
           const text = release.body || '';
-          const html = converter.makeHtml(text);
-          const doc = new DOMParser().parseFromString(html, 'text/html');
-          release.doc = doc;
           trackingData.releasesSinceInstalledVersion.push(release);
 
-          const newFeaturesEl = doc.getElementById('newfeatures');
-          const maintenanceEl = doc.getElementById('maintenance');
-          const bugfixesEl = doc.getElementById('bugfixes');
-          const newFeaturesCount = newFeaturesEl?.nextElementSibling?.children?.length || 0;
-          const maintenanceCount = maintenanceEl?.nextElementSibling?.children?.length || 0;
-          const bugfixesCount = bugfixesEl?.nextElementSibling?.children?.length || 0;
+          const newFeaturesCount = getSectionCount(text, 'new features');
+          const maintenanceCount = getSectionCount(text, 'maintenance');
+          const bugfixesCount = getSectionCount(text, 'bug fixes');
 
           trackingData.totalNewFeaturesCount += newFeaturesCount;
           trackingData.totalMaintenanceCount += maintenanceCount;

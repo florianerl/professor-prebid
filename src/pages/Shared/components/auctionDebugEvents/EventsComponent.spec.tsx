@@ -86,7 +86,7 @@ describe('EventsComponent & EventsState', () => {
     const eventRow = screen.getAllByText(/rubicon — \$2.5 — slot-1/)[0];
     fireEvent.click(eventRow);
 
-    expect(screen.getByText('event[3]')).toBeTruthy();
+    expect(screen.getByText(/"event\[3\]"/)).toBeTruthy();
   });
 
   it('handles quick filter button clicks', () => {
@@ -123,7 +123,7 @@ describe('EventsComponent & EventsState', () => {
     const codeBtn = screen.getByLabelText('Switch to raw JSON view');
     fireEvent.click(codeBtn);
 
-    expect(screen.getByText('9 Events')).toBeTruthy();
+    expect(screen.getByText(/9 Events/)).toBeTruthy();
 
     // Click download button
     const downloadBtn = screen.getByLabelText('Download filtered events as JSON');

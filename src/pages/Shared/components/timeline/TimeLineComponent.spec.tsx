@@ -79,7 +79,7 @@ describe('TimeLineComponent', () => {
     const codeBtn = screen.getByLabelText('Switch to raw JSON view');
     fireEvent.click(codeBtn);
 
-    expect(screen.getByText('auctions')).toBeTruthy();
+    expect(screen.getByText(/"auctions"/)).toBeTruthy();
 
     // Toggle back to Gantt view
     const svgBtn = screen.getByLabelText('Switch to SVG Timeline view');

@@ -388,4 +388,49 @@ describe('PbjsVersionInfo components', () => {
     expect(screen.getByText(/GitHub API returned status 500/i)).toBeTruthy();
     expect(screen.getByText('Retry')).toBeTruthy();
   });
+
+  it('handles network throw error during fetch', async () => {
+    global.chrome.storage.local.get = vi.fn((key, cb) => cb({}));
+    global.fetch = vi.fn().mockRejectedValue(new Error('Network offline'));
+
+    const mockContext: any = {
+      prebid: { version: 'v8.0.0' },
+      prebidReleaseInfo: {},
+      setPrebidReleaseInfo: vi.fn(),
+    };
+
+    await act(async () => {
+      render(
+        <AppStateContext.Provider value={mockContext}>
+          <PbjsVersionInfoContent />
+        </AppStateContext.Provider>
+      );
+    });
+
+    expect(screen.getByText('Network offline')).toBeTruthy();
+  });
+
+  it('handles version not found in GitHub release list', async () => {
+    global.chrome.storage.local.get = vi.fn((key, cb) => cb({}));
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([{ tag_name: 'v9.9.9', published_at: '2026-01-01T00:00:00Z', body: '' }]),
+    });
+
+    const mockContext: any = {
+      prebid: { version: 'v0.0.1-custom' },
+      prebidReleaseInfo: {},
+      setPrebidReleaseInfo: vi.fn(),
+    };
+
+    await act(async () => {
+      render(
+        <AppStateContext.Provider value={mockContext}>
+          <PbjsVersionInfoContent />
+        </AppStateContext.Provider>
+      );
+    });
+
+    expect(screen.getByText(/No release data found on GitHub/i)).toBeTruthy();
+  });
 });

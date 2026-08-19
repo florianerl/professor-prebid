@@ -76,4 +76,26 @@ describe('devtoolsMcpStandalone', () => {
     const mcp = (window as any).__PREBID_DEVTOOLS_MCP__;
     expect(mcp.getMetrics().activeInstance).toBe(false);
   });
+
+  it('handles performance.mark errors and onEvent exceptions gracefully', async () => {
+    const originalMark = (window as any).performance?.mark;
+    (window as any).performance = {
+      mark: vi.fn(() => {
+        throw new Error('Performance mark restricted');
+      }),
+    };
+
+    const mockPbjs: any = {
+      installedModules: [],
+      onEvent: vi.fn(() => {
+        throw new Error('onEvent error');
+      }),
+    };
+    (window as any).pbjs = mockPbjs;
+
+    vi.resetModules();
+    await import('./devtoolsMcpStandalone');
+
+    if (originalMark) (window as any).performance.mark = originalMark;
+  });
 });

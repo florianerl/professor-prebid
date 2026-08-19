@@ -111,10 +111,13 @@ describe('NavBar components', () => {
 
       expect(screen.getByText('Namespace')).toBeTruthy();
 
-      // Test form mouse events
+      // Test form mouse events and collapse
       const form = container.querySelector('form')!;
       fireEvent.mouseLeave(form);
-      fireEvent.mouseEnter(form);
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+      expect(screen.queryByText('Namespace')).toBeNull();
 
       vi.useRealTimers();
     });

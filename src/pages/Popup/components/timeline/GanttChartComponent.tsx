@@ -403,7 +403,7 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
     <Grid size={{ xs: 12 }} sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <Paper sx={{ p: 1.5, pb: 2, flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid', borderColor: 'divider', minHeight: 'calc(100vh - 165px)' }} elevation={0}>
         <Box sx={{ width: '100%', flex: 1, display: 'flex', flexDirection: 'column', overflowX: 'auto' }}>
-          <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} style={{ width: '100%', height: '100%', minWidth: '600px', display: 'block' }}>
+          <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} preserveAspectRatio="xMinYMin meet" style={{ width: '100%', height: '100%', maxWidth: '1000px', minWidth: '600px', display: 'block' }}>
             {/* Background Grid Lines & Header Ticks */}
             {ticks.map((tick) => {
               const x = timeToX(tick);

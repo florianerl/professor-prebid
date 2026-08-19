@@ -9,8 +9,8 @@ import Link from '@mui/material/Link';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LaunchIcon from '@mui/icons-material/Launch';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
-import parse from 'html-react-parser';
-import moment from 'moment';
+import ReactMarkdown from 'react-markdown';
+import { timeFromNow } from '../../../utils';
 
 export interface ReleaseItemProps {
   version: {
@@ -18,11 +18,6 @@ export interface ReleaseItemProps {
     name?: string | any;
     published_at: string;
     html_url: string;
-    doc?: {
-      body: {
-        innerHTML: string;
-      };
-    };
     body?: string;
   };
   expanded: boolean;
@@ -40,9 +35,9 @@ export const VersionReleaseItem: React.FC<ReleaseItemProps> = ({
   const cleanTag = tagName.startsWith('v') ? tagName : `v${tagName}`;
   const releaseTitle = typeof version.name === 'string' && version.name ? version.name : cleanTag;
   const publishedDate = version.published_at ? formatDate(version.published_at) : '';
-  const relativeDate = version.published_at ? moment(version.published_at).fromNow() : '';
+  const relativeDate = version.published_at ? timeFromNow(version.published_at) : '';
 
-  const htmlContent = version.doc?.body?.innerHTML || version.body || '';
+  const markdownContent = version.body || '';
 
   return (
     <Accordion
@@ -152,7 +147,7 @@ export const VersionReleaseItem: React.FC<ReleaseItemProps> = ({
             },
           }}
         >
-          {htmlContent ? parse(htmlContent) : <Typography variant="body2" color="text.secondary">No changelog description provided.</Typography>}
+          {markdownContent ? <ReactMarkdown>{markdownContent}</ReactMarkdown> : <Typography variant="body2" color="text.secondary">No changelog description provided.</Typography>}
         </Box>
       </AccordionDetails>
     </Accordion>

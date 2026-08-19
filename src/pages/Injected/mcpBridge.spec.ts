@@ -184,7 +184,7 @@ describe('ProfessorPrebidMcpBridge', () => {
     expect(consent.gppString).toBe('DBABMA~CP12345EXAMPLE');
   });
 
-  it('handles errors gracefully in getWinningBids and getGamTargeting', () => {
+  it('handles errors gracefully in getWinningBids, getGamTargeting, and getConsentStatus', () => {
     (window as any).pbjs = {
       getAllWinningBids: () => {
         throw new Error('getAllWinningBids error');
@@ -198,6 +198,11 @@ describe('ProfessorPrebidMcpBridge', () => {
       },
     };
     expect(bridge.getGamTargeting()).toEqual({});
+
+    (window as any).__tcfapi = () => {
+      throw new Error('tcfapi error');
+    };
+    expect(bridge.getConsentStatus()).toEqual({});
   });
 
   it('generates a full diagnostic snapshot and AI prompt with timeouts and GAM slots', () => {

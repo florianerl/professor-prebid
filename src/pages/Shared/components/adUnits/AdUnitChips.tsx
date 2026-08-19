@@ -28,10 +28,10 @@ interface DataPreviewChipProps {
   data: any;
   color?: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
   icon?: React.ReactElement;
-  name?: string;
+  name?: string | null;
 }
 
-const DataPreviewChip = ({ label, data, color = 'primary', icon, name = '' }: DataPreviewChipProps) => {
+const DataPreviewChip = ({ label, data, color = 'primary', icon, name = null }: DataPreviewChipProps) => {
   const [anchorEl, setAnchorEl] = React.useState<HTMLDivElement | null>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -56,7 +56,7 @@ const DataPreviewChip = ({ label, data, color = 'primary', icon, name = '' }: Da
 
 export const Ortb2ImpExtChipComponent = ({ input, label }: { input: AdUnit['ortb2Imp']; label: string }): JSX.Element => <DataPreviewChip label={label} data={input} />;
 
-export const MediaTypeChipComponent = ({ input, label, isWinner }: { input: AdUnit['mediaTypes']['banner' | 'native' | 'video']; label: string; isWinner?: boolean }): JSX.Element => (
+export const MediaTypeChipComponent = ({ input, label, isWinner }: { input: any; label: string; isWinner?: boolean }): JSX.Element => (
   <DataPreviewChip label={label} data={input} color={isWinner ? 'secondary' : 'primary'} />
 );
 

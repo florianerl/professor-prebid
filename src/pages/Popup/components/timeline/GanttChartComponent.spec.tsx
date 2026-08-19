@@ -100,10 +100,10 @@ describe('Popup GanttChartComponent', () => {
     expect(screen.getByText('NO BID')).toBeTruthy();
   });
 
-  it('renders a BID status badge for a bidder with a bid response', () => {
+  it('renders a BID status badge with responseTimestamp fallback', () => {
     const bidResponseEvent = {
       eventType: 'bidResponse',
-      args: { auctionId: 'auction-abc12345', bidderCode: 'appnexus', cpm: 1.5, timeToRespond: 200 },
+      args: { auctionId: 'auction-abc12345', bidderCode: 'appnexus', cpm: 1.5, responseTimestamp: 1200, requestTimestamp: 1000 },
     };
     render(
       <Wrapper contextOverrides={{ prebid: { events: [bidResponseEvent], config: { bidderTimeout: 3000 } } }}>
@@ -113,10 +113,10 @@ describe('Popup GanttChartComponent', () => {
     expect(screen.getByText(/BID/i)).toBeTruthy();
   });
 
-  it('renders noBidEvent and calculates latency from request/response timestamps', () => {
+  it('renders noBidEvent and calculates latency from responseTimestamp without timeToRespond', () => {
     const noBidEvent = {
       eventType: 'noBid',
-      args: { auctionId: 'auction-abc12345', bidderCode: 'appnexus', timeToRespond: 180 },
+      args: { auctionId: 'auction-abc12345', bidderCode: 'appnexus', responseTimestamp: 1150 },
     };
     render(
       <Wrapper contextOverrides={{ prebid: { events: [noBidEvent], config: { bidderTimeout: 3000 } } }}>
@@ -136,15 +136,24 @@ describe('Popup GanttChartComponent', () => {
     expect(document.querySelector('svg')).toBeTruthy();
   });
 
-  it('renders timed out bidder when latency exceeds timeout', () => {
-    const timedOutBidder = makeBidderRequest({ bidderCode: 'slowBidder', start: 0, bids: [] });
+  it('renders timed out bidder when latency exceeds timeout and opens modal on click', () => {
+    const timedOutBidder = makeBidderRequest({ bidderCode: 'slowBidder', start: 0, bids: [{ timeToRespond: 500 }] });
     const auctionEndEvent = makeAuctionEndEvent([timedOutBidder]);
+    const timeoutEvent = {
+      eventType: 'bidTimeout',
+      args: [{ bidder: 'slowBidder', auctionId: 'auction-abc12345' }],
+    };
     render(
-      <Wrapper contextOverrides={{ prebid: { events: [], config: { bidderTimeout: 100 } } }}>
+      <Wrapper contextOverrides={{ prebid: { events: [timeoutEvent], config: { bidderTimeout: 100 } } }}>
         <GanttChartComponent mode="single" auctionEndEvent={auctionEndEvent} />
       </Wrapper>
     );
     expect(screen.getByText('slowBidder')).toBeTruthy();
+
+    const slowBidderLabel = screen.getByText('slowBidder');
+    fireEvent.click(slowBidderLabel);
+
+    expect(screen.getAllByText('TIMEOUT').length).toBeGreaterThan(0);
   });
 
   it('renders "No bidders matched" when query filters out all bidders', () => {

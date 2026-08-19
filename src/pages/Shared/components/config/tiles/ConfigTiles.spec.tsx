@@ -1,6 +1,21 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+vi.mock('@iabtcf/core', () => ({
+  TCString: {
+    decode: vi.fn().mockImplementation((str) => {
+      if (!str) return {};
+      return {
+        cmpId: 123,
+        cmpVersion: 2,
+        consentScreen: 1,
+        consentLanguage: 'EN',
+      };
+    }),
+  },
+}));
+
 import AppStateContext from '../../../contexts/appStateContext';
 import AnalyticsComponent from './AnalyticsComponent';
 import BidderSettingsComponent from './BidderSettingsComponent';
@@ -46,8 +61,8 @@ describe('Config Tiles components', () => {
         gdpr: { cmpApi: 'iab', defaultGdprScope: true, timeout: 500, rules: [{ purpose: 'consent' }] },
         usp: { cmpApi: 'iab' },
         gpp: { cmpApi: 'iab' },
-        coppa: true,
       },
+      coppa: true,
       userSync: {
         userIds: [
           { name: 'criteo', storage: { type: 'cookie', name: 'ct' }, params: { partner: 'xyz', nested: { id: 1 } } },
@@ -98,9 +113,20 @@ describe('Config Tiles components', () => {
   });
 
   it('renders CurrencyComponent with data and empty fallback, and toggles JSON view', () => {
-    const { unmount } = renderWithContext(CurrencyComponent);
+    const fullCurrency = {
+      config: {
+        currency: {
+          adServerCurrency: 'USD',
+          granularityMultiplier: 1,
+          rates: { EUR: 0.9 },
+          defaultRates: { GBP: 0.8 },
+        },
+      },
+    };
+    const { unmount } = renderWithContext(CurrencyComponent, fullCurrency);
     expect(screen.getByText('Currency')).toBeTruthy();
     expect(screen.getByText('EUR: 0.9')).toBeTruthy();
+    expect(screen.getByText(/defaultRates:/)).toBeTruthy();
     const jsonBtn = screen.queryByLabelText('Switch to raw JSON view');
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
@@ -339,10 +365,26 @@ describe('Config Tiles components', () => {
     expect(screen.getByText('Consent Management')).toBeTruthy();
     expect(screen.getByText(/Rule #1/)).toBeTruthy();
     expect(screen.getAllByText(/TCF Version/).length).toBe(2);
+    expect(screen.getByText('CMP ID: 123')).toBeTruthy();
+    expect(screen.getByText('CMP Ver: 2')).toBeTruthy();
+    expect(screen.getByText('Screen: 1')).toBeTruthy();
+    expect(screen.getByText('Lang: EN')).toBeTruthy();
+    expect(screen.getByText('COPPA: enabled')).toBeTruthy();
 
     const jsonBtn = screen.queryByLabelText('Switch to raw JSON view');
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
+
+    // Test COPPA disabled state
+    const coppaDisabledPrebid = {
+      config: {
+        consentManagement: { gdpr: { cmpApi: 'iab' } },
+        coppa: false,
+      },
+    };
+    const { unmount: unmountCoppa } = renderWithContext(PrivacyComponent, coppaDisabledPrebid);
+    expect(screen.getByText('COPPA: disabled')).toBeTruthy();
+    unmountCoppa();
 
     renderWithContext(PrivacyComponent, emptyPrebid);
     expect(screen.queryByText('Consent Management')).toBeNull();

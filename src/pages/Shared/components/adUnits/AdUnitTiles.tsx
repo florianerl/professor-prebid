@@ -263,7 +263,7 @@ export const MediaTypesTile = ({ adUnit, colCount }: { adUnit: AdUnit; colCount:
           <>
             {(JSON.stringify(mediaTypes) === '{}' || !mediaTypes) && (
               <TileSection label="Media Types Object">
-                <JSONViewerComponent style={{ padding: 0 }} src={mediaTypes} collapsed={!expanded ? 1 : 2} />
+                <JSONViewerComponent style={{ padding: 0 }} src={mediaTypes} name={null} collapsed={!expanded ? 1 : 2} />
               </TileSection>
             )}
             {mediaTypes?.banner?.sizes && (
@@ -271,15 +271,38 @@ export const MediaTypesTile = ({ adUnit, colCount }: { adUnit: AdUnit; colCount:
                 {mediaTypes.banner.sizes
                   .filter((size) => Array.isArray(size))
                   .map(([w, h]) => (
-                    <MediaTypeChipComponent key={`${w}x${h}`} input={mediaTypes.banner || mediaTypes.native || mediaTypes.video} label={`${w}x${h}`} isWinner={allWinningBids.find(({ args }) => args.adUnitCode === adUnitCode)?.args?.size === `${w}x${h}`} />
+                    <MediaTypeChipComponent key={`${w}x${h}`} input={mediaTypes.banner} label={`${w}x${h}`} isWinner={allWinningBids.find(({ args }) => args.adUnitCode === adUnitCode)?.args?.size === `${w}x${h}`} />
                   ))}
+              </TileSection>
+            )}
+            {mediaTypes?.native && (
+              <TileSection label="Native">
+                {Object.entries(mediaTypes.native).map(([key, value]) => (
+                  <MediaTypeChipComponent key={key} input={value} label={key} isWinner={allWinningBids.some(({ args }) => args.adUnitCode === adUnitCode && args.mediaType === 'native')} />
+                ))}
+              </TileSection>
+            )}
+            {mediaTypes?.video && (
+              <TileSection label="Video">
+                {Object.entries(mediaTypes.video).map(([key, value]) => {
+                  let displayLabel = key;
+                  if (key === 'context' && typeof value === 'string') {
+                    displayLabel = `context: ${value}`;
+                  } else if (key === 'playerSize') {
+                    const sizes = Array.isArray(value) && Array.isArray(value[0]) ? value : [value];
+                    displayLabel = `size: ${sizes.map((s: any) => Array.isArray(s) ? s.join('x') : s).join(', ')}`;
+                  }
+                  return (
+                    <MediaTypeChipComponent key={key} input={value} label={displayLabel} isWinner={allWinningBids.some(({ args }) => args.adUnitCode === adUnitCode && args.mediaType === 'video')} />
+                  );
+                })}
               </TileSection>
             )}
           </>
         }
         expandedView={
           <Box sx={{ p: 0.5 }}>
-            <JSONViewerComponent style={{ padding: 0 }} src={mediaTypes} collapsed={2} />
+            <JSONViewerComponent style={{ padding: 0 }} src={mediaTypes} name={null} collapsed={2} />
           </Box>
         }
       />

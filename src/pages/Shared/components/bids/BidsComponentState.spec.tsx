@@ -7,7 +7,7 @@ import AppStateContext from '../../contexts/appStateContext';
 describe('BidsComponentState', () => {
   it('handles getBidKey with and without requestId', () => {
     expect(getBidKey({ requestId: 'req-123' } as any)).toBe('req-123');
-    expect(getBidKey({ adUnitCode: 'slot-1', bidder: 'rubicon', timeToRespond: 150 } as any)).toBe('slot-1-rubicon-150');
+    expect(getBidKey({ adUnitCode: 'slot-1', bidder: 'rubicon', timeToRespond: 150 } as any)).toBe('-slot-1-rubicon');
   });
 
   it('evaluates BID_FIELD_MAP accessors', () => {

@@ -75,8 +75,14 @@ const useRowExpand = (globalOpen?: boolean) => {
 
 const truncate = (text?: string, length = 30): string => (text && text.length > length ? `${text.substring(0, length)}…` : text ?? '');
 
-const formatCpm = (cpm?: number): string => (Number.isFinite(cpm) && typeof cpm === 'number' ? `${Math.round(cpm * 100) / 100}` : 'no cpm');
-
+const formatCpm = (cpm?: any): string => {
+  if (cpm == null || String(cpm).trim() === '') return 'no cpm';
+  if (typeof cpm === 'number' && Number.isFinite(cpm)) return `${Math.round(cpm * 100) / 100}`;
+  const raw = String(cpm);
+  const normalized = raw.includes(',') && !raw.includes('.') ? raw.replace(',', '.') : raw;
+  const num = Number(normalized.replace(/[^0-9.\-]/g, ''));
+  return Number.isFinite(num) ? `${Math.round(num * 100) / 100}` : 'no cpm';
+};
 const displaySize = (bid: Bid): string => (bid as any).size ?? (bid.width && bid.height ? `${bid.width} x ${bid.height}` : 'no size');
 
 const ExpandedRowComponent = React.memo(({ bid }: { bid: Bid }) => (

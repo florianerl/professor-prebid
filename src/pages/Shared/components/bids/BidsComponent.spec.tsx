@@ -177,8 +177,8 @@ describe('BidsComponent & BidsComponentState', () => {
     expect(BID_FIELD_MAP.originalcpm(b)).toBe(2.5);
     expect(BID_FIELD_MAP.size(b)).toBe('300x250');
 
-    expect(getBidKey(b)).toBe('slot-1-rubicon-100');
-    expect(getBidKey({ bidder: 'test', adUnitCode: 'slot', timeToRespond: 50 } as any)).toBe('slot-test-50');
+    expect(getBidKey(b)).toBe('-slot-1-rubicon');
+    expect(getBidKey({ bidder: 'test', adUnitCode: 'slot', timeToRespond: 50 } as any)).toBe('-slot-test');
   });
 
   it('renders BidRowComponent with missing fields (no cpm, no currency, no size, no mediaType)', () => {

@@ -96,7 +96,7 @@ describe('NavBar components', () => {
         vi.advanceTimersByTime(250);
       });
 
-      expect(screen.getByText('Frame-ID')).toBeTruthy();
+      expect(screen.getAllByText('Frame-ID')[0]).toBeTruthy();
       // 1. Enter badge, then leave immediately before 200ms (clears enterDelayRef and sets leaveDelayRef)
       fireEvent.mouseEnter(badge);
       fireEvent.mouseLeave(badge);
@@ -109,7 +109,7 @@ describe('NavBar components', () => {
         vi.advanceTimersByTime(250);
       });
 
-      expect(screen.getByText('Namespace')).toBeTruthy();
+      expect(screen.getAllByText('Namespace')[0]).toBeTruthy();
 
       // Test form mouse events and collapse
       const form = container.querySelector('form')!;

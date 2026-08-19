@@ -60,15 +60,43 @@ export const NavbarSelector = (): JSX.Element => {
     // true
   ) {
     return (
-      <Box component="form" sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', columnGap: 1, padding: '0 5px', '& MuiInputLabel': { top: '4px' } }} onMouseEnter={() => setExpanded(true)} onMouseLeave={() => setExpanded(false)}>
+      <Box component="form" sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', columnGap: 1, padding: '0 5px' }} onMouseEnter={() => setExpanded(true)} onMouseLeave={() => setExpanded(false)}>
         <FormControl sx={{ minWidth: 90, maxWidth: 180 }} size="small">
-          <InputLabel sx={{ fontSize: '0.8rem', top: '-4px' }}>Frame-ID</InputLabel>
+          <InputLabel
+            id="frame-id-select-label"
+            size="small"
+            sx={{
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              lineHeight: 1,
+              '&.MuiInputLabel-shrink': {
+                transform: 'translate(14px, -5px) scale(0.85)',
+                fontWeight: 600,
+                color: 'text.primary',
+                backgroundColor: 'background.paper',
+                paddingX: '3px',
+              },
+            }}
+          >
+            Frame-ID
+          </InputLabel>
           <Select
+            labelId="frame-id-select-label"
+            id="frame-id-select"
             size="small"
             value={frameId}
-            label="frameId"
+            label="Frame-ID"
             onChange={handleFrameIdChange}
-            sx={{ fontSize: '0.8rem', height: 28, paddingY: 0 }}
+            sx={{
+              fontSize: '0.8rem',
+              height: 28,
+              paddingY: 0,
+              '& .MuiSelect-select': {
+                paddingY: '3px',
+                display: 'flex',
+                alignItems: 'center',
+              },
+            }}
             MenuProps={{
               PaperProps: {
                 sx: { fontSize: '0.8rem' },
@@ -86,13 +114,42 @@ export const NavbarSelector = (): JSX.Element => {
           </Select>
         </FormControl>
         <FormControl sx={{ minWidth: 110, maxWidth: 330 }} size="small">
-          <InputLabel sx={{ fontSize: '0.8rem', top: '-4px' }}>Namespace</InputLabel>
+          <InputLabel
+            id="namespace-select-label"
+            size="small"
+            sx={{
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              lineHeight: 1,
+              '&.MuiInputLabel-shrink': {
+                transform: 'translate(14px, -5px) scale(0.85)',
+                fontWeight: 600,
+                color: 'text.primary',
+                backgroundColor: 'background.paper',
+                paddingX: '3px',
+              },
+            }}
+          >
+            Namespace
+          </InputLabel>
           <Select
+            labelId="namespace-select-label"
+            id="namespace-select"
             size="small"
             value={pbjsNamespace}
+            label="Namespace"
             onChange={handlePbjsNamespaceChange}
             autoWidth
-            sx={{ fontSize: '0.8rem', height: 28, paddingY: 0 }}
+            sx={{
+              fontSize: '0.8rem',
+              height: 28,
+              paddingY: 0,
+              '& .MuiSelect-select': {
+                paddingY: '3px',
+                display: 'flex',
+                alignItems: 'center',
+              },
+            }}
             MenuProps={{
               PaperProps: {
                 sx: { fontSize: '0.8rem' },

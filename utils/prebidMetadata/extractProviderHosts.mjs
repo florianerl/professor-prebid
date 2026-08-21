@@ -9,7 +9,7 @@ import path from 'path';
 const ROOT = path.resolve(process.cwd(), 'node_modules/prebid.js');
 const MODULES = path.join(ROOT, 'modules');
 const META = path.join(ROOT, 'metadata/modules');
-const WANTED = new Set(['rtd', 'userId']);
+const WANTED = new Set(['rtd', 'userId', 'bidder', 'analytics']);
 
 // Hosts that appear in module source but are never the provider's own endpoint: documentation links
 // in comments, and shared infrastructure that many unrelated requests also use. A missing

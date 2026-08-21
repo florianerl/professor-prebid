@@ -78,7 +78,11 @@ const DebuggingModuleComponent = (): JSX.Element => {
     await chrome.scripting.executeScript({
       target: { tabId },
       func: (namespace: string, input: object) => {
-        sessionStorage.setItem(`__${namespace}_debugging__`, `${JSON.stringify(input)}`);
+        try {
+          if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem(`__${namespace}_debugging__`, `${JSON.stringify(input)}`);
+          }
+        } catch (_) {}
       },
       args: [pbjsNamespace || 'pbjs', input],
     });
@@ -86,7 +90,11 @@ const DebuggingModuleComponent = (): JSX.Element => {
     await chrome.scripting.executeScript({
       target: { tabId },
       func: (namespace: string, input: object) => {
-        localStorage.setItem(`__${namespace}_debugging__`, `${JSON.stringify(input)}`);
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(`__${namespace}_debugging__`, `${JSON.stringify(input)}`);
+          }
+        } catch (_) {}
       },
       args: [pbjsNamespace || 'pbjs', input],
     });
@@ -183,13 +191,13 @@ const DebuggingModuleComponent = (): JSX.Element => {
         const tabId = await getTabId();
         let [first] = await chrome.scripting.executeScript({
           target: { tabId },
-          func: (namespace: string) => sessionStorage.getItem(`__${namespace}_debugging__`),
+          func: (namespace: string) => (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(`__${namespace}_debugging__`) : null),
           args: [pbjsNamespace || 'pbjs'],
         });
         if (!first || !first.result) {
           [first] = await chrome.scripting.executeScript({
             target: { tabId },
-            func: (namespace: string) => localStorage.getItem(`__${namespace}_debugging__`),
+            func: (namespace: string) => (typeof localStorage !== 'undefined' ? localStorage.getItem(`__${namespace}_debugging__`) : null),
             args: [pbjsNamespace || 'pbjs'],
           });
         }

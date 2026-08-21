@@ -49,30 +49,43 @@ describe('harLog', () => {
   });
 
   describe('toLogEntry', () => {
-    it('converts a standard harEntry to IHarLogEntry', () => {
+    it('converts a standard harEntry to IHarLogEntry with rich fields', () => {
       const harEntry = {
         request: {
-          url: 'https://prebid.example.com/auction?id=1',
+          url: 'https://prebid.example.com/auction?id=1&gdpr_consent=CP123',
           method: 'POST',
+          headers: [{ name: 'Content-Type', value: 'application/json' }],
+          postData: { text: '{"bids":[]}', mimeType: 'application/json' },
         },
         response: {
           status: 200,
+          statusText: 'OK',
+          headers: [{ name: 'Cache-Control', value: 'no-cache' }],
+          content: { mimeType: 'application/json', size: 1024 },
         },
         startedDateTime: '2026-08-17T10:00:00.000Z',
         time: 123.456,
         _resourceType: 'fetch',
+        timings: { wait: 50.2, receive: 10.1 },
       };
 
       const entry = toLogEntry(harEntry);
-      expect(entry).toEqual({
-        url: 'https://prebid.example.com/auction?id=1',
-        host: 'prebid.example.com',
-        method: 'POST',
-        status: 200,
-        startedDateTime: new Date('2026-08-17T10:00:00.000Z').getTime(),
-        time: 123.46,
-        resourceType: 'fetch',
-      });
+      expect(entry.url).toBe('https://prebid.example.com/auction?id=1&gdpr_consent=CP123');
+      expect(entry.host).toBe('prebid.example.com');
+      expect(entry.pathname).toBe('/auction');
+      expect(entry.method).toBe('POST');
+      expect(entry.status).toBe(200);
+      expect(entry.statusText).toBe('OK');
+      expect(entry.startedDateTime).toBe(new Date('2026-08-17T10:00:00.000Z').getTime());
+      expect(entry.time).toBe(123.46);
+      expect(entry.resourceType).toBe('fetch');
+      expect(entry.queryString).toEqual([
+        { name: 'id', value: '1' },
+        { name: 'gdpr_consent', value: 'CP123' },
+      ]);
+      expect(entry.requestHeaders).toEqual([{ name: 'Content-Type', value: 'application/json' }]);
+      expect(entry.postData?.text).toBe('{"bids":[]}');
+      expect(entry.timings?.wait).toBe(50.2);
     });
 
     it('handles malformed URL and missing fields gracefully', () => {
@@ -93,15 +106,13 @@ describe('harLog', () => {
 
     it('handles undefined harEntry', () => {
       const entry = toLogEntry(undefined);
-      expect(entry).toEqual({
-        url: '',
-        host: '',
-        method: 'GET',
-        status: 0,
-        startedDateTime: 0,
-        time: 0,
-        resourceType: undefined,
-      });
+      expect(entry.url).toBe('');
+      expect(entry.host).toBe('');
+      expect(entry.method).toBe('GET');
+      expect(entry.status).toBe(0);
+      expect(entry.startedDateTime).toBe(0);
+      expect(entry.time).toBe(0);
+      expect(entry.resourceType).toBeUndefined();
     });
   });
 
@@ -141,7 +152,7 @@ describe('harLog', () => {
       expect(global.chrome.storage.local.set).toHaveBeenCalledTimes(1);
 
       // Trigger debounce timer
-      vi.advanceTimersByTime(500);
+      vi.advanceTimersByTime(300);
 
       expect(global.chrome.storage.local.set).toHaveBeenCalledTimes(2);
       const saved = JSON.parse(
@@ -154,7 +165,7 @@ describe('harLog', () => {
       networkListener({
         request: { url: 'chrome-extension://123/script.js' },
       });
-      vi.advanceTimersByTime(500);
+      vi.advanceTimersByTime(300);
       expect(global.chrome.storage.local.set).toHaveBeenCalledTimes(2);
 
       // Test reset on tab loading
@@ -164,7 +175,7 @@ describe('harLog', () => {
       });
     });
 
-    it('caps entries at MAX_ENTRIES (2000)', () => {
+    it('caps entries at MAX_ENTRIES (1000)', () => {
       let networkListener: (entry: any) => void = () => {};
       (global.chrome.devtools.network.onRequestFinished.addListener as any).mockImplementation((fn: any) => {
         networkListener = fn;
@@ -172,7 +183,7 @@ describe('harLog', () => {
 
       collectHarLog();
 
-      for (let i = 0; i < 2050; i++) {
+      for (let i = 0; i < 1050; i++) {
         networkListener({
           request: { url: `https://example.com/req_${i}`, method: 'GET' },
           response: { status: 200 },
@@ -181,12 +192,13 @@ describe('harLog', () => {
         });
       }
 
-      vi.advanceTimersByTime(500);
+      vi.advanceTimersByTime(300);
       const saved = JSON.parse(
         (global.chrome.storage.local.set as any).mock.calls.slice(-1)[0][0][PRE_AUCTION_HAR]
       );
-      expect(saved.length).toBe(2000);
-      expect(saved[saved.length - 1].url).toBe('https://example.com/req_2049');
+      expect(saved.length).toBe(1000);
+      expect(saved[saved.length - 1].url).toBe('https://example.com/req_1049');
     });
   });
 });
+

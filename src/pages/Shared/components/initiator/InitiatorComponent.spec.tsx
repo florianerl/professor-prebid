@@ -2,36 +2,69 @@ import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import InitiatorComponent from './InitiatorComponent';
-import AppStateContext from '../../contexts/appStateContext';
 import InspectedPageContext from '../../contexts/inspectedPageContext';
-import { INITIATOR_TOGGLE, INITIATOR_ROOT_URL } from '../../constants';
+import { PRE_AUCTION_HAR } from '../../constants';
 
 describe('InitiatorComponent', () => {
-  let tabUpdatedListener: ((tabId: number, info: any) => void) | null = null;
+  const sampleHarLog: any[] = [
+    {
+      id: 'req_1',
+      url: 'https://ib.adnxs.com/ut/v3/prebid',
+      host: 'ib.adnxs.com',
+      pathname: '/ut/v3/prebid',
+      method: 'POST',
+      status: 200,
+      statusText: 'OK',
+      startedDateTime: 1000,
+      time: 120,
+      resourceType: 'fetch',
+      queryString: [{ name: 'gdpr', value: '1' }, { name: 'gdpr_consent', value: 'CP12345' }],
+      requestHeaders: [{ name: 'Content-Type', value: 'application/json' }],
+      responseHeaders: [{ name: 'Cache-Control', value: 'no-cache' }],
+      postData: { text: '{"id":"test-auction"}' },
+      timings: { dns: 10, connect: 20, wait: 60, receive: 30 },
+    },
+    {
+      id: 'req_2',
+      url: 'https://sync.rubiconproject.com/usersync?redirect=https%3A%2F%2Fprebid.org%2Fsetuid',
+      host: 'sync.rubiconproject.com',
+      pathname: '/usersync',
+      method: 'GET',
+      status: 302,
+      redirectURL: 'https://pixel.rubiconproject.com/tap.php',
+      startedDateTime: 1050,
+      time: 45,
+      queryString: [{ name: 'us_privacy', value: '1YNN' }],
+    },
+    {
+      id: 'req_3',
+      url: 'https://pixel.rubiconproject.com/tap.php',
+      host: 'pixel.rubiconproject.com',
+      pathname: '/tap.php',
+      method: 'GET',
+      status: 200,
+      startedDateTime: 1100,
+      time: 30,
+    },
+    {
+      id: 'req_4',
+      url: 'https://id5-sync.com/g/v2',
+      host: 'id5-sync.com',
+      pathname: '/g/v2',
+      method: 'GET',
+      status: 200,
+      startedDateTime: 1120,
+      time: 50,
+    },
+  ];
 
   beforeEach(() => {
     vi.clearAllMocks();
-    tabUpdatedListener = null;
-
     global.chrome = {
       storage: {
         local: {
-          get: vi.fn((key, cb) => {
-            if (key === INITIATOR_TOGGLE) cb({ [INITIATOR_TOGGLE]: true });
-            else if (key === INITIATOR_ROOT_URL) cb({ [INITIATOR_ROOT_URL]: 'https://example.com/sync' });
-            else cb({});
-          }),
-          set: vi.fn((val, cb) => cb?.()),
+          set: vi.fn(),
         },
-      },
-      tabs: {
-        onUpdated: {
-          addListener: vi.fn((fn) => {
-            tabUpdatedListener = fn;
-          }),
-        },
-        query: vi.fn((q, cb) => cb([{ id: 1 }])),
-        sendMessage: vi.fn(),
       },
       devtools: {
         inspectedWindow: {
@@ -41,187 +74,179 @@ describe('InitiatorComponent', () => {
     } as any;
   });
 
-  it('renders instructions and controls, and initializes storage values', () => {
-    const mockAppState: any = {
-      isRefresh: false,
-      initDataLoaded: false,
-      setInitiatorOutput: vi.fn(),
-      setInitDataLoaded: vi.fn(),
-      setIsRefresh: vi.fn(),
-    };
-    const mockInspectedState: any = { initReqChainResult: {} };
-
-    render(
-      <AppStateContext.Provider value={mockAppState}>
-        <InspectedPageContext.Provider value={mockInspectedState}>
-          <InitiatorComponent />
-        </InspectedPageContext.Provider>
-      </AppStateContext.Provider>
-    );
-
-    expect(screen.getByText(/Use Case:/)).toBeTruthy();
-    expect(screen.getByLabelText('Enter Root URL')).toBeTruthy();
-  });
-
-  it('handles feature switch toggle and root URL setting', async () => {
-    const mockAppState: any = {
-      isRefresh: false,
-      initDataLoaded: false,
-      setInitiatorOutput: vi.fn(),
-      setInitDataLoaded: vi.fn(),
-      setIsRefresh: vi.fn(),
+  it('renders empty state when no network requests are captured', () => {
+    const mockContext: any = {
+      harLog: [],
+      frames: {},
+      downloading: 'false',
+      syncState: '',
+      initReqChainResult: {},
     };
 
     render(
-      <AppStateContext.Provider value={mockAppState}>
-        <InspectedPageContext.Provider value={{ initReqChainResult: {} }}>
-          <InitiatorComponent />
-        </InspectedPageContext.Provider>
-      </AppStateContext.Provider>
+      <InspectedPageContext.Provider value={mockContext}>
+        <InitiatorComponent />
+      </InspectedPageContext.Provider>
     );
 
-    // Toggle switch
-    const switchEl = screen.getByRole('checkbox');
-    fireEvent.click(switchEl);
-
-    expect(chrome.storage.local.set).toHaveBeenCalledWith({ [INITIATOR_TOGGLE]: false }, expect.any(Function));
-
-    // Change root URL text input
-    const input = screen.getByLabelText('Enter Root URL');
-    fireEvent.change(input, { target: { value: 'https://example.com/new-sync' } });
-
-    const setButton = screen.getByText('Set URL');
-    expect(setButton.hasAttribute('disabled')).toBe(false);
-
-    await act(async () => {
-      fireEvent.click(setButton);
-    });
-
-    expect(chrome.storage.local.set).toHaveBeenCalledWith({ [INITIATOR_ROOT_URL]: 'https://example.com/new-sync' }, expect.any(Function));
-  });
-
-  it('handles refresh icon click when enabled vs disabled', async () => {
-    const setInitiatorOutput = vi.fn();
-    const setInitDataLoaded = vi.fn();
-    const setIsRefresh = vi.fn();
-
-    const mockAppState: any = {
-      isRefresh: false,
-      initDataLoaded: false,
-      setInitiatorOutput,
-      setInitDataLoaded,
-      setIsRefresh,
-    };
-
-    render(
-      <AppStateContext.Provider value={mockAppState}>
-        <InspectedPageContext.Provider value={{ initReqChainResult: {} }}>
-          <InitiatorComponent />
-        </InspectedPageContext.Provider>
-      </AppStateContext.Provider>
-    );
-
-    // Refresh icon click when feature is enabled and rootUrl is present
-    const refreshIcon = document.querySelector('.initiator__refresh-icon');
-    expect(refreshIcon).toBeTruthy();
-
-    if (refreshIcon) {
-      fireEvent.click(refreshIcon);
-    }
-
-    expect(setInitiatorOutput).toHaveBeenCalledWith({});
-    expect(setInitDataLoaded).toHaveBeenCalledWith(false);
-    expect(setIsRefresh).toHaveBeenCalledWith(true);
+    expect(screen.getByText('No Network Activity Recorded Yet')).toBeTruthy();
+    const reloadBtn = screen.getByRole('button', { name: /Reload Page/i });
+    fireEvent.click(reloadBtn);
     expect(chrome.devtools.inspectedWindow.reload).toHaveBeenCalledWith({ ignoreCache: true });
   });
 
-  it('shows and closes toast message when clicking refresh while feature or root URL is disabled', async () => {
-    global.chrome.storage.local.get = vi.fn((key, cb) => cb({ [INITIATOR_TOGGLE]: false, [INITIATOR_ROOT_URL]: '' }));
-
-    render(
-      <AppStateContext.Provider value={{ isRefresh: false, initDataLoaded: false, setInitiatorOutput: vi.fn(), setInitDataLoaded: vi.fn(), setIsRefresh: vi.fn() }}>
-        <InspectedPageContext.Provider value={{ initReqChainResult: {} }}>
-          <InitiatorComponent />
-        </InspectedPageContext.Provider>
-      </AppStateContext.Provider>
-    );
-
-    const refreshIcon = document.querySelector('.initiator__refresh-icon')!;
-    fireEvent.click(refreshIcon);
-
-    expect(screen.getByText(/Make sure that the Network Inspector tool is enabled/)).toBeTruthy();
-
-    // Click refresh again to trigger active toast message dismissal
-    fireEvent.click(refreshIcon);
-
-    // Test clicking Set URL when rootUrl is empty
-    const setUrlBtn = screen.getByText('Set URL');
-    fireEvent.click(setUrlBtn);
-
-    const closeToastBtn = screen.getByRole('button', { name: /close/i });
-    act(() => {
-      fireEvent.click(closeToastBtn);
-    });
-  });
-
-  it('renders loading state when isRefresh is true', () => {
-    const mockAppState: any = {
-      isRefresh: true,
-      initDataLoaded: false,
-      setInitiatorOutput: vi.fn(),
-      setInitDataLoaded: vi.fn(),
-      setIsRefresh: vi.fn(),
+  it('renders category counters and request waterfall table with data', () => {
+    const mockContext: any = {
+      harLog: sampleHarLog,
+      frames: {},
+      downloading: 'false',
+      syncState: '',
+      initReqChainResult: {},
     };
 
     render(
-      <AppStateContext.Provider value={mockAppState}>
-        <InspectedPageContext.Provider value={{ initReqChainResult: {} }}>
-          <InitiatorComponent />
-        </InspectedPageContext.Provider>
-      </AppStateContext.Provider>
+      <InspectedPageContext.Provider value={mockContext}>
+        <InitiatorComponent />
+      </InspectedPageContext.Provider>
     );
 
-    expect(screen.getByText('Generating initiator request chain...')).toBeTruthy();
+    expect(screen.getByText(/All: 4/)).toBeTruthy();
+    expect(screen.getByText(/Bids: 1/)).toBeTruthy();
+    expect(screen.getByText(/Syncs: 2/)).toBeTruthy();
+    expect(screen.getByText(/User IDs: 1/)).toBeTruthy();
+
+    // Verify row contents
+    expect(screen.getByText('ib.adnxs.com')).toBeTruthy();
+    expect(screen.getByText('sync.rubiconproject.com')).toBeTruthy();
   });
 
-  it('renders request chain result when present', () => {
-    const mockAppState: any = {
-      isRefresh: false,
-      initDataLoaded: true,
-      setInitiatorOutput: vi.fn(),
-      setInitDataLoaded: vi.fn(),
-      setIsRefresh: vi.fn(),
-    };
-
-    const mockInspectedState: any = {
-      initReqChainResult: { 'https://example.com/sync': { status: 200 } },
+  it('filters entries when category chip is clicked', () => {
+    const mockContext: any = {
+      harLog: sampleHarLog,
+      frames: {},
+      downloading: 'false',
+      syncState: '',
+      initReqChainResult: {},
     };
 
     render(
-      <AppStateContext.Provider value={mockAppState}>
-        <InspectedPageContext.Provider value={mockInspectedState}>
-          <InitiatorComponent />
-        </InspectedPageContext.Provider>
-      </AppStateContext.Provider>
+      <InspectedPageContext.Provider value={mockContext}>
+        <InitiatorComponent />
+      </InspectedPageContext.Provider>
     );
 
-    expect(screen.getByText(/example\.com/)).toBeTruthy();
+    // Filter to Bids
+    const bidsChip = screen.getByText(/Bids: 1/);
+    fireEvent.click(bidsChip);
+
+    expect(screen.getByText('ib.adnxs.com')).toBeTruthy();
+    expect(screen.queryByText('id5-sync.com')).toBeNull();
   });
 
-  it('handles tabs.onUpdated complete event', () => {
-    const setInitDataLoaded = vi.fn();
+  it('filters entries using search bar query', () => {
+    const mockContext: any = {
+      harLog: sampleHarLog,
+      frames: {},
+      downloading: 'false',
+      syncState: '',
+      initReqChainResult: {},
+    };
+
     render(
-      <AppStateContext.Provider value={{ isRefresh: false, initDataLoaded: false, setInitiatorOutput: vi.fn(), setInitDataLoaded, setIsRefresh: vi.fn() }}>
-        <InspectedPageContext.Provider value={{ initReqChainResult: {} }}>
-          <InitiatorComponent />
-        </InspectedPageContext.Provider>
-      </AppStateContext.Provider>
+      <InspectedPageContext.Provider value={mockContext}>
+        <InitiatorComponent />
+      </InspectedPageContext.Provider>
     );
 
-    expect(tabUpdatedListener).not.toBeNull();
-    if (tabUpdatedListener) {
-      tabUpdatedListener(1, { status: 'complete' });
-      expect(setInitDataLoaded).toHaveBeenCalledWith(true);
-    }
+    const searchInput = screen.getByPlaceholderText(/Filter requests/i);
+    fireEvent.change(searchInput, { target: { value: 'bidder:appnexus' } });
+
+    expect(screen.getByText('ib.adnxs.com')).toBeTruthy();
+    expect(screen.queryByText('sync.rubiconproject.com')).toBeNull();
+  });
+
+  it('switches view mode to Initiator Cascade and Privacy Audit', () => {
+    const mockContext: any = {
+      harLog: sampleHarLog,
+      frames: {},
+      downloading: 'false',
+      syncState: '',
+      initReqChainResult: {},
+    };
+
+    render(
+      <InspectedPageContext.Provider value={mockContext}>
+        <InitiatorComponent />
+      </InspectedPageContext.Provider>
+    );
+
+    // Switch to Initiator Cascade tab
+    const cascadeTab = screen.getByRole('tab', { name: /Initiator Cascade/i });
+    fireEvent.click(cascadeTab);
+    expect(screen.getByPlaceholderText(/Filter tree cascade/i)).toBeTruthy();
+
+    // Switch to Privacy Audit tab
+    const privacyTab = screen.getByRole('tab', { name: /Privacy Audit/i });
+    fireEvent.click(privacyTab);
+    expect(screen.getByText('TCF Consent (GDPR)')).toBeTruthy();
+  });
+
+  it('opens detail drawer when clicking a request row and allows tab switching', () => {
+    const mockContext: any = {
+      harLog: sampleHarLog,
+      frames: {},
+      downloading: 'false',
+      syncState: '',
+      initReqChainResult: {},
+    };
+
+    render(
+      <InspectedPageContext.Provider value={mockContext}>
+        <InitiatorComponent />
+      </InspectedPageContext.Provider>
+    );
+
+    // Click first row
+    const adnxsRow = screen.getByText('ib.adnxs.com');
+    fireEvent.click(adnxsRow);
+
+    // Verify drawer opened with General Information
+    expect(screen.getByText('General Information')).toBeTruthy();
+
+    // Switch to Query Params tab in drawer
+    const queryParamsTab = screen.getByRole('tab', { name: /Query Params/i });
+    fireEvent.click(queryParamsTab);
+    expect(screen.getByText('gdpr_consent')).toBeTruthy();
+
+    // Switch to Payload tab
+    const payloadTab = screen.getByRole('tab', { name: /Payload/i });
+    fireEvent.click(payloadTab);
+    expect(screen.getByText(/test-auction/)).toBeTruthy();
+  });
+
+  it('handles clearing the network log and raw JSON toggle', () => {
+    const mockContext: any = {
+      harLog: sampleHarLog,
+      frames: {},
+      downloading: 'false',
+      syncState: '',
+      initReqChainResult: {},
+    };
+
+    render(
+      <InspectedPageContext.Provider value={mockContext}>
+        <InitiatorComponent />
+      </InspectedPageContext.Provider>
+    );
+
+    // Click raw JSON toggle
+    const rawJsonBtn = screen.getByRole('button', { name: /Switch to Raw JSON view/i });
+    fireEvent.click(rawJsonBtn);
+
+    // Click Clear Log button
+    const clearBtn = screen.getByRole('button', { name: /Clear Captured Network Log/i });
+    fireEvent.click(clearBtn);
+
+    expect(chrome.storage.local.set).toHaveBeenCalledWith({ [PRE_AUCTION_HAR]: JSON.stringify([]) });
   });
 });

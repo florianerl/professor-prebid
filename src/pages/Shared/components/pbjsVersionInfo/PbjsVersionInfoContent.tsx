@@ -334,7 +334,7 @@ export const PbjsVersionInfoContent: React.FC<PbjsVersionInfoContentProps> = ({ 
                 newFeaturesCount={prebidReleaseInfo.featureCountSinceInstalledVersion || 0}
                 maintenanceCount={prebidReleaseInfo.maintenanceCountSinceInstalledVersion || 0}
                 bugfixesCount={prebidReleaseInfo.bugfixCountSinceInstalledVersion || 0}
-                timeElapsedText={prebidReleaseInfo.timeElapsedSinceLatestVersion?.text || ''}
+                timeElapsedText={(prebidReleaseInfo as any).timeElapsedSinceLatestVersion?.text || ''}
               />
 
               {releasesList.length > 0 && (

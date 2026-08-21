@@ -18,8 +18,11 @@ import { getPreAuctionTimeline, IPreAuctionRow } from '../../../Shared/component
 import { getProviderDiagnostics, IProviderDiagnostic } from '../../../Shared/components/preAuction/providerDiagnostics';
 import { createQueryEngine } from '../../../Shared/components/autocomplete/utils';
 
-export type BidderRequestWithStart = BidderRequest<string> & {
-  start: number;
+export type BidderRequestWithStart = BidderRequest<any> & {
+  start?: number;
+  startTime?: number;
+  timestamp?: number;
+  [key: string]: any;
 };
 
 export type TimelineViewMode = 'single' | 'stacked';
@@ -235,7 +238,7 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
     const { auctionEnd, bidderRequests, timestamp, auctionId } = aeEvent?.args || {};
     if (!bidderRequests || !bidderRequests.length) return;
 
-    const auctionStartTimestamp = timestamp || bidderRequests[0]?.start || 0;
+    const auctionStartTimestamp = timestamp || (bidderRequests[0] as any)?.start || 0;
     const auctionEndTimestamp = auctionEnd || auctionStartTimestamp + 100;
     const auctionDuration = Math.max(10, auctionEndTimestamp - auctionStartTimestamp);
     if (auctionDuration > globalMaxDuration) globalMaxDuration = auctionDuration;
@@ -279,8 +282,8 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
         let hasBid = false;
         let cpm: number | undefined;
 
-        const firstResponse = bidResponseEvents?.[0]?.args;
-        const firstNoBid = noBidEvents?.[0]?.args;
+        const firstResponse: any = bidResponseEvents?.[0]?.args;
+        const firstNoBid: any = noBidEvents?.[0]?.args;
 
         if (firstResponse) {
           hasBid = true;

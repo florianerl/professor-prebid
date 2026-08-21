@@ -27,7 +27,7 @@ const defaultBuckets: IDefaultBuckets = {
 
 const PriceGranularityComponent = (): JSX.Element | null => {
   const { prebid } = useContext(AppStateContext);
-  const config = prebid?.config || {};
+  const config: Record<string, any> = prebid?.config || {};
   const { priceGranularity, customPriceBucket, mediaTypePriceGranularity } = config;
 
   if (!priceGranularity) return null;

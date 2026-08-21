@@ -55,7 +55,7 @@ const tryDecompress = async (bytes: Uint8Array): Promise<string | null> => {
   for (const format of formats) {
     try {
       const ds = new DecompressionStream(format);
-      const stream = new Response(bytes).body?.pipeThrough(ds);
+      const stream = new Response(new Blob([bytes.buffer as ArrayBuffer])).body?.pipeThrough(ds);
       if (stream) {
         const text = await new Response(stream).text();
         if (text && text.length > 0) {

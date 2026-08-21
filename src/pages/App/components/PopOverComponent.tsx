@@ -1,5 +1,5 @@
 import React from 'react';
-import { IGlobalPbjs, IPrebidAdUnit, IPrebidBid } from '../../Injected/prebid';
+import type { PrebidJS, AdUnit, AdUnitDefinition, Bid } from 'prebid.js';
 import { getMaxZIndex } from './AdOverlayPortal';
 import { CacheProvider } from '@emotion/react';
 import { useState, useEffect } from 'react';
@@ -27,7 +27,7 @@ const ExpandableItem = ({ avatar, children, title, json }: { avatar: JSX.Element
   return (
     <Box sx={{ display: 'inline-block', width: '100%', mb: 1.5, breakInside: 'avoid' }}>
       <Box sx={{ backgroundColor: '#fff', border: '1px solid', borderColor: 'primary.light', borderRadius: 2, overflow: 'hidden' }}>
-        <Box elevation={0} sx={{ display: 'flex', justifyContent: 'space-between', p: 1.5, cursor: 'pointer', '&:hover': { backgroundColor: 'info.main' } }} onClick={() => setExpanded(!expanded)}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 1.5, cursor: 'pointer', '&:hover': { backgroundColor: 'info.main' } }} onClick={() => setExpanded(!expanded)}>
           <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>{avatar}</Avatar>
           <Typography variant="subtitle1" sx={{ color: 'text.primary', fontWeight: 'bold', ml: 1, flexGrow: 1, display: 'flex', alignItems: 'center' }}>{title}</Typography>
           <ExpandMoreIcon
@@ -127,21 +127,21 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
     // Ignore cross-origin error, fallback to window.document
   }
   const cacheTopPage = React.useMemo(() => createCache({ key: 'css', container: headContainer, prepend: true }), [headContainer]);
-  const pbjs: IGlobalPbjs = window[pbjsNameSpace as keyof Window];
+  const pbjs: PrebidJS = window[pbjsNameSpace as keyof Window];
   const open = Boolean(anchorEl);
 
-  const [adUnit, setAdunit] = useState<IPrebidAdUnit>(null);
-  const [bidsSorted, setBidsSorted] = useState<IPrebidBid[]>(null);
-  const [winningBid, setWinningBid] = useState<IPrebidBid>(null);
+  const [adUnit, setAdunit] = useState<AdUnit | AdUnitDefinition | null>(null);
+  const [bidsSorted, setBidsSorted] = useState<Bid[] | null>(null);
+  const [winningBid, setWinningBid] = useState<Bid | null>(null);
 
   useEffect(() => {
     if (!pbjs || !pbjs.getBidResponsesForAdUnitCode) return;
     const { bids } = pbjs.getBidResponsesForAdUnitCode(elementId);
     const bidsSorted = bids.sort((a: any, b: any) => b.cpm - a.cpm);
     const { 0: winningBid } = pbjs.getAllWinningBids().filter(({ adUnitCode }) => adUnitCode === elementId);
-    setAdunit(pbjs.adUnits.find((el) => el.code === elementId));
+    setAdunit(pbjs.adUnits?.find((el) => el.code === elementId) || null);
     setBidsSorted(bidsSorted);
-    setWinningBid(winningBid);
+    setWinningBid(winningBid || null);
   }, [elementId, pbjs]);
 
   // gam stuff

@@ -75,7 +75,7 @@ const buildSearchSuggestions = (entries: IClassifiedNetworkEntry[]): string[] =>
 const InitiatorComponent = (): JSX.Element => {
   const { harLog } = useContext(InspectedPageContext);
   const { tcf } = useContext(AppStateContext);
-  const cmpConsentString = (tcf?.v2?.consentData || tcf?.v1?.consentData || '') as string;
+  const cmpConsentString = ((tcf as any)?.v2?.consentData || (tcf as any)?.v1?.consentData || (tcf as any)?.gdpr?.consentData?.tcString || '') as string;
 
   const [query, setQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<NetworkCategory | 'all'>('all');
@@ -88,12 +88,12 @@ const InitiatorComponent = (): JSX.Element => {
     let active = true;
     const rawList = harLog || [];
     const entriesToDecompress = rawList.filter(
-      (e) => e.postData?.text && decompressedMap[e.id] === undefined
+      (e: any) => e.postData?.text && decompressedMap[e.id] === undefined
     );
 
     if (entriesToDecompress.length > 0) {
       Promise.all(
-        entriesToDecompress.map(async (e) => {
+        entriesToDecompress.map(async (e: any) => {
           const res = await decompressPayload(e.postData!.text!);
           return { id: e.id, text: res.text, isDecompressed: res.isDecompressed };
         })
@@ -122,7 +122,7 @@ const InitiatorComponent = (): JSX.Element => {
   // Classify all incoming HAR entries
   const classifiedEntries: IClassifiedNetworkEntry[] = useMemo(() => {
     const rawList = harLog || [];
-    return rawList.map((entry) => classifyRequest(entry as any, decompressedMap[entry.id], cmpConsentString));
+    return rawList.map((entry: any) => classifyRequest(entry, decompressedMap[entry.id], cmpConsentString));
   }, [harLog, decompressedMap, cmpConsentString]);
 
   // Counts by category
@@ -175,7 +175,7 @@ const InitiatorComponent = (): JSX.Element => {
 
   const handleExportJson = () => {
     const dataToExport = filteredEntries.map((c) => c.entry);
-    download(JSON.stringify(dataToExport, null, 2), `network_log_${Date.now()}.json`, 'application/json');
+    download(dataToExport, `network_log_${Date.now()}`);
   };
 
   return (

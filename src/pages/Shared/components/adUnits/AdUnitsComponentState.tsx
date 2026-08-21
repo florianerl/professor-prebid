@@ -49,18 +49,25 @@ const processAdUnits = (auctionInitEvents: EventRecord<'auctionInit'>[]): AdUnit
   );
 };
 
-const adUnitAllSizesStr = (adUnit: AdUnit): string =>
-  Array.isArray(adUnit?.mediaTypes?.banner?.sizes)
-    ? adUnit.mediaTypes.banner.sizes
-        .filter((size) => Array.isArray(size) && size.length === 2)
-        .map((size) => `${size[0]}x${size[1]}`)
-        .join(',')
-    : Array.isArray(adUnit?.mediaTypes?.video?.playerSize)
-    ? adUnit.mediaTypes.video.playerSize
-        .filter((size) => Array.isArray(size) && size.length === 2)
-        .map((size) => `${size[0]}x${size[1]}`)
-        .join(',')
-    : '';
+const isTupleSize = (size: unknown): size is [number, number] => Array.isArray(size) && size.length === 2 && typeof size[0] === 'number' && typeof size[1] === 'number';
+
+const adUnitAllSizesStr = (adUnit: AdUnit): string => {
+  const bannerSizes = adUnit?.mediaTypes?.banner?.sizes;
+  if (Array.isArray(bannerSizes)) {
+    return bannerSizes
+      .filter(isTupleSize)
+      .map(([w, h]) => `${w}x${h}`)
+      .join(',');
+  }
+  const playerSize = adUnit?.mediaTypes?.video?.playerSize;
+  if (Array.isArray(playerSize)) {
+    return playerSize
+      .filter(isTupleSize)
+      .map(([w, h]) => `${w}x${h}`)
+      .join(',');
+  }
+  return '';
+};
 
 const ADUNIT_FIELD_MAP = {
   adunitcode: (adUnit: AdUnit) => adUnit?.code,

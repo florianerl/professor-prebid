@@ -58,7 +58,7 @@ const UserIdsTab = ({ searchQuery = '' }: { searchQuery?: string }): JSX.Element
   return (
     <Grid container spacing={0.75} sx={{ width: '100%' }}>
       {filteredEids.map((eid, i) => {
-        const key = `${eid?.source || 'eid'}-${eid?.uids?.map(u=>u.id).join('-') || i}`;
+        const key = `${eid?.source || 'eid'}-${eid?.uids?.map((u: any) => u.id).join('-') || i}`;
         const isExpanded = !!expandedEids[key];
         const uids = eid?.uids || [];
 
@@ -86,7 +86,7 @@ const UserIdsTab = ({ searchQuery = '' }: { searchQuery?: string }): JSX.Element
                 </Box>
 
                 {/* UIDs list */}
-                {uids.map((uid, index) => (
+                {uids.map((uid: any, index: number) => (
                   <Box
                     key={uid.id || index}
                     sx={{

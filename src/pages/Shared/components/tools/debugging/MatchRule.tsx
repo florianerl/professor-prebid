@@ -36,25 +36,25 @@ const MatchRule = ({ groupIndex, rule, ruleKey, handleRulesFormChange, prebid, p
       return Array.from(new Set([...prevValue, ...args.adUnitCodes]));
     }, [] as string[]);
 
-    const mediaTypes = (events as IPrebidAuctionInitEventData[])?.reduce((prevValue, { args }) => {
+    const mediaTypes = (events as IPrebidAuctionInitEventData[])?.reduce((prevValue: string[], { args }) => {
       if (!args || !args.adUnits) return prevValue;
 
-      const newMediaTypes = args.adUnits?.reduce((prevValue, { mediaTypes }) => {
-        if (!mediaTypes) return prevValue;
+      const newMediaTypes = args.adUnits?.reduce((innerPrev: string[], { mediaTypes }: any) => {
+        if (!mediaTypes) return innerPrev;
 
-        return Array.from(new Set([...prevValue, ...Object.keys(mediaTypes)]));
+        return Array.from(new Set([...innerPrev, ...Object.keys(mediaTypes)]));
       }, [] as string[]);
 
       return Array.from(new Set([...prevValue, ...newMediaTypes]));
     }, [] as string[]);
 
-    const bidders = (events as IPrebidAuctionInitEventData[])?.reduce((prevValue, { args }) => {
+    const bidders = (events as IPrebidAuctionInitEventData[])?.reduce((prevValue: string[], { args }) => {
       if (!args || !args.adUnits) return prevValue;
 
-      const newBidders = args.adUnits?.reduce((prevValue, { bids }) => {
-        if (!bids) return prevValue;
+      const newBidders = args.adUnits?.reduce((innerPrev: string[], { bids }: any) => {
+        if (!bids) return innerPrev;
 
-        return Array.from(new Set([...prevValue, ...bids.map(({ bidder }) => bidder)]));
+        return Array.from(new Set([...innerPrev, ...bids.map(({ bidder }: any) => bidder)]));
       }, [] as string[]);
 
       return Array.from(new Set([...prevValue, ...newBidders]));

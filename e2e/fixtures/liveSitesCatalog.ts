@@ -98,4 +98,11 @@ export const LIVE_SITES_CATALOG: LiveSiteConfig[] = [
     description: 'German tech portal article page with TCF v2 CMP and header bidding',
     hasTcfConsent: true,
   },
+  {
+    name: 'theguardian.com',
+    url: 'https://www.theguardian.com/international',
+    category: 'tech_news',
+    description: 'UK global news publisher running Prebid.js with commercial bundle',
+    hasTcfConsent: true,
+  },
 ];

@@ -27,13 +27,13 @@ const UserIdsComponent = (): JSX.Element => {
   const options = useMemo(() => {
     const setOptions = new Set<string>();
     ['source:', 'id:', 'name:'].forEach((k) => setOptions.add(k));
-    (prebid?.eids || []).forEach((e) => {
+    (prebid?.eids || []).forEach((e: any) => {
       if (e?.source) setOptions.add(`source:${e.source}`);
-      (e?.uids || []).forEach((u) => {
+      (e?.uids || []).forEach((u: any) => {
         if (u?.id) setOptions.add(`id:${u.id}`);
       });
     });
-    (prebid?.config?.userSync?.userIds || []).forEach((m) => {
+    ((prebid?.config?.userSync as any)?.userIds || []).forEach((m: any) => {
       if (m?.name) setOptions.add(`name:${m.name}`);
       if (m?.storage?.name) setOptions.add(`name:${m.storage.name}`);
     });

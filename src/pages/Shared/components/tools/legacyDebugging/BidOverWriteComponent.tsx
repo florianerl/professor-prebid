@@ -109,14 +109,14 @@ const BidOverWriteComponent = ({ debugConfigState, setDebugConfigState }: BidOve
     const auctionInitEndEvent = events.filter((event) => ['auctionInit', 'auctionEnd'].includes(event.eventType)) || [];
     const bidderNamesSet = auctionInitEndEvent.reduce((previousValue, currentValue) => {
       const adUnitsArray = (currentValue as IPrebidAuctionEndEventData).args.adUnits || [];
-      adUnitsArray.forEach((adUnit) => adUnit.bids.forEach((bid) => previousValue.add(bid.bidder)));
+      adUnitsArray.forEach((adUnit: any) => adUnit?.bids?.forEach((bid: any) => bid?.bidder && previousValue.add(bid.bidder)));
       return previousValue;
     }, new Set<string>());
     setDetectedBidderNames(Array.from(bidderNamesSet));
 
     const adUnitCodesSet = auctionInitEndEvent.reduce((previousValue, currentValue) => {
       const adUnitsCodesArray = (currentValue as IPrebidAuctionEndEventData).args.adUnitCodes || [];
-      adUnitsCodesArray.forEach((adUnitCode) => previousValue.add(adUnitCode));
+      adUnitsCodesArray.forEach((adUnitCode: string) => previousValue.add(adUnitCode));
       return previousValue;
     }, new Set<string>());
     setDetectedAdUnitCodes(Array.from(adUnitCodesSet));

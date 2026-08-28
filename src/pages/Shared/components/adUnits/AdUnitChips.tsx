@@ -54,7 +54,7 @@ const DataPreviewChip = ({ label, data, color = 'primary', icon, name = null }: 
   );
 };
 
-export const Ortb2ImpExtChipComponent = ({ input, label }: { input: AdUnit['ortb2Imp']; label: string }): JSX.Element => <DataPreviewChip label={label} data={input} />;
+export const Ortb2ImpExtChipComponent = ({ input, label }: { input: any; label: string }): JSX.Element => <DataPreviewChip label={label} data={input} />;
 
 export const MediaTypeChipComponent = ({ input, label, isWinner }: { input: any; label: string; isWinner?: boolean }): JSX.Element => <DataPreviewChip label={label} data={input} color={isWinner ? 'secondary' : 'primary'} />;
 

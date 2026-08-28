@@ -17,14 +17,14 @@ import MinimizeIcon from '@mui/icons-material/Minimize';
 import MaximizeIcon from '@mui/icons-material/Maximize';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 
-const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, timeToRespond, closePortal, contentRef, pbjsNameSpace }: AdOverlayComponentProps): JSX.Element => {
+const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, timeToRespond, closePortal, shadowRoot, pbjsNameSpace }: AdOverlayComponentProps): JSX.Element => {
   const gridRef = React.useRef<HTMLDivElement>(null);
   const boxRef = React.useRef<HTMLDivElement>(null);
   const [truncate, setTruncate] = useState<boolean>(false);
-  const [expanded, setExpanded] = useState<boolean>(true);
+  const [expanded, setExpanded] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const [slot, setSlot] = React.useState<googletag.Slot>(null);
-  const cache = React.useMemo(() => createCache({ key: 'css', container: contentRef?.contentWindow?.document?.head, prepend: true }), [contentRef]);
+  const cache = React.useMemo(() => createCache({ key: 'css', container: shadowRoot || document.head, prepend: true }), [shadowRoot]);
   const openInPopOver = () => {
     let bodyContainer = window.document.body;
     try {
@@ -73,6 +73,7 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
             top: 0,
             left: 0,
             zIndex: 999999,
+            pointerEvents: 'auto',
             transition: 'background-color 0.2s',
           }}
         >
@@ -161,7 +162,7 @@ export interface AdOverlayComponentProps {
   currency: string;
   timeToRespond: number;
   closePortal?: () => void;
-  contentRef?: any;
+  shadowRoot?: ShadowRoot | null;
   pbjsNameSpace?: string;
 }
 

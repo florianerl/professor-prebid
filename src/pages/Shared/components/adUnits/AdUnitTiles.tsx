@@ -189,15 +189,13 @@ export const AdUnitTile = ({ adUnit, colCount }: { adUnit: AdUnit; colCount: num
             <TileSection label="AdUnit Code">
               <AdUnitChipComponent adUnit={adUnit} />
             </TileSection>
-            {adUnit.ortb2Imp && JSON.stringify(adUnit.ortb2Imp) !== '{}' && (
-              <>
-                <TileSection label="Ortb2Imp">
-                  <Stack direction="column" alignItems="flex-start" flexWrap="wrap" gap={1}>
-                    {adUnit.ortb2Imp.instl === 1 && <InterstitialChipComponent adUnit={adUnit} />}
-                    {adUnit.ortb2Imp && !isPanel && <Ortb2ImpExtChipComponent label="ortb2Imp" input={adUnit.ortb2Imp} />}
-                  </Stack>
-                </TileSection>
-              </>
+            {adUnit.ortb2Imp && JSON.stringify(adUnit.ortb2Imp) !== '{}' && (adUnit.ortb2Imp.instl === 1 || !isPanel) && (
+              <TileSection label="Ortb2Imp">
+                <Stack direction="column" alignItems="flex-start" flexWrap="wrap" gap={1}>
+                  {adUnit.ortb2Imp.instl === 1 && <InterstitialChipComponent adUnit={adUnit} />}
+                  {!isPanel && <Ortb2ImpExtChipComponent label="ortb2Imp" input={adUnit.ortb2Imp} />}
+                </Stack>
+              </TileSection>
             )}
           </>
         }
@@ -320,12 +318,17 @@ export const Ortb2ImpTile = ({ adUnit, colCount }: { adUnit: AdUnit; colCount: n
         expanded={expanded}
         collapsedView={
           <TileSection label="ORTB2 Imp">
-            <JSONViewerComponent style={{ padding: 0 }} src={adUnit.ortb2Imp} collapsed={!expanded ? 1 : 2} />
+            {Object.entries(adUnit.ortb2Imp).map(([key, value]) => {
+              if (key === 'instl' && value === 1) {
+                return <InterstitialChipComponent key={key} adUnit={adUnit} />;
+              }
+              return <Ortb2ImpExtChipComponent key={key} input={value} label={key} />;
+            })}
           </TileSection>
         }
         expandedView={
           <Box sx={{ p: 0.5 }}>
-            <JSONViewerComponent style={{ padding: 0 }} src={adUnit.ortb2Imp} collapsed={2} />
+            <JSONViewerComponent style={{ padding: 0 }} src={adUnit.ortb2Imp} name={null} collapsed={2} />
           </Box>
         }
       />

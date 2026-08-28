@@ -120,9 +120,7 @@ const UserIdsTab = ({ searchQuery = '' }: { searchQuery?: string }): JSX.Element
                       </Box>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                        {uid?.atype !== undefined && (
-                          <Chip label={`atype: ${uid.atype}`} size="small" color="secondary" sx={{ height: 20, fontSize: '0.675rem', fontWeight: 600 }} />
-                        )}
+                        {uid?.atype !== undefined && <Chip label={`atype: ${uid.atype}`} size="small" color="secondary" sx={{ height: 20, fontSize: '0.675rem', fontWeight: 600 }} />}
 
                         <Tooltip title="Copy User ID to clipboard" arrow>
                           <IconButton size="small" color="primary" onClick={() => handleCopy(uid?.id || '')}>
@@ -138,14 +136,7 @@ const UserIdsTab = ({ searchQuery = '' }: { searchQuery?: string }): JSX.Element
                         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.25 }}>
                           Extension Metadata (ext):
                         </Typography>
-                        <JSONViewerComponent
-                          src={uid.ext}
-                          name={false}
-                          collapsed={1}
-                          displayObjectSize={false}
-                          displayDataTypes={false}
-                          style={{ fontSize: '11px', fontFamily: 'monospace' }}
-                        />
+                        <JSONViewerComponent src={uid.ext} name={false} collapsed={1} displayObjectSize={false} displayDataTypes={false} style={{ fontSize: '11px', fontFamily: 'monospace' }} />
                       </Box>
                     )}
                   </Box>

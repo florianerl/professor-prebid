@@ -1,17 +1,3 @@
-/**
- * Endpoint domains each prebid user id / RTD module calls, used to attribute network requests to the
- * provider that made them.
- *
- * GENERATED - do not edit by hand.
- * Run `node utils/prebidMetadata/extractProviderHosts.mjs` after bumping prebid.js.
- *
- * Keys are `<componentType>:<componentName>`, matching the names used in
- * `realTimeData.dataProviders[].name` and `userSync.userIds[].name`.
- *
- * Documentation links and shared infrastructure (amazonaws, gstatic, doubleclick...) are excluded: a
- * missing attribution is better than a wrong one. Modules whose endpoint comes from publisher config
- * are absent on purpose - those hosts are read from the live config instead.
- */
 export const PROVIDER_HOSTS: { [typeAndName: string]: string[] } = {
   'analytics:33across': ['33across.com'],
   'analytics:adagio': ['4dex.io'],

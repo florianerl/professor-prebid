@@ -2,10 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EVENTS, CONSOLE_TOGGLE, PBJS_NAMESPACE_CHANGE, POPUP_LOADED, SAVE_MASKS } from '../Shared/constants';
 import { EventBus } from '../Shared/utils';
 
-// Mock window.requestIdleCallback safely
 global.requestIdleCallback = vi.fn((cb) => 1) as any;
 
-// Mock chrome API
 let capturedRuntimeListener: Function | null = null;
 const mockSendMessage = vi.fn();
 const mockGetURL = vi.fn((path) => `mock-extension://${path}`);
@@ -196,9 +194,7 @@ describe('Content Script', () => {
     });
 
     it('handles SEND_PREBID_DETAILS_TO_BACKGROUND with undefined payload', async () => {
-      await expect(
-        contentScript.processEventBusMessages(EVENTS.SEND_PREBID_DETAILS_TO_BACKGROUND, undefined)
-      ).resolves.not.toThrow();
+      await expect(contentScript.processEventBusMessages(EVENTS.SEND_PREBID_DETAILS_TO_BACKGROUND, undefined)).resolves.not.toThrow();
     });
   });
 

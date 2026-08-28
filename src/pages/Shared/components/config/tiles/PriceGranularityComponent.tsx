@@ -9,6 +9,13 @@ import Box from '@mui/system/Box';
 import AppStateContext from '../../../contexts/appStateContext';
 import { ExpandableTile } from './ExpandableTile';
 
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+
 const defaultBuckets: IDefaultBuckets = {
   low: [{ precision: 2, min: 0, max: 5, increment: 0.5 }],
   medium: [{ precision: 2, min: 0, max: 20, increment: 0.1 }],
@@ -45,13 +52,7 @@ const PriceGranularityComponent = (): JSX.Element | null => {
   const activeBucket = defaultBuckets[priceGranularity] || (customPriceBucket?.buckets as any);
 
   return (
-    <ExpandableTile
-      icon={<StraightenIcon />}
-      title="Price Granularity"
-      subtitle={`${priceGranularity} (${Object.keys(defaultBuckets)?.includes(priceGranularity) ? 'default' : 'custom'})`}
-      defaultMaxWidth={4}
-      expandedMaxWidth={12}
-    >
+    <ExpandableTile icon={<StraightenIcon />} title="Price Granularity" subtitle={`${priceGranularity} (${Object.keys(defaultBuckets)?.includes(priceGranularity) ? 'default' : 'custom'})`} defaultMaxWidth={4} expandedMaxWidth={12}>
       {/* Media-type specific price granularities */}
       {hasMediaTypePriceGranularityBuckets && (
         <Box sx={{ mb: 2, width: '100%' }}>
@@ -86,34 +87,10 @@ const PriceGranularityComponent = (): JSX.Element | null => {
         {activeBucket?.[0] && (
           <Grid size={{ xs: 12 }}>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
-              <Chip
-                label={`Min: ${activeBucket[0]?.min}`}
-                size="small"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
-              <Chip
-                label={`Max: ${activeBucket[activeBucket.length - 1]?.max ?? activeBucket[0]?.max}`}
-                size="small"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
-              <Chip
-                label={`Precision: ${activeBucket[0]?.precision ?? 2}`}
-                size="small"
-                color="info"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
-              {activeBucket.length === 1 && (
-                <Chip
-                  label={`Increment: ${activeBucket[0]?.increment}`}
-                  size="small"
-                  color="primary"
-                  variant="outlined"
-                  sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-                />
-              )}
+              <Chip label={`Min: ${activeBucket[0]?.min}`} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />
+              <Chip label={`Max: ${activeBucket[activeBucket.length - 1]?.max ?? activeBucket[0]?.max}`} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />
+              <Chip label={`Precision: ${activeBucket[0]?.precision ?? 2}`} size="small" color="info" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />
+              {activeBucket.length === 1 && <Chip label={`Increment: ${activeBucket[0]?.increment}`} size="small" color="primary" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />}
             </Box>
           </Grid>
         )}
@@ -126,13 +103,6 @@ const PriceGranularityComponent = (): JSX.Element | null => {
   );
 };
 
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-
 const BucketTable = ({ buckets, type }: { buckets: IPrebidConfigPriceBucket[]; type?: string }) => {
   return (
     <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, overflow: 'hidden' }}>
@@ -140,10 +110,18 @@ const BucketTable = ({ buckets, type }: { buckets: IPrebidConfigPriceBucket[]; t
         <TableHead sx={{ bgcolor: 'action.hover' }}>
           <TableRow>
             <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Bucket</TableCell>
-            <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Precision</TableCell>
-            <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Min</TableCell>
-            <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Max</TableCell>
-            <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>Increment</TableCell>
+            <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>
+              Precision
+            </TableCell>
+            <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>
+              Min
+            </TableCell>
+            <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>
+              Max
+            </TableCell>
+            <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.75rem', py: 0.75 }}>
+              Increment
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -152,10 +130,18 @@ const BucketTable = ({ buckets, type }: { buckets: IPrebidConfigPriceBucket[]; t
               <TableCell component="th" scope="row" sx={{ fontSize: '0.75rem', py: 0.5 }}>
                 {type ? `${type} #${index + 1}` : `Bucket #${index + 1}`}
               </TableCell>
-              <TableCell align="right" sx={{ fontSize: '0.75rem', py: 0.5 }}>{bucket.precision ?? 2}</TableCell>
-              <TableCell align="right" sx={{ fontSize: '0.75rem', py: 0.5 }}>{bucket.min}</TableCell>
-              <TableCell align="right" sx={{ fontSize: '0.75rem', py: 0.5 }}>{bucket.max}</TableCell>
-              <TableCell align="right" sx={{ fontSize: '0.75rem', py: 0.5 }}>{bucket.increment}</TableCell>
+              <TableCell align="right" sx={{ fontSize: '0.75rem', py: 0.5 }}>
+                {bucket.precision ?? 2}
+              </TableCell>
+              <TableCell align="right" sx={{ fontSize: '0.75rem', py: 0.5 }}>
+                {bucket.min}
+              </TableCell>
+              <TableCell align="right" sx={{ fontSize: '0.75rem', py: 0.5 }}>
+                {bucket.max}
+              </TableCell>
+              <TableCell align="right" sx={{ fontSize: '0.75rem', py: 0.5 }}>
+                {bucket.increment}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

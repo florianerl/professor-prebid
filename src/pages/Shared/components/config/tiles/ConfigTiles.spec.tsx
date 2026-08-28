@@ -2,20 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
-vi.mock('@iabtcf/core', () => ({
-  TCString: {
-    decode: vi.fn().mockImplementation((str) => {
-      if (!str) return {};
-      return {
-        cmpId: 123,
-        cmpVersion: 2,
-        consentScreen: 1,
-        consentLanguage: 'EN',
-      };
-    }),
-  },
-}));
-
 import AppStateContext from '../../../contexts/appStateContext';
 import AnalyticsComponent from './AnalyticsComponent';
 import BidderSettingsComponent from './BidderSettingsComponent';
@@ -32,6 +18,20 @@ import RtdComponent from './RtdComponent';
 import UserIdModule from './UserIdModule';
 import UserSyncComponent from './UserSyncComponent';
 import PrebidConfigComponent from '../../../../Popup/components/config/PrebidConfigComponent';
+
+vi.mock('@iabtcf/core', () => ({
+  TCString: {
+    decode: vi.fn().mockImplementation((str) => {
+      if (!str) return {};
+      return {
+        cmpId: 123,
+        cmpVersion: 2,
+        consentScreen: 1,
+        consentLanguage: 'EN',
+      };
+    }),
+  },
+}));
 
 describe('Config Tiles components', () => {
   const mockPrebid: any = {
@@ -64,9 +64,7 @@ describe('Config Tiles components', () => {
       },
       coppa: true,
       userSync: {
-        userIds: [
-          { name: 'criteo', storage: { type: 'cookie', name: 'ct' }, params: { partner: 'xyz', nested: { id: 1 } } },
-        ],
+        userIds: [{ name: 'criteo', storage: { type: 'cookie', name: 'ct' }, params: { partner: 'xyz', nested: { id: 1 } } }],
         syncEnabled: true,
         auctionDelay: 500,
         syncDelay: 3000,
@@ -131,7 +129,6 @@ describe('Config Tiles components', () => {
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
 
-    // Test string currency format
     const stringCurrency = { config: { currency: 'EUR' } };
     const { unmount: unmountString } = renderWithContext(CurrencyComponent, stringCurrency);
     expect(screen.getByText('Currency')).toBeTruthy();
@@ -206,7 +203,6 @@ describe('Config Tiles components', () => {
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
 
-    // Test disabled floors with string enforcement
     const disabledFloors = {
       config: {
         floors: {
@@ -245,7 +241,6 @@ describe('Config Tiles components', () => {
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
 
-    // Test disabled state
     const disabledGpt = {
       config: {
         gptPreAuction: {
@@ -315,13 +310,9 @@ describe('Config Tiles components', () => {
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
 
-    // Test multiple s2sConfig array
     const multiS2S = {
       config: {
-        s2sConfig: [
-          { accountId: 'acc-1', endpoint: 'https://s2s-1.com' },
-          { endpoint: 'https://s2s-2.com' },
-        ],
+        s2sConfig: [{ accountId: 'acc-1', endpoint: 'https://s2s-1.com' }, { endpoint: 'https://s2s-2.com' }],
       },
     };
     const { unmount: unmountMulti } = renderWithContext(PrebidServerComponent, multiS2S);
@@ -375,7 +366,6 @@ describe('Config Tiles components', () => {
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
 
-    // Test COPPA disabled state
     const coppaDisabledPrebid = {
       config: {
         consentManagement: { gdpr: { cmpApi: 'iab' } },
@@ -397,7 +387,6 @@ describe('Config Tiles components', () => {
     if (jsonBtn) fireEvent.click(jsonBtn);
     unmount();
 
-    // Test RTD with custom rules (no dataProviders array)
     const customRulesPrebid = { config: { realTimeData: { auctionDelay: 100 } } };
     const { unmount: unmountCustom } = renderWithContext(RtdComponent, customRulesPrebid);
     expect(screen.getByText(/RTD module is loaded with custom rules/)).toBeTruthy();

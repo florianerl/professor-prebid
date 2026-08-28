@@ -17,12 +17,11 @@ export const InspectedPageContextProvider = ({ children }: ChromeStorageProvider
   const [initReqChainData, setInitReqChainData] = useState<initReqChainResult>({});
   const initReqChainResult = useDebounce(initReqChainData, 2000);
   const [downloadingUrls, setDownloadingUrls] = useState<string[]>([]);
-  // Empty outside the devtools panel, which is the graceful degradation path for the Pre-Auction tab.
+
   const [harLogData, setHarLogData] = useState<IHarEntry[]>([]);
   const harLog = useDebounce(harLogData, 1000);
 
   useEffect(() => {
-    // Read initial value from chrome.storage.local
     getTabId().then((tabId) => {
       const key = `tab_info_${tabId}`;
       chrome.storage.local.get([key], async (res) => {

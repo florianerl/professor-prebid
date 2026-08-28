@@ -1,13 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  distinct,
-  parseWidthHeightPair,
-  replaceLastToken,
-  getSortValue,
-  getWidthXHeightStringFromBid,
-  getAutocompleteOptions,
-  createQueryEngine,
-} from './utils';
+import { distinct, parseWidthHeightPair, replaceLastToken, getSortValue, getWidthXHeightStringFromBid, getAutocompleteOptions, createQueryEngine } from './utils';
 
 describe('autocomplete/utils', () => {
   describe('distinct', () => {
@@ -139,7 +131,7 @@ describe('autocomplete/utils', () => {
       expect(engine.runQuery('size:300x250')({ name: 'a', cpm: 1, size: '300x250' })).toBe(true);
       expect(engine.runQuery('size>300x200')({ name: 'a', cpm: 1, size: '300x250' })).toBe(true);
       expect(engine.runQuery('size>=300x250')({ name: 'a', cpm: 1, size: '300x250' })).toBe(true);
-      expect(engine.runQuery('size<728x90')({ name: 'a', cpm: 1, size: '300x250' })).toBe(false); // 75000 vs 65520
+      expect(engine.runQuery('size<728x90')({ name: 'a', cpm: 1, size: '300x250' })).toBe(false);
       expect(engine.runQuery('size<=300x250')({ name: 'a', cpm: 1, size: '300x250' })).toBe(true);
       expect(engine.runQuery('size:invalid')({ name: 'a', cpm: 1, size: '300x250' })).toBe(false);
     });

@@ -19,34 +19,32 @@ const merge = (target: any, source: any) => {
 
 const processAdUnits = (auctionInitEvents: EventRecord<'auctionInit'>[]): AdUnit[] => {
   if (!auctionInitEvents) return [];
-  return (
-    auctionInitEvents
-      .reduce((previousValue, currentValue) => {
-        const adUnits = currentValue?.args?.adUnits || [];
-        return [...previousValue, ...adUnits] as AdUnit[];
-      }, [] as AdUnit[])
-      .reduce((previousValue: AdUnit[], currentValue: AdUnit) => {
-        if (!currentValue) return previousValue;
-        let toUpdate = previousValue.find((adUnit) => {
-          const adUnitBids = (adUnit.bids || []).map(({ bidder, params }) => ({ bidder, params }));
-          const currentValueBids = (currentValue.bids || []).map(({ bidder, params }) => ({ bidder, params }));
-          return (
-            adUnit.code === currentValue.code &&
-            JSON.stringify(adUnit.mediaTypes) === JSON.stringify(currentValue.mediaTypes) &&
-            JSON.stringify(adUnit.sizes) === JSON.stringify(currentValue.sizes) &&
-            JSON.stringify(adUnitBids) === JSON.stringify(currentValueBids)
-          );
-        });
+  return auctionInitEvents
+    .reduce((previousValue, currentValue) => {
+      const adUnits = currentValue?.args?.adUnits || [];
+      return [...previousValue, ...adUnits] as AdUnit[];
+    }, [] as AdUnit[])
+    .reduce((previousValue: AdUnit[], currentValue: AdUnit) => {
+      if (!currentValue) return previousValue;
+      let toUpdate = previousValue.find((adUnit) => {
+        const adUnitBids = (adUnit.bids || []).map(({ bidder, params }) => ({ bidder, params }));
+        const currentValueBids = (currentValue.bids || []).map(({ bidder, params }) => ({ bidder, params }));
+        return (
+          adUnit.code === currentValue.code &&
+          JSON.stringify(adUnit.mediaTypes) === JSON.stringify(currentValue.mediaTypes) &&
+          JSON.stringify(adUnit.sizes) === JSON.stringify(currentValue.sizes) &&
+          JSON.stringify(adUnitBids) === JSON.stringify(currentValueBids)
+        );
+      });
 
-        if (toUpdate) {
-          toUpdate = merge(toUpdate, currentValue);
-          return previousValue;
-        } else {
-          return [...previousValue, currentValue];
-        }
-      }, [] as AdUnit[])
-      .sort((a: AdUnit, b: AdUnit) => (a?.code || '').localeCompare(b?.code || ''))
-  );
+      if (toUpdate) {
+        toUpdate = merge(toUpdate, currentValue);
+        return previousValue;
+      } else {
+        return [...previousValue, currentValue];
+      }
+    }, [] as AdUnit[])
+    .sort((a: AdUnit, b: AdUnit) => (a?.code || '').localeCompare(b?.code || ''));
 };
 
 const isTupleSize = (size: unknown): size is [number, number] => Array.isArray(size) && size.length === 2 && typeof size[0] === 'number' && typeof size[1] === 'number';

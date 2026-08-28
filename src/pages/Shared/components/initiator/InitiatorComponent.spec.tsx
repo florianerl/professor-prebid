@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent} from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import InitiatorComponent from './InitiatorComponent';
 import InspectedPageContext from '../../contexts/inspectedPageContext';
@@ -18,7 +18,10 @@ describe('InitiatorComponent', () => {
       startedDateTime: 1000,
       time: 120,
       resourceType: 'fetch',
-      queryString: [{ name: 'gdpr', value: '1' }, { name: 'gdpr_consent', value: 'CP12345' }],
+      queryString: [
+        { name: 'gdpr', value: '1' },
+        { name: 'gdpr_consent', value: 'CP12345' },
+      ],
       requestHeaders: [{ name: 'Content-Type', value: 'application/json' }],
       responseHeaders: [{ name: 'Cache-Control', value: 'no-cache' }],
       postData: { text: '{"id":"test-auction"}' },
@@ -115,7 +118,6 @@ describe('InitiatorComponent', () => {
     expect(screen.getByText(/Syncs: 2/)).toBeTruthy();
     expect(screen.getByText(/User IDs: 1/)).toBeTruthy();
 
-    // Verify row contents
     expect(screen.getByText('ib.adnxs.com')).toBeTruthy();
     expect(screen.getByText('sync.rubiconproject.com')).toBeTruthy();
   });
@@ -135,7 +137,6 @@ describe('InitiatorComponent', () => {
       </InspectedPageContext.Provider>
     );
 
-    // Filter to Bids
     const bidsChip = screen.getByText(/Bids: 1/);
     fireEvent.click(bidsChip);
 
@@ -180,12 +181,10 @@ describe('InitiatorComponent', () => {
       </InspectedPageContext.Provider>
     );
 
-    // Switch to Initiator Cascade tab
     const cascadeTab = screen.getByRole('tab', { name: /Initiator Cascade/i });
     fireEvent.click(cascadeTab);
     expect(screen.getByPlaceholderText(/Filter tree cascade/i)).toBeTruthy();
 
-    // Switch to Privacy Audit tab
     const privacyTab = screen.getByRole('tab', { name: /Privacy Audit/i });
     fireEvent.click(privacyTab);
     expect(screen.getByText('TCF Consent (GDPR)')).toBeTruthy();
@@ -206,19 +205,15 @@ describe('InitiatorComponent', () => {
       </InspectedPageContext.Provider>
     );
 
-    // Click first row
     const adnxsRow = screen.getByText('ib.adnxs.com');
     fireEvent.click(adnxsRow);
 
-    // Verify drawer opened with General Information
     expect(screen.getByText('General Information')).toBeTruthy();
 
-    // Switch to Query Params tab in drawer
     const queryParamsTab = screen.getByRole('tab', { name: /Query Params/i });
     fireEvent.click(queryParamsTab);
     expect(screen.getByText('gdpr_consent')).toBeTruthy();
 
-    // Switch to Payload tab
     const payloadTab = screen.getByRole('tab', { name: /Payload/i });
     fireEvent.click(payloadTab);
     expect(screen.getByText(/test-auction/)).toBeTruthy();
@@ -239,11 +234,9 @@ describe('InitiatorComponent', () => {
       </InspectedPageContext.Provider>
     );
 
-    // Click raw JSON toggle
     const rawJsonBtn = screen.getByRole('button', { name: /Switch to Raw JSON view/i });
     fireEvent.click(rawJsonBtn);
 
-    // Click Clear Log button
     const clearBtn = screen.getByRole('button', { name: /Clear Captured Network Log/i });
     fireEvent.click(clearBtn);
 

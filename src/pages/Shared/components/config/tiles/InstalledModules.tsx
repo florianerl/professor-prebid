@@ -23,13 +23,7 @@ const InstalledModulesComponent = (): JSX.Element | null => {
   const others = installedModules.filter((m) => !moduleTypes.some((t) => m.includes(t.filter))).sort();
 
   return (
-    <ExpandableTile
-      icon={<ExtensionIcon />}
-      title="Installed Modules"
-      subtitle={`${installedModules.length} total modules`}
-      defaultMaxWidth={4}
-      expandedMaxWidth={8}
-    >
+    <ExpandableTile icon={<ExtensionIcon />} title="Installed Modules" subtitle={`${installedModules.length} total modules`} defaultMaxWidth={4} expandedMaxWidth={8}>
       {moduleTypes.map((type) => {
         const modules = sorted(type.filter);
         if (!modules.length) return null;
@@ -40,14 +34,7 @@ const InstalledModulesComponent = (): JSX.Element | null => {
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1.5 }}>
               {modules.map((m) => (
-                <Chip
-                  key={m}
-                  label={m.replace(type.filter, '') || m}
-                  size="small"
-                  variant="outlined"
-                  color={type.color}
-                  sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-                />
+                <Chip key={m} label={m.replace(type.filter, '') || m} size="small" variant="outlined" color={type.color} sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />
               ))}
             </Box>
           </Grid>

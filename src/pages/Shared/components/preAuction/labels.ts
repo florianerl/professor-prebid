@@ -1,11 +1,6 @@
 import { AttributionSource } from './harCorrelation';
 import { LandedVerdict, ProviderType } from './providerDiagnostics';
 
-/**
- * Shared by the provider rows and the legend, so the explanation cannot drift from what the chips
- * actually say.
- */
-
 type ChipColor = 'success' | 'error' | 'warning' | 'primary' | 'default';
 
 export const VERDICT_LABEL: { [verdict in LandedVerdict]: string } = {
@@ -15,10 +10,8 @@ export const VERDICT_LABEL: { [verdict in LandedVerdict]: string } = {
   unknown: 'unknown',
 };
 
-/** `never` must say what is missing, which differs by module type. */
 const NEVER_LABEL: { [type in ProviderType]: string } = { identity: 'no ID', rtd: 'no RTD' };
 
-/** Omit `type` for the legend, which stands for both kinds of module at once. */
 export const verdictLabel = (verdict: LandedVerdict, type?: ProviderType): string => (verdict === 'never' ? (type ? NEVER_LABEL[type] : 'no ID / no RTD') : VERDICT_LABEL[verdict]);
 
 export const VERDICT_COLOR: { [verdict in LandedVerdict]: ChipColor } = {
@@ -45,7 +38,6 @@ export const ATTRIBUTION_HELP: { [source in AttributionSource]: string } = {
   host: 'Module name appears in the hostname. A guess.',
 };
 
-/** Page-lifetime gaps run to minutes, which is unreadable in raw milliseconds. */
 export const formatMs = (ms: number): string => {
   const abs = Math.abs(ms);
   if (abs < 1000) return `${Math.round(ms)}ms`;

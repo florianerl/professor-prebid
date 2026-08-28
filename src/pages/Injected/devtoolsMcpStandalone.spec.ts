@@ -19,14 +19,12 @@ describe('devtoolsMcpStandalone', () => {
     };
     (window as any).pbjs = mockPbjs;
 
-    // Execute script
     await import('./devtoolsMcpStandalone');
 
     expect((window as any).__PREBID_DEVTOOLS_MCP_INITIALIZED__).toBe(true);
     expect((window as any).__PREBID_DEVTOOLS_MCP__).toBeDefined();
     expect(mockPbjs.installedModules).toContain('devtoolsMcp');
 
-    // Simulate events
     registeredHandlers['auctionInit']?.({ auctionId: 'auc-1', timeout: 3000 });
     registeredHandlers['bidResponse']?.({ auctionId: 'auc-1', cpm: 2.5, bidder: 'appnexus' });
     registeredHandlers['noBid']?.({ auctionId: 'auc-1', bidder: 'rubicon' });
@@ -63,7 +61,6 @@ describe('devtoolsMcpStandalone', () => {
     expect((window as any).__PREBID_DEVTOOLS_MCP_INITIALIZED__).toBe(true);
     expect(customPbjs.installedModules).toContain('devtoolsMcp');
 
-    // Try re-importing when already initialized
     vi.resetModules();
     await import('./devtoolsMcpStandalone');
     expect((window as any).__PREBID_DEVTOOLS_MCP_INITIALIZED__).toBe(true);

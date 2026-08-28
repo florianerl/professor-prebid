@@ -38,23 +38,14 @@ const OverlayControlComponent = (): JSX.Element => {
               <Typography variant="h3" component="span" sx={{ fontSize: '0.85rem', fontWeight: 600 }}>
                 On-Page AdUnit Info Overlay
               </Typography>
-              <Chip
-                label={showOverlay ? 'ACTIVE' : 'DISABLED'}
-                size="small"
-                color={showOverlay ? 'primary' : 'default'}
-                sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }}
-              />
+              <Chip label={showOverlay ? 'ACTIVE' : 'DISABLED'} size="small" color={showOverlay ? 'primary' : 'default'} sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }} />
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
               Display interactive debugging badges and bid CPM metadata directly over ad slots on the page.
             </Typography>
           </Box>
         </Box>
-        <FormControlLabel
-          control={<Switch checked={showOverlay} onChange={handleShowOverlayChange} color="primary" size="small" />}
-          label=""
-          sx={{ mr: 0 }}
-        />
+        <FormControlLabel control={<Switch checked={showOverlay} onChange={handleShowOverlayChange} color="primary" size="small" />} label="" sx={{ mr: 0 }} />
       </CardContent>
     </Card>
   );

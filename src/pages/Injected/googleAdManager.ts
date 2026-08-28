@@ -30,15 +30,12 @@ class GoogleAdManager {
   }
 
   addEventListeners(): void {
-    // 1. Adding an event listener for the PubAdsService
-
     this.googletag.pubads().addEventListener('slotRequested', (event) => {
       const slotElementId = event.slot.getSlotElementId();
       const timestamp = Date.now();
       this.updatePostAuctionTimestamps(timestamp);
       if (!this.slotEvents[slotElementId]) this.slotEvents[slotElementId] = [];
       this.slotEvents[slotElementId].push({ type: 'slotRequested', timestamp });
-      // this.sendDetailsToContentScript()
     });
 
     this.googletag.pubads().addEventListener('slotResponseReceived', (event) => {
@@ -55,7 +52,6 @@ class GoogleAdManager {
       const timestamp = Date.now();
       if (!this.slotEvents[slotElementId]) this.slotEvents[slotElementId] = [];
       this.slotEvents[slotElementId].push({ type: 'slotRenderEnded', timestamp });
-      // this.sendDetailsToContentScript()
     });
 
     this.googletag.pubads().addEventListener('slotOnload', (event) => {
@@ -63,7 +59,6 @@ class GoogleAdManager {
       const timestamp = Date.now();
       if (!this.slotEvents[slotElementId]) this.slotEvents[slotElementId] = [];
       this.slotEvents[slotElementId].push({ type: 'slotOnload', timestamp });
-      // this.sendDetailsToContentScript()
     });
 
     this.googletag.pubads().addEventListener('slotVisibilityChanged', (event) => {
@@ -71,7 +66,6 @@ class GoogleAdManager {
       const timestamp = Date.now();
       if (!this.slotEvents[slotElementId]) this.slotEvents[slotElementId] = [];
       this.slotEvents[slotElementId].push({ type: 'slotVisibilityChanged', timestamp });
-      // this.sendDetailsToContentScript()
     });
 
     this.googletag.pubads().addEventListener('impressionViewable', (event) => {
@@ -96,10 +90,8 @@ class GoogleAdManager {
       const messageId = typeof message?.getMessageId === 'function' ? message?.getMessageId() : null;
 
       if (messageId == 70) {
-        // refreshing ads
         if (refreshIndex == null) refreshIndex = e;
       } else if (messageId == 3) {
-        // fetching ad slot
         if (fetchslotIndex == null) fetchslotIndex = e;
       }
     }
@@ -125,17 +117,14 @@ class GoogleAdManager {
       const messageId = typeof message?.getMessageId === 'function' ? message?.getMessageId() : null;
 
       if (messageId == 70) {
-        // refreshing ads
         if (refreshIndex == null) {
           refreshIndex = e;
         }
       } else if (messageId == 3) {
-        // fetching ad slot
         if (fetchslotIndex == null) {
           fetchslotIndex = e;
         }
       } else if (messageId == 17) {
-        // Setting targeting attribute for ad slot
         if (keyvalueIndex == null) {
           keyvalueIndex = e;
         }

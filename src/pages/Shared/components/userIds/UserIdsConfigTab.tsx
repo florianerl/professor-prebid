@@ -48,7 +48,7 @@ const ConfigTab = ({ searchQuery = '' }: { searchQuery?: string }): JSX.Element 
           <Grid key={userId?.name || index} size={{ xs: 12 }}>
             <Card elevation={1} sx={{ border: '1px solid', borderColor: 'divider', transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 2 } }}>
               <CardContent sx={{ p: 1.25, '&:last-child': { pb: 1.25 } }}>
-                {/* Header Bar */}
+                {}
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap', gap: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <SettingsIcon color="primary" sx={{ fontSize: '1.2rem' }} />
@@ -59,23 +59,11 @@ const ConfigTab = ({ searchQuery = '' }: { searchQuery?: string }): JSX.Element 
                   </Box>
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
-                    {userId?.storage?.type && (
-                      <Chip
-                        icon={<StorageIcon sx={{ fontSize: '0.75rem !important' }} />}
-                        label={`type: ${userId.storage.type}`}
-                        size="small"
-                        color="info"
-                        sx={{ height: 20, fontSize: '0.675rem', fontWeight: 600 }}
-                      />
-                    )}
+                    {userId?.storage?.type && <Chip icon={<StorageIcon sx={{ fontSize: '0.75rem !important' }} />} label={`type: ${userId.storage.type}`} size="small" color="info" sx={{ height: 20, fontSize: '0.675rem', fontWeight: 600 }} />}
 
-                    {userId?.storage?.name && (
-                      <Chip label={`key: ${userId.storage.name}`} size="small" color="secondary" sx={{ height: 20, fontSize: '0.675rem', fontWeight: 600 }} />
-                    )}
+                    {userId?.storage?.name && <Chip label={`key: ${userId.storage.name}`} size="small" color="secondary" sx={{ height: 20, fontSize: '0.675rem', fontWeight: 600 }} />}
 
-                    {userId?.storage?.expires !== undefined && (
-                      <Chip label={`expires: ${userId.storage.expires}d`} size="small" color="default" sx={{ height: 20, fontSize: '0.675rem', fontWeight: 600 }} />
-                    )}
+                    {userId?.storage?.expires !== undefined && <Chip label={`expires: ${userId.storage.expires}d`} size="small" color="default" sx={{ height: 20, fontSize: '0.675rem', fontWeight: 600 }} />}
                   </Box>
                 </Box>
 
@@ -97,14 +85,7 @@ const ConfigTab = ({ searchQuery = '' }: { searchQuery?: string }): JSX.Element 
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 0.25 }}>
                       Module Parameters (params):
                     </Typography>
-                    <JSONViewerComponent
-                      src={params}
-                      name={false}
-                      collapsed={1}
-                      displayObjectSize={false}
-                      displayDataTypes={false}
-                      style={{ fontSize: '11px', fontFamily: 'monospace' }}
-                    />
+                    <JSONViewerComponent src={params} name={false} collapsed={1} displayObjectSize={false} displayDataTypes={false} style={{ fontSize: '11px', fontFamily: 'monospace' }} />
                   </Box>
                 )}
               </CardContent>

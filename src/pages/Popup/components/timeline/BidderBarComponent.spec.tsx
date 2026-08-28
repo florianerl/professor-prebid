@@ -79,12 +79,7 @@ const makeGridRef = (): React.MutableRefObject<any> => {
 const Wrapper = ({ topics = [], gridRef = makeGridRef(), auctionEndLeft = 900 }: any) => (
   <AppStateContext.Provider value={makeStateContext(topics)}>
     <ul>
-      <BidderBarComponent
-        item={mockItem}
-        auctionEndLeft={auctionEndLeft}
-        auctionEndEvent={mockAuctionEndEvent}
-        gridRef={gridRef}
-      />
+      <BidderBarComponent item={mockItem} auctionEndLeft={auctionEndLeft} auctionEndEvent={mockAuctionEndEvent} gridRef={gridRef} />
     </ul>
   </AppStateContext.Provider>
 );

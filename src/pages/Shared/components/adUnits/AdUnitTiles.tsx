@@ -290,11 +290,9 @@ export const MediaTypesTile = ({ adUnit, colCount }: { adUnit: AdUnit; colCount:
                     displayLabel = `context: ${value}`;
                   } else if (key === 'playerSize') {
                     const sizes = Array.isArray(value) && Array.isArray(value[0]) ? value : [value];
-                    displayLabel = `size: ${sizes.map((s: any) => Array.isArray(s) ? s.join('x') : s).join(', ')}`;
+                    displayLabel = `size: ${sizes.map((s: any) => (Array.isArray(s) ? s.join('x') : s)).join(', ')}`;
                   }
-                  return (
-                    <MediaTypeChipComponent key={key} input={value} label={displayLabel} isWinner={allWinningBids.some(({ args }) => args.adUnitCode === adUnitCode && args.mediaType === 'video')} />
-                  );
+                  return <MediaTypeChipComponent key={key} input={value} label={displayLabel} isWinner={allWinningBids.some(({ args }) => args.adUnitCode === adUnitCode && args.mediaType === 'video')} />;
                 })}
               </TileSection>
             )}

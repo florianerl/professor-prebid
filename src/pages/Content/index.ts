@@ -47,10 +47,7 @@ const listenToChromeRuntimeMessages = () => {
   chrome.runtime?.onMessage.addListener(processChromeRuntimeMessages);
 };
 
-type ChromeMessage =
-  | { type: typeof CONSOLE_TOGGLE; consoleState: boolean }
-  | { type: typeof PBJS_NAMESPACE_CHANGE; pbjsNamespace: string }
-  | { type: typeof POPUP_LOADED; payload: object };
+type ChromeMessage = { type: typeof CONSOLE_TOGGLE; consoleState: boolean } | { type: typeof PBJS_NAMESPACE_CHANGE; pbjsNamespace: string } | { type: typeof POPUP_LOADED; payload: object };
 
 const processChromeRuntimeMessages = (request: ChromeMessage) => {
   switch (request.type) {
@@ -66,8 +63,6 @@ const processChromeRuntimeMessages = (request: ChromeMessage) => {
       break;
   }
 };
-
-
 
 export const sendToServiceWorker = (type: string, payload: object) => {
   if (!type || !payload || !chrome.runtime?.id || !chrome.runtime?.sendMessage) return;

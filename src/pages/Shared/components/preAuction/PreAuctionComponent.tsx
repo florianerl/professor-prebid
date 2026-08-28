@@ -25,10 +25,6 @@ import { correlateHar, IProviderTiming } from './harCorrelation';
 import { ATTRIBUTION_HELP, ATTRIBUTION_LABEL, formatMs, VERDICT_COLOR, VERDICT_HELP, verdictLabel } from './labels';
 import PreAuctionHelp from './PreAuctionHelp';
 
-/**
- * Filterable fields. Multi-valued ones are joined so a `contains` match works across them; a bare
- * word with no `key:` searches all of them.
- */
 export const PROVIDER_FIELD_MAP = {
   provider: (provider: IProviderDiagnostic) => provider.name,
   type: (provider: IProviderDiagnostic) => provider.type,
@@ -39,10 +35,6 @@ export const PROVIDER_FIELD_MAP = {
 
 const providerQueryEngine = createQueryEngine<IProviderDiagnostic>(PROVIDER_FIELD_MAP);
 
-/**
- * `key:` entries plus every `key:value` present. The autocomplete only offers values once a `key:`
- * has been typed, so bare names would never be suggested.
- */
 const buildSuggestions = (providers: IProviderDiagnostic[]): string[] =>
   distinct([
     ...Object.keys(PROVIDER_FIELD_MAP).map((key) => `${key}:`),

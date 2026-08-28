@@ -81,28 +81,14 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
   const { categoryLabel, categoryColor, providerName, privacy } = selectedEntry;
 
   const queryParamsList = entry.queryString || [];
-  const filteredParams = queryParamsList.filter(
-    (p) =>
-      p.name.toLowerCase().includes(paramFilter.toLowerCase()) ||
-      p.value.toLowerCase().includes(paramFilter.toLowerCase())
-  );
+  const filteredParams = queryParamsList.filter((p) => p.name.toLowerCase().includes(paramFilter.toLowerCase()) || p.value.toLowerCase().includes(paramFilter.toLowerCase()));
 
   const reqHeaders = entry.requestHeaders || [];
   const resHeaders = entry.responseHeaders || [];
-  const filteredReqHeaders = reqHeaders.filter(
-    (h) =>
-      h.name.toLowerCase().includes(headerFilter.toLowerCase()) ||
-      h.value.toLowerCase().includes(headerFilter.toLowerCase())
-  );
-  const filteredResHeaders = resHeaders.filter(
-    (h) =>
-      h.name.toLowerCase().includes(headerFilter.toLowerCase()) ||
-      h.value.toLowerCase().includes(headerFilter.toLowerCase())
-  );
+  const filteredReqHeaders = reqHeaders.filter((h) => h.name.toLowerCase().includes(headerFilter.toLowerCase()) || h.value.toLowerCase().includes(headerFilter.toLowerCase()));
+  const filteredResHeaders = resHeaders.filter((h) => h.name.toLowerCase().includes(headerFilter.toLowerCase()) || h.value.toLowerCase().includes(headerFilter.toLowerCase()));
 
-  const activePayloadText = showRawCompressed
-    ? entry.postData?.text || ''
-    : decompressed.text || entry.postData?.text || '';
+  const activePayloadText = showRawCompressed ? entry.postData?.text || '' : decompressed.text || entry.postData?.text || '';
 
   let parsedPostJson: any = null;
   if (activePayloadText) {
@@ -113,14 +99,7 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
     }
   }
 
-  const statusColor =
-    entry.status >= 200 && entry.status < 300
-      ? 'success'
-      : entry.status >= 300 && entry.status < 400
-      ? 'info'
-      : entry.status >= 400
-      ? 'error'
-      : 'default';
+  const statusColor = entry.status >= 200 && entry.status < 300 ? 'success' : entry.status >= 300 && entry.status < 400 ? 'info' : entry.status >= 400 ? 'error' : 'default';
 
   return (
     <Drawer
@@ -160,7 +139,8 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
               whiteSpace: 'nowrap',
             }}
           >
-            {entry.host}{entry.pathname}
+            {entry.host}
+            {entry.pathname}
           </Typography>
           <Tooltip title={`${entry.url} (Click to copy)`} arrow placement="bottom-start">
             <Typography
@@ -200,13 +180,7 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
       </Box>
 
       {/* Navigation Tabs */}
-      <Tabs
-        value={tabIndex}
-        onChange={(_, val) => setTabIndex(val)}
-        variant="scrollable"
-        scrollButtons="auto"
-        sx={{ borderBottom: 1, borderColor: 'divider', minHeight: 36, mb: 1.5, flexShrink: 0 }}
-      >
+      <Tabs value={tabIndex} onChange={(_, val) => setTabIndex(val)} variant="scrollable" scrollButtons="auto" sx={{ borderBottom: 1, borderColor: 'divider', minHeight: 36, mb: 1.5, flexShrink: 0 }}>
         <Tab label="Overview" sx={{ minHeight: 36, py: 0.5, fontSize: '0.75rem' }} />
         <Tab
           label={`Privacy (${privacy.verdict === 'warning' ? 'MALFORMED' : privacy.verdict.toUpperCase()})`}
@@ -214,14 +188,7 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
             minHeight: 36,
             py: 0.5,
             fontSize: '0.75rem',
-            color:
-              privacy.verdict === 'valid'
-                ? 'success.main'
-                : privacy.verdict === 'warning'
-                ? 'warning.main'
-                : privacy.verdict === 'missing'
-                ? 'error.main'
-                : 'inherit',
+            color: privacy.verdict === 'valid' ? 'success.main' : privacy.verdict === 'warning' ? 'warning.main' : privacy.verdict === 'missing' ? 'error.main' : 'inherit',
           }}
         />
         <Tab label={`Query Params (${queryParamsList.length})`} sx={{ minHeight: 36, py: 0.5, fontSize: '0.75rem' }} />
@@ -290,24 +257,44 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
                 </Typography>
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 1 }}>
                   <Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1, textAlign: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">DNS</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatMs(entry.timings.dns)}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      DNS
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {formatMs(entry.timings.dns)}
+                    </Typography>
                   </Box>
                   <Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1, textAlign: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">Connect</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatMs(entry.timings.connect)}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Connect
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {formatMs(entry.timings.connect)}
+                    </Typography>
                   </Box>
                   <Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1, textAlign: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">SSL</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatMs(entry.timings.ssl)}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      SSL
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {formatMs(entry.timings.ssl)}
+                    </Typography>
                   </Box>
                   <Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1, textAlign: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">Wait (TTFB)</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatMs(entry.timings.wait)}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Wait (TTFB)
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {formatMs(entry.timings.wait)}
+                    </Typography>
                   </Box>
                   <Box sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1, textAlign: 'center' }}>
-                    <Typography variant="caption" color="text.secondary">Receive</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatMs(entry.timings.receive)}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Receive
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {formatMs(entry.timings.receive)}
+                    </Typography>
                   </Box>
                 </Box>
               </Paper>
@@ -318,19 +305,7 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
         {/* Tab 1: Privacy & Consent Audit */}
         {tabIndex === 1 && (
           <>
-            <Alert
-              severity={
-                privacy.verdict === 'valid'
-                  ? 'success'
-                  : privacy.verdict === 'warning'
-                  ? 'warning'
-                  : privacy.verdict === 'missing'
-                  ? 'error'
-                  : 'info'
-              }
-            >
-              {privacy.verdictReason}
-            </Alert>
+            <Alert severity={privacy.verdict === 'valid' ? 'success' : privacy.verdict === 'warning' ? 'warning' : privacy.verdict === 'missing' ? 'error' : 'info'}>{privacy.verdictReason}</Alert>
 
             {/* TCF String Details */}
             {privacy.gdprConsent && (
@@ -371,11 +346,11 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
                         <TableCell>
                           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                             {privacy.decodedTcf.purposeConsents && privacy.decodedTcf.purposeConsents.length > 0 ? (
-                              privacy.decodedTcf.purposeConsents.map((p) => (
-                                <Chip key={p} label={`P${p}`} size="small" color="primary" variant="outlined" />
-                              ))
+                              privacy.decodedTcf.purposeConsents.map((p) => <Chip key={p} label={`P${p}`} size="small" color="primary" variant="outlined" />)
                             ) : (
-                              <Typography variant="caption" color="text.secondary">None granted</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                None granted
+                              </Typography>
                             )}
                           </Box>
                         </TableCell>
@@ -385,11 +360,11 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
                         <TableCell>
                           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                             {privacy.decodedTcf.specialFeatureOptins && privacy.decodedTcf.specialFeatureOptins.length > 0 ? (
-                              privacy.decodedTcf.specialFeatureOptins.map((f) => (
-                                <Chip key={f} label={`SF${f}`} size="small" color="secondary" variant="outlined" />
-                              ))
+                              privacy.decodedTcf.specialFeatureOptins.map((f) => <Chip key={f} label={`SF${f}`} size="small" color="secondary" variant="outlined" />)
                             ) : (
-                              <Typography variant="caption" color="text.secondary">None</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                None
+                              </Typography>
                             )}
                           </Box>
                         </TableCell>
@@ -448,13 +423,7 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
         {/* Tab 2: Query Parameters */}
         {tabIndex === 2 && (
           <>
-            <TextField
-              size="small"
-              placeholder="Search query parameters..."
-              value={paramFilter}
-              onChange={(e) => setParamFilter(e.target.value)}
-              sx={{ mb: 0.5 }}
-            />
+            <TextField size="small" placeholder="Search query parameters..." value={paramFilter} onChange={(e) => setParamFilter(e.target.value)} sx={{ mb: 0.5 }} />
             {filteredParams.length === 0 ? (
               <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: 'center' }}>
                 No query parameters found.
@@ -474,9 +443,7 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
                       const isDecodableUrl = p.value.includes('%2F') || p.value.includes('%3A');
                       return (
                         <TableRow key={idx}>
-                          <TableCell sx={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '0.75rem' }}>
-                            {p.name}
-                          </TableCell>
+                          <TableCell sx={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '0.75rem' }}>{p.name}</TableCell>
                           <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>
                             {p.value}
                             {isDecodableUrl && (
@@ -508,12 +475,7 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
         {/* Tab 3: Headers */}
         {tabIndex === 3 && (
           <>
-            <TextField
-              size="small"
-              placeholder="Search headers..."
-              value={headerFilter}
-              onChange={(e) => setHeaderFilter(e.target.value)}
-            />
+            <TextField size="small" placeholder="Search headers..." value={headerFilter} onChange={(e) => setHeaderFilter(e.target.value)} />
             <Paper variant="outlined" sx={{ p: 1.5 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                 Request Headers ({filteredReqHeaders.length})
@@ -522,12 +484,8 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
                 <TableBody>
                   {filteredReqHeaders.map((h, i) => (
                     <TableRow key={i}>
-                      <TableCell sx={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '0.75rem', width: 180 }}>
-                        {h.name}
-                      </TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>
-                        {h.value}
-                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '0.75rem', width: 180 }}>{h.name}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>{h.value}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -542,12 +500,8 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
                 <TableBody>
                   {filteredResHeaders.map((h, i) => (
                     <TableRow key={i}>
-                      <TableCell sx={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '0.75rem', width: 180 }}>
-                        {h.name}
-                      </TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>
-                        {h.value}
-                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '0.75rem', width: 180 }}>{h.name}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>{h.value}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -582,12 +536,7 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     {decompressed.isDecompressed && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => setShowRawCompressed(!showRawCompressed)}
-                        sx={{ fontSize: '0.65rem', py: 0.25, px: 1, textTransform: 'none', height: 24 }}
-                      >
+                      <Button size="small" variant="outlined" onClick={() => setShowRawCompressed(!showRawCompressed)} sx={{ fontSize: '0.65rem', py: 0.25, px: 1, textTransform: 'none', height: 24 }}>
                         {showRawCompressed ? 'Show Unzipped JSON' : 'Show Raw Compressed'}
                       </Button>
                     )}
@@ -625,18 +574,16 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
                   <TableBody>
                     {entry.requestCookies.map((c, i) => (
                       <TableRow key={i}>
-                        <TableCell sx={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '0.75rem', width: 140 }}>
-                          {c.name}
-                        </TableCell>
-                        <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>
-                          {c.value}
-                        </TableCell>
+                        <TableCell sx={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '0.75rem', width: 140 }}>{c.name}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>{c.value}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               ) : (
-                <Typography variant="caption" color="text.secondary">No request cookies</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  No request cookies
+                </Typography>
               )}
             </Paper>
 
@@ -649,18 +596,16 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
                   <TableBody>
                     {entry.responseCookies.map((c, i) => (
                       <TableRow key={i}>
-                        <TableCell sx={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '0.75rem', width: 140 }}>
-                          {c.name}
-                        </TableCell>
-                        <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>
-                          {c.value}
-                        </TableCell>
+                        <TableCell sx={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '0.75rem', width: 140 }}>{c.name}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>{c.value}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               ) : (
-                <Typography variant="caption" color="text.secondary">No response cookies set</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  No response cookies set
+                </Typography>
               )}
             </Paper>
           </>
@@ -691,12 +636,8 @@ export const NetworkDetailDrawer = ({ selectedEntry, onClose }: NetworkDetailDra
                 <TableBody>
                   {entry.initiator.stack.callFrames.map((frame: any, idx: number) => (
                     <TableRow key={idx}>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 600 }}>
-                        {frame.functionName || '(anonymous)'}
-                      </TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>
-                        {frame.url ? `${frame.url}:${frame.lineNumber || 0}:${frame.columnNumber || 0}` : 'inline'}
-                      </TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 600 }}>{frame.functionName || '(anonymous)'}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>{frame.url ? `${frame.url}:${frame.lineNumber || 0}:${frame.columnNumber || 0}` : 'inline'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

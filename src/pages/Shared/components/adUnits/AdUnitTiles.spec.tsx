@@ -1,13 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import {
-  AdUnitTile,
-  AdServerTile,
-  BiddersTile,
-  MediaTypesTile,
-  Ortb2ImpTile,
-} from './AdUnitTiles';
+import { render, screen, fireEvent} from '@testing-library/react';
+import { describe, it, expect} from 'vitest';
+import { AdUnitTile, AdServerTile, BiddersTile, MediaTypesTile, Ortb2ImpTile } from './AdUnitTiles';
 import AppStateContext from '../../contexts/appStateContext';
 
 describe('AdUnitTiles components', () => {
@@ -84,7 +78,6 @@ describe('AdUnitTiles components', () => {
     expect(screen.getByText('slot-1')).toBeTruthy();
     expect(screen.getByText('Interstitial')).toBeTruthy();
 
-    // Toggle expand icon button
     const expandBtn = screen.getByLabelText('show more');
     fireEvent.click(expandBtn);
 
@@ -101,7 +94,6 @@ describe('AdUnitTiles components', () => {
     expect(screen.getByText('300x250')).toBeTruthy();
     expect(screen.getByText('kw: news')).toBeTruthy();
 
-    // Expand
     const expandBtn = screen.getByLabelText('show more');
     fireEvent.click(expandBtn);
     expect(screen.getByText('Ad Server Slot JSON:')).toBeTruthy();
@@ -136,7 +128,6 @@ describe('AdUnitTiles components', () => {
 
     expect(screen.getByText('rubicon (2.50 USD)')).toBeTruthy();
 
-    // Expand
     const expandBtn = screen.getByLabelText('show more');
     fireEvent.click(expandBtn);
     expect(screen.getByText('Bids JSON:')).toBeTruthy();
@@ -151,7 +142,6 @@ describe('AdUnitTiles components', () => {
 
     expect(screen.getByText('300x250')).toBeTruthy();
 
-    // Expand
     const expandBtn = screen.getByLabelText('show more');
     fireEvent.click(expandBtn);
   });
@@ -176,7 +166,6 @@ describe('AdUnitTiles components', () => {
 
     expect(screen.getByText('ORTB2 Imp:')).toBeTruthy();
 
-    // Rerender with no ortb2Imp
     rerender(
       <AppStateContext.Provider value={mockAppState}>
         <Ortb2ImpTile adUnit={{ code: 'slot-no-ortb' } as any} colCount={3} />

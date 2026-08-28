@@ -13,11 +13,9 @@ import { INativeRules, IPrebidDebugModuleConfigRule } from '../../../../Injected
 
 const sanityCheck = (rule: IPrebidDebugModuleConfigRule, mediaType: string) => {
   if (mediaType === 'native') {
-    // if (Object.keys(rule.when).includes('mediaType') && Object.values(rule.when).includes('native')) return true; // matching on mediaType not working
     if (Object.keys(rule.then).includes('mediaType') && Object.values(rule.then).includes('native')) return true;
   }
   if (mediaType === 'video') {
-    // if (Object.keys(rule.when).includes('mediaType') && Object.values(rule.when).includes('video')) return true; // matching on mediaType not working
     if (Object.keys(rule.then).includes('mediaType') && Object.values(rule.then).includes('video')) return true;
   }
   if (['allMediaTypes', 'banner'].includes(mediaType)) return true;

@@ -1,0 +1,54 @@
+src/pages/App/components/GamDetailsComponent.tsx(52,6): error TS17008: JSX element 'React.Fragment' has no corresponding closing tag.
+src/pages/App/components/GamDetailsComponent.tsx(68,27): error TS1005: '}' expected.
+src/pages/App/components/GamDetailsComponent.tsx(68,29): error TS1005: '...' expected.
+src/pages/App/components/GamDetailsComponent.tsx(68,35): error TS1003: Identifier expected.
+src/pages/App/components/GamDetailsComponent.tsx(84,25): error TS1005: '}' expected.
+src/pages/App/components/GamDetailsComponent.tsx(86,17): error TS17002: Expected corresponding JSX closing tag for 'Typography'.
+src/pages/App/components/GamDetailsComponent.tsx(87,15): error TS1005: ')' expected.
+src/pages/App/components/GamDetailsComponent.tsx(87,26): error TS1005: ',' expected.
+src/pages/App/components/GamDetailsComponent.tsx(87,30): error TS1005: ':' expected.
+src/pages/App/components/GamDetailsComponent.tsx(99,11): error TS1005: ',' expected.
+src/pages/App/components/GamDetailsComponent.tsx(104,10): error TS17008: JSX element 'Box' has no corresponding closing tag.
+src/pages/App/components/GamDetailsComponent.tsx(110,30): error TS1005: '}' expected.
+src/pages/App/components/GamDetailsComponent.tsx(110,32): error TS1005: '...' expected.
+src/pages/App/components/GamDetailsComponent.tsx(110,56): error TS1003: Identifier expected.
+src/pages/App/components/GamDetailsComponent.tsx(110,110): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/pages/App/components/GamDetailsComponent.tsx(111,17): error TS17002: Expected corresponding JSX closing tag for 'Typography'.
+src/pages/App/components/GamDetailsComponent.tsx(114,20): error TS17008: JSX element 'Typography' has no corresponding closing tag.
+src/pages/App/components/GamDetailsComponent.tsx(118,27): error TS1005: '}' expected.
+src/pages/App/components/GamDetailsComponent.tsx(118,29): error TS1005: '...' expected.
+src/pages/App/components/GamDetailsComponent.tsx(118,35): error TS1003: Identifier expected.
+src/pages/App/components/GamDetailsComponent.tsx(220,1): error TS1005: '</' expected.
+src/pages/App/components/GamDetailsComponent.tsx(220,1): error TS1160: Unterminated template literal.
+src/pages/App/components/PopOverComponent.tsx(214,14): error TS17008: JSX element 'Box' has no corresponding closing tag.
+src/pages/App/components/PopOverComponent.tsx(235,16): error TS17008: JSX element 'Grid' has no corresponding closing tag.
+src/pages/App/components/PopOverComponent.tsx(237,104): error TS1005: ':' expected.
+src/pages/App/components/PopOverComponent.tsx(238,17): error TS1003: Identifier expected.
+src/pages/App/components/PopOverComponent.tsx(238,18): error TS1005: '...' expected.
+src/pages/App/components/PopOverComponent.tsx(310,1): error TS1005: '</' expected.
+src/pages/App/components/PopOverComponent.tsx(310,1): error TS1160: Unterminated template literal.
+src/pages/Devtools/harLog.ts(77,58): error TS1161: Unterminated regular expression literal.
+src/pages/Shared/components/config/tiles/PrebidServerComponent.tsx(38,68): error TS1161: Unterminated regular expression literal.
+src/pages/Shared/components/config/tiles/PrebidServerComponent.tsx(39,5): error TS1005: ',' expected.
+src/pages/Shared/components/config/tiles/PrebidServerComponent.tsx(39,22): error TS1005: '}' expected.
+src/pages/Shared/components/pbjsVersionInfo/components/VersionComparisonCards.tsx(39,11): error TS17014: JSX fragment has no corresponding closing tag.
+src/pages/Shared/components/pbjsVersionInfo/components/VersionComparisonCards.tsx(89,8): error TS17008: JSX element 'Grid' has no corresponding closing tag.
+src/pages/Shared/components/pbjsVersionInfo/components/VersionComparisonCards.tsx(90,10): error TS17008: JSX element 'Paper' has no corresponding closing tag.
+src/pages/Shared/components/pbjsVersionInfo/components/VersionComparisonCards.tsx(104,12): error TS17008: JSX element 'Box' has no corresponding closing tag.
+src/pages/Shared/components/pbjsVersionInfo/components/VersionComparisonCards.tsx(124,14): error TS17008: JSX element 'Box' has no corresponding closing tag.
+src/pages/Shared/components/pbjsVersionInfo/components/VersionComparisonCards.tsx(157,1): error TS1005: '</' expected.
+src/pages/Shared/components/pbjsVersionInfo/components/VersionComparisonCards.tsx(157,1): error TS1160: Unterminated template literal.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(196,26): error TS1005: ',' expected.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(196,33): error TS1005: ',' expected.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(196,37): error TS1005: ',' expected.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(196,46): error TS1005: ',' expected.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(196,53): error TS1005: ',' expected.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(196,54): error TS1005: ',' expected.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(196,63): error TS1005: ',' expected.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(251,8): error TS1005: ',' expected.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(251,10): error TS1005: ',' expected.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(251,28): error TS1005: ',' expected.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(252,44): error TS1005: ',' expected.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(252,46): error TS1005: ',' expected.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(252,64): error TS1005: ',' expected.
+src/pages/Shared/components/pbjsVersionInfo/PbjsVersionInfoContent.tsx(404,1): error TS1160: Unterminated template literal.

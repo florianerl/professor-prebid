@@ -32,14 +32,7 @@ const RtdComponent = (): JSX.Element | null => {
   );
 
   return (
-    <ExpandableTile
-      icon={<HubIcon />}
-      title="Real-Time Data (RTD)"
-      subtitle={providers.length ? `${providers.length} provider(s) configured` : 'RTD module active'}
-      defaultMaxWidth={4}
-      expandedMaxWidth={8}
-      headerAction={jsonToggleAction}
-    >
+    <ExpandableTile icon={<HubIcon />} title="Real-Time Data (RTD)" subtitle={providers.length ? `${providers.length} provider(s) configured` : 'RTD module active'} defaultMaxWidth={4} expandedMaxWidth={8} headerAction={jsonToggleAction}>
       {showJson ? (
         <Grid size={{ xs: 12 }}>
           <JSONViewerComponent src={realTimeData} name="" collapsed={1} />
@@ -53,14 +46,7 @@ const RtdComponent = (): JSX.Element | null => {
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
                 {providers.map((p: any, idx: number) => (
-                  <Chip
-                    key={idx}
-                    label={p.name || `Provider ${idx + 1}`}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                    sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-                  />
+                  <Chip key={idx} label={p.name || `Provider ${idx + 1}`} size="small" color="primary" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />
                 ))}
               </Box>
             </>

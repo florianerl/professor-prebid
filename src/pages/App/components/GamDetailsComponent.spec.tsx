@@ -52,9 +52,7 @@ describe('GamDetailsComponent', () => {
   });
 
   it('renders nothing when elementId does not match any slot or googletag is absent', () => {
-    const { container } = render(
-      <GamDetailsComponent elementId="non-existent-id" inPopOver={false} truncate={false} />
-    );
+    const { container } = render(<GamDetailsComponent elementId="non-existent-id" inPopOver={false} truncate={false} />);
     expect(container.innerHTML).toBe('');
   });
 
@@ -64,9 +62,7 @@ describe('GamDetailsComponent', () => {
     div.setAttribute('data-google-query-id', 'query-123');
     document.body.appendChild(div);
 
-    render(
-      <GamDetailsComponent elementId="div-gpt-ad-1234567-0" inPopOver={false} truncate={false} />
-    );
+    render(<GamDetailsComponent elementId="div-gpt-ad-1234567-0" inPopOver={false} truncate={false} />);
 
     expect(screen.getByText('LineItem-ID:')).toBeDefined();
     expect(screen.getByText('43210')).toBeDefined();
@@ -79,9 +75,7 @@ describe('GamDetailsComponent', () => {
   });
 
   it('matches by adUnitPath and uses sourceAgnostic fallbacks', () => {
-    render(
-      <GamDetailsComponent elementId="/55555/path-match" inPopOver={false} truncate={false} />
-    );
+    render(<GamDetailsComponent elementId="/55555/path-match" inPopOver={false} truncate={false} />);
 
     expect(screen.getByText('LineItem-ID:')).toBeDefined();
     expect(screen.getByText('22222')).toBeDefined();
@@ -95,24 +89,19 @@ describe('GamDetailsComponent', () => {
     div.setAttribute('data-google-query-id', 'long-query-id-1234567890');
     document.body.appendChild(div);
 
-    render(
-      <GamDetailsComponent elementId="div-gpt-ad-1234567-0" inPopOver={false} truncate={true} />
-    );
+    render(<GamDetailsComponent elementId="div-gpt-ad-1234567-0" inPopOver={false} truncate={true} />);
 
     expect(screen.getByText('long...7890')).toBeDefined();
   });
 
   it('renders additional popover details when inPopOver is true and reacts to slotRenderEnded events', () => {
-    render(
-      <GamDetailsComponent elementId="div-gpt-ad-1234567-0" inPopOver={true} truncate={false} />
-    );
+    render(<GamDetailsComponent elementId="div-gpt-ad-1234567-0" inPopOver={true} truncate={false} />);
 
     expect(screen.getByText('Response-Info:')).toBeDefined();
     expect(screen.getByText('Targeting:')).toBeDefined();
     expect(screen.getByText('test-key')).toBeDefined();
     expect(screen.getByText('test-value')).toBeDefined();
 
-    // Trigger slotRenderEnded event
     if (registeredListeners['slotRenderEnded']) {
       registeredListeners['slotRenderEnded']({
         slot: { getSlotElementId: () => 'div-gpt-ad-1234567-0' },
@@ -121,9 +110,7 @@ describe('GamDetailsComponent', () => {
   });
 
   it('adds and removes event listeners correctly on unmount', () => {
-    const { unmount } = render(
-      <GamDetailsComponent elementId="div-gpt-ad-1234567-0" inPopOver={false} truncate={false} />
-    );
+    const { unmount } = render(<GamDetailsComponent elementId="div-gpt-ad-1234567-0" inPopOver={false} truncate={false} />);
 
     expect(mockAddEventListener).toHaveBeenCalledWith('slotResponseReceived', expect.any(Function));
     expect(mockAddEventListener).toHaveBeenCalledWith('slotRenderEnded', expect.any(Function));

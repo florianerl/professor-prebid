@@ -20,7 +20,7 @@ const RuleComponent = ({ rule, ruleIndex, handleRulesFormChange, prebid, removeR
       <CardHeader
         action={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* Explicit Delay Label + Input Field (No Floating Label Clipping) */}
+            {}
             <Tooltip title="Simulate network latency delay (ms) before returning this mock bid response" arrow>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                 <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', whiteSpace: 'nowrap' }}>
@@ -41,7 +41,11 @@ const RuleComponent = ({ rule, ruleIndex, handleRulesFormChange, prebid, removeR
                     '& .MuiInputBase-input': { fontSize: '0.8rem', py: 0.5, px: 1 },
                   }}
                   InputProps={{
-                    endAdornment: <InputAdornment position="end" sx={{ '& .MuiTypography-root': { fontSize: '0.75rem' } }}>ms</InputAdornment>,
+                    endAdornment: (
+                      <InputAdornment position="end" sx={{ '& .MuiTypography-root': { fontSize: '0.75rem' } }}>
+                        ms
+                      </InputAdornment>
+                    ),
                   }}
                 />
               </Box>
@@ -70,15 +74,7 @@ const RuleComponent = ({ rule, ruleIndex, handleRulesFormChange, prebid, removeR
             WHEN (Match Request)
           </Typography>
           {Object.keys(rule.when).map((key, matchRuleTargetsIndex) => (
-            <MatchRule
-              groupIndex={matchRuleTargetsIndex}
-              key={key}
-              rule={rule}
-              ruleKey={key}
-              handleRulesFormChange={handleRulesFormChange}
-              prebid={prebid}
-              path={['intercept', `${ruleIndex}`, 'when', key]}
-            />
+            <MatchRule groupIndex={matchRuleTargetsIndex} key={key} rule={rule} ruleKey={key} handleRulesFormChange={handleRulesFormChange} prebid={prebid} path={['intercept', `${ruleIndex}`, 'when', key]} />
           ))}
         </Box>
 
@@ -89,27 +85,9 @@ const RuleComponent = ({ rule, ruleIndex, handleRulesFormChange, prebid, removeR
           </Typography>
           {Object.keys(rule.then).map((key, index) => {
             if (key === 'native') {
-              return Object.keys(rule.then[key]).map((k, i) => (
-                <ReplaceRule
-                  key={k}
-                  rule={rule}
-                  ruleKey={k}
-                  groupIndex={index}
-                  handleRulesFormChange={handleRulesFormChange}
-                  path={['intercept', `${ruleIndex}`, 'then', 'native', k]}
-                />
-              ));
+              return Object.keys(rule.then[key]).map((k, i) => <ReplaceRule key={k} rule={rule} ruleKey={k} groupIndex={index} handleRulesFormChange={handleRulesFormChange} path={['intercept', `${ruleIndex}`, 'then', 'native', k]} />);
             } else {
-              return (
-                <ReplaceRule
-                  key={key}
-                  rule={rule}
-                  ruleKey={key}
-                  groupIndex={index}
-                  handleRulesFormChange={handleRulesFormChange}
-                  path={['intercept', `${ruleIndex}`, 'then', key]}
-                />
-              );
+              return <ReplaceRule key={key} rule={rule} ruleKey={key} groupIndex={index} handleRulesFormChange={handleRulesFormChange} path={['intercept', `${ruleIndex}`, 'then', key]} />;
             }
           })}
         </Box>

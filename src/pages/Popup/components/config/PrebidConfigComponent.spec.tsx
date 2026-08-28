@@ -61,13 +61,15 @@ describe('Popup PrebidConfigComponent', () => {
   });
 
   it('renders explicit config field values', () => {
-    render(wrap({
-      bidderSequence: 'fixed',
-      bidderTimeout: 2000,
-      enableSendAllBids: false,
-      maxNestedIframes: 5,
-      useBidCache: true,
-    }));
+    render(
+      wrap({
+        bidderSequence: 'fixed',
+        bidderTimeout: 2000,
+        enableSendAllBids: false,
+        maxNestedIframes: 5,
+        useBidCache: true,
+      })
+    );
     expect(screen.getByText('fixed')).toBeTruthy();
     expect(screen.getByText('2000ms')).toBeTruthy();
     expect(screen.getByText('false')).toBeTruthy();
@@ -100,8 +102,7 @@ describe('Popup PrebidConfigComponent', () => {
 
   it('expands the tile on header click', () => {
     render(wrap({ cache: { url: 'https://cache.example.com' }, deviceAccess: true }));
-    const expandIcon = document.querySelector('[data-testid="ExpandMoreIcon"]')
-      || document.querySelector('svg[class*="MuiSvgIcon"]');
+    const expandIcon = document.querySelector('[data-testid="ExpandMoreIcon"]') || document.querySelector('svg[class*="MuiSvgIcon"]');
     if (expandIcon) {
       fireEvent.click(expandIcon);
     }

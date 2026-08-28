@@ -7,7 +7,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
-import Tooltip from '@mui/material/Tooltip';
+
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 import { EventRecord, BidderRequest } from 'prebid.js';
@@ -51,11 +51,11 @@ interface IBidderRowData {
   isSectionHeader?: boolean;
   sectionTitle?: string;
   sectionDuration?: number;
-  // Set on the phases prebid runs before the first bidder is called; these sit left of the 0ms auction start.
+
   preAuctionRow?: IPreAuctionRow;
   preAuctionDepth?: number;
   preAuctionNotes?: string[];
-  /** Set when the Pre-Auction tab found this phase's provider lost a race; see providerDiagnostics. */
+
   preAuctionWarning?: string;
 }
 
@@ -71,15 +71,7 @@ const PRE_AUCTION_COLOR: { [variant in IPreAuctionRow['variant']]: string } = {
   afterAuctionStart: '#0288d1',
 };
 
-const BidJsonDialog = ({
-  open,
-  onClose,
-  rowData,
-}: {
-  open: boolean;
-  onClose: () => void;
-  rowData: IBidderRowData | null;
-}) => {
+const BidJsonDialog = ({ open, onClose, rowData }: { open: boolean; onClose: () => void; rowData: IBidderRowData | null }) => {
   const { topics } = useContext(AppStateContext);
   if (!rowData || rowData.isSectionHeader) return null;
 
@@ -105,11 +97,7 @@ const BidJsonDialog = ({
     );
   }
 
-  const statusLabel = rowData.hasBid
-    ? `BID ${rowData.cpm !== undefined ? `$${rowData.cpm}` : ''}`
-    : rowData.isTimeout
-    ? 'TIMEOUT'
-    : 'NO BID';
+  const statusLabel = rowData.hasBid ? `BID ${rowData.cpm !== undefined ? `$${rowData.cpm}` : ''}` : rowData.isTimeout ? 'TIMEOUT' : 'NO BID';
 
   const statusColor = rowData.hasBid ? 'success' : rowData.isTimeout ? 'error' : 'default';
 
@@ -181,14 +169,7 @@ const buildWarningLookup = (providers: IProviderDiagnostic[]) => {
  * Flattens the pre-auction phases - and the per-module breakdown of the user id phase - into chart rows.
  * Their offsets are negative, because prebid does this work before the auction start that marks 0ms.
  */
-const buildPreAuctionRows = (
-  auctionEndEvent: EventRecord<'auctionEnd'>,
-  config: any,
-  auctionStartTimestamp: number,
-  shortId: string,
-  auctionIndex: number,
-  getWarning: (label: string, depth: number) => string | undefined
-): IBidderRowData[] => {
+const buildPreAuctionRows = (auctionEndEvent: EventRecord<'auctionEnd'>, config: any, auctionStartTimestamp: number, shortId: string, auctionIndex: number, getWarning: (label: string, depth: number) => string | undefined): IBidderRowData[] => {
   const timeline = getPreAuctionTimeline(auctionEndEvent, config);
   if (!timeline) return [];
 
@@ -220,6 +201,8 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
   const configuredTimeout = config?.bidderTimeout || 3000;
   const targetAuctions = mode === 'single' ? (auctionEndEvent ? [auctionEndEvent] : []) : auctionEndEvents || [];
 
+  const filterFn = useMemo(() => timelineQueryEngine.runQuery(query), [query]);
+
   if (!targetAuctions.length) {
     return (
       <Grid size={{ xs: 12 }} sx={{ flex: 1 }}>
@@ -231,8 +214,6 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
   const displayRows: IBidderRowData[] = [];
   let globalMaxDuration = 100;
   const getWarning: (label: string, depth: number) => string | undefined = showPreAuction ? buildWarningLookup(getProviderDiagnostics(prebid, targetAuctions).providers) : () => undefined;
-
-  const filterFn = useMemo(() => timelineQueryEngine.runQuery(query), [query]);
 
   targetAuctions.forEach((aeEvent, aIdx) => {
     const { auctionEnd, bidderRequests, timestamp, auctionId } = aeEvent?.args || {};
@@ -246,34 +227,17 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
     const shortId = auctionId ? auctionId.slice(0, 8) : `A${aIdx + 1}`;
     const auctionLabel = `Auction #${aIdx + 1} (${shortId})`;
 
-    const preAuctionRows = showPreAuction
-      ? buildPreAuctionRows(aeEvent, config, auctionStartTimestamp, shortId, aIdx + 1, getWarning).filter(filterFn)
-      : [];
+    const preAuctionRows = showPreAuction ? buildPreAuctionRows(aeEvent, config, auctionStartTimestamp, shortId, aIdx + 1, getWarning).filter(filterFn) : [];
 
     const rowsForAuction: IBidderRowData[] = (bidderRequests as BidderRequestWithStart[])
       .map((bidderRequest) => {
         const bidderCode = bidderRequest.bidderCode || (bidderRequest as any).bidder || 'bidder';
 
-        const bidResponseEvents = events?.filter(
-          (e: any) =>
-            (e.eventType === 'bidResponse' || e.eventType === 'bidWon') &&
-            e.args?.auctionId === bidderRequest?.auctionId &&
-            (e.args?.bidderCode === bidderCode || e.args?.bidder === bidderCode)
-        );
+        const bidResponseEvents = events?.filter((e: any) => (e.eventType === 'bidResponse' || e.eventType === 'bidWon') && e.args?.auctionId === bidderRequest?.auctionId && (e.args?.bidderCode === bidderCode || e.args?.bidder === bidderCode));
 
-        const noBidEvents = events?.filter(
-          (e: any) =>
-            e.eventType === 'noBid' &&
-            e.args?.auctionId === bidderRequest?.auctionId &&
-            (e.args?.bidderCode === bidderCode || e.args?.bidder === bidderCode)
-        );
+        const noBidEvents = events?.filter((e: any) => e.eventType === 'noBid' && e.args?.auctionId === bidderRequest?.auctionId && (e.args?.bidderCode === bidderCode || e.args?.bidder === bidderCode));
 
-        const bidReqEvent = events?.find(
-          (e: any) =>
-            e.eventType === 'bidRequested' &&
-            e.args?.auctionId === bidderRequest?.auctionId &&
-            (e.args?.bidderCode === bidderCode || e.args?.bidder === bidderCode)
-        );
+        const bidReqEvent = events?.find((e: any) => e.eventType === 'bidRequested' && e.args?.auctionId === bidderRequest?.auctionId && (e.args?.bidderCode === bidderCode || e.args?.bidder === bidderCode));
 
         const reqStartTimestamp = bidderRequest.start || bidderRequest.startTime || (bidderRequest as any).timestamp || bidReqEvent?.args?.timestamp || auctionStartTimestamp;
         const startMs = Math.max(0, reqStartTimestamp - auctionStartTimestamp);
@@ -372,7 +336,7 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
   // Calculate timeline bounds across active bidders
   const maxActiveMs = Math.max(globalMaxDuration, ...displayRows.filter((r) => !r.isSectionHeader).map((r) => r.endMs));
   const showTimeoutLineInPlot = mode === 'single' && configuredTimeout <= maxActiveMs * 1.25;
-  const maxTimeMs = showTimeoutLineInPlot ? Math.max(maxActiveMs * 1.08, configuredTimeout) : Math.ceil(maxActiveMs * 1.15 / 50) * 50;
+  const maxTimeMs = showTimeoutLineInPlot ? Math.max(maxActiveMs * 1.08, configuredTimeout) : Math.ceil((maxActiveMs * 1.15) / 50) * 50;
 
   // SVG dimensions
   const SVG_WIDTH = 1000;
@@ -433,23 +397,8 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
             {/* Auction End Line (Blue) for single auction view */}
             {mode === 'single' && globalMaxDuration > 0 && (
               <g>
-                <line
-                  x1={timeToX(globalMaxDuration)}
-                  y1={HEADER_HEIGHT - 4}
-                  x2={timeToX(globalMaxDuration)}
-                  y2={SVG_HEIGHT - FOOTER_HEIGHT + 2}
-                  stroke="#1976d2"
-                  strokeWidth="2"
-                />
-                <text
-                  x={timeToX(globalMaxDuration)}
-                  y={SVG_HEIGHT - 6}
-                  fontSize="11"
-                  fontWeight="bold"
-                  fill="#1976d2"
-                  textAnchor="middle"
-                  fontFamily="Roboto, sans-serif"
-                >
+                <line x1={timeToX(globalMaxDuration)} y1={HEADER_HEIGHT - 4} x2={timeToX(globalMaxDuration)} y2={SVG_HEIGHT - FOOTER_HEIGHT + 2} stroke="#1976d2" strokeWidth="2" />
+                <text x={timeToX(globalMaxDuration)} y={SVG_HEIGHT - 6} fontSize="11" fontWeight="bold" fill="#1976d2" textAnchor="middle" fontFamily="Roboto, sans-serif">
                   End ({globalMaxDuration}ms)
                 </text>
               </g>
@@ -458,24 +407,8 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
             {/* Timeout Line (Red) - Only if within plot range */}
             {mode === 'single' && showTimeoutLineInPlot ? (
               <g>
-                <line
-                  x1={timeToX(configuredTimeout)}
-                  y1={HEADER_HEIGHT - 4}
-                  x2={timeToX(configuredTimeout)}
-                  y2={SVG_HEIGHT - FOOTER_HEIGHT}
-                  stroke="#d32f2f"
-                  strokeDasharray="4 4"
-                  strokeWidth="1.5"
-                />
-                <text
-                  x={timeToX(configuredTimeout)}
-                  y={HEADER_HEIGHT - 10}
-                  fontSize="10"
-                  fontWeight="bold"
-                  fill="#d32f2f"
-                  textAnchor="middle"
-                  fontFamily="Roboto, sans-serif"
-                >
+                <line x1={timeToX(configuredTimeout)} y1={HEADER_HEIGHT - 4} x2={timeToX(configuredTimeout)} y2={SVG_HEIGHT - FOOTER_HEIGHT} stroke="#d32f2f" strokeDasharray="4 4" strokeWidth="1.5" />
+                <text x={timeToX(configuredTimeout)} y={HEADER_HEIGHT - 10} fontSize="10" fontWeight="bold" fill="#d32f2f" textAnchor="middle" fontFamily="Roboto, sans-serif">
                   Timeout ({configuredTimeout}ms)
                 </text>
               </g>
@@ -563,26 +496,10 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
                   </text>
 
                   {/* SVG Gantt Latency Bar */}
-                  <rect
-                    x={barX}
-                    y={y + 4}
-                    width={barWidth}
-                    height="19"
-                    rx="3"
-                    ry="3"
-                    fill={barColor}
-                    opacity="0.88"
-                  />
+                  <rect x={barX} y={y + 4} width={barWidth} height="19" rx="3" ry="3" fill={barColor} opacity="0.88" />
 
                   {/* Latency Text inside or right of Bar */}
-                  <text
-                    x={barX + barWidth + 6}
-                    y={y + 18}
-                    fontSize="11"
-                    fontWeight="600"
-                    fill="#333333"
-                    fontFamily="Roboto, sans-serif"
-                  >
+                  <text x={barX + barWidth + 6} y={y + 18} fontSize="11" fontWeight="600" fill="#333333" fontFamily="Roboto, sans-serif">
                     {row.latencyMs}ms
                   </text>
                 </g>

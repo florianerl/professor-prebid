@@ -34,15 +34,12 @@ describe('AnalyticsComponent', () => {
   it('calls scrollIntoView and toggles expand state on header click', () => {
     render(<AnalyticsComponent prebid={mockPrebid} />);
 
-    const cardHeader = screen.getByText('Analytics').closest('[class*="MuiCardHeader"]') as HTMLElement
-      || screen.getByText('Analytics').parentElement as HTMLElement;
+    const cardHeader = (screen.getByText('Analytics').closest('[class*="MuiCardHeader"]') as HTMLElement) || (screen.getByText('Analytics').parentElement as HTMLElement);
 
-    // Click to expand
     fireEvent.click(cardHeader);
     vi.runAllTimers();
     expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth' });
 
-    // Click again to collapse
     fireEvent.click(cardHeader);
     vi.runAllTimers();
     expect(scrollIntoViewMock).toHaveBeenCalledTimes(2);

@@ -126,7 +126,6 @@ describe('PbjsVersionInfo components', () => {
 
     expect(screen.getByText('v8.1.0 Release')).toBeTruthy();
 
-    // Test expanding changelog accordion
     const expandBtn = screen.getByText('Expand All');
     fireEvent.click(expandBtn);
     expect(screen.getByText('Collapse All')).toBeTruthy();
@@ -172,11 +171,9 @@ describe('PbjsVersionInfo components', () => {
     expect(screen.getByText('v8.1.0 Release')).toBeTruthy();
     expect(screen.queryByText('v8.0.1 Patch')).toBeNull();
 
-    // Toggle individual release item
     const releaseHeader = screen.getByText('v8.1.0 Release');
     fireEvent.click(releaseHeader);
 
-    // Search query matching nothing
     fireEvent.change(searchInput, { target: { value: 'NonExistentMatch12345' } });
     expect(screen.getByText(/No releases match "NonExistentMatch12345"/)).toBeTruthy();
   });

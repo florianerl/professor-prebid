@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  reconcilePrebidSurface,
-  formatAuditReportMarkdown,
-  PrebidGroundTruth,
-  ExtensionCapturedState,
-} from './surfaceReconciler';
+import { reconcilePrebidSurface, formatAuditReportMarkdown, PrebidGroundTruth, ExtensionCapturedState } from './surfaceReconciler';
 
 describe('surfaceReconciler', () => {
   it('passes 100% when ground truth matches captured state perfectly', () => {
@@ -90,16 +85,12 @@ describe('surfaceReconciler', () => {
     const captured: ExtensionCapturedState = {
       namespace: 'pbjs',
       version: '11.29.0',
-      installedModules: ['appnexusBidAdapter'], // Missing rubiconBidAdapter and rtdModule
+      installedModules: ['appnexusBidAdapter'],
       config: {
         debug: true,
-        // Missing realTimeData
       },
-      eids: [], // Missing criteo.com
-      events: [
-        { eventType: 'auctionInit', args: {} },
-        // Missing bidResponse and bidWon
-      ],
+      eids: [],
+      events: [{ eventType: 'auctionInit', args: {} }],
       mcpSnapshot: {
         adUnitsCount: 0,
         winningBids: [],

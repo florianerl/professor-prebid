@@ -1,10 +1,3 @@
-/**
- * Prebid Data Surface Reconciler & Diff Engine
- *
- * Compares live Prebid.js runtime ground truth (extracted directly from page execution)
- * against Professor Prebid's internal data layer (chrome.storage.local & MCP bridge).
- */
-
 export interface PrebidGroundTruth {
   namespace: string;
   version: string | null;
@@ -34,7 +27,7 @@ export interface ExtensionCapturedState {
 export interface DomainAuditResult {
   domain: string;
   passed: boolean;
-  score: number; // 0 to 100%
+  score: number;
   summary: string;
   details: {
     expected?: any;
@@ -60,10 +53,7 @@ export interface SurfaceAuditReport {
   };
 }
 
-/**
- * Normalizes objects for stable comparison (removes undefined, functions, DOM elements).
- */
-export function sanitizeForComparison(val: any): any {
+export const sanitizeForComparison = function(val: any): any {
   if (val === null || val === undefined) return val;
   if (typeof val === 'function') return '[Function]';
   if (typeof val !== 'object') return val;
@@ -79,23 +69,13 @@ export function sanitizeForComparison(val: any): any {
   return clean;
 }
 
-/**
- * Reconciles the Ground Truth vs Extension Captured State across all Prebid domains.
- */
-export function reconcilePrebidSurface(
-  truth: PrebidGroundTruth,
-  captured: ExtensionCapturedState,
-  targetUrl: string = 'synthetic'
-): SurfaceAuditReport {
-  // 1. Version Reconcile
+export const reconcilePrebidSurface = function(truth: PrebidGroundTruth, captured: ExtensionCapturedState, targetUrl: string = 'synthetic'): SurfaceAuditReport {
   const versionPassed = truth.version ? truth.version === captured.version : true;
   const versionResult: DomainAuditResult = {
     domain: 'Version',
     passed: versionPassed,
     score: versionPassed ? 100 : 0,
-    summary: versionPassed
-      ? `Prebid version ${truth.version} matched exactly.`
-      : `Version mismatch: Expected ${truth.version}, Extension captured ${captured.version}`,
+    summary: versionPassed ? `Prebid version ${truth.version} matched exactly.` : `Version mismatch: Expected ${truth.version}, Extension captured ${captured.version}`,
     details: { expected: truth.version, actual: captured.version },
   };
 
@@ -104,15 +84,12 @@ export function reconcilePrebidSurface(
   const capturedModules = new Set(captured.installedModules || []);
   const missingModules = [...truthModules].filter((m) => !capturedModules.has(m));
   const modulesPassed = missingModules.length === 0;
-  const modulesScore =
-    truthModules.size > 0 ? Math.round(((truthModules.size - missingModules.length) / truthModules.size) * 100) : 100;
+  const modulesScore = truthModules.size > 0 ? Math.round(((truthModules.size - missingModules.length) / truthModules.size) * 100) : 100;
   const modulesResult: DomainAuditResult = {
     domain: 'Installed Modules',
     passed: modulesPassed,
     score: modulesScore,
-    summary: modulesPassed
-      ? `All ${truthModules.size} installed modules detected.`
-      : `Missing ${missingModules.length} modules: ${missingModules.join(', ')}`,
+    summary: modulesPassed ? `All ${truthModules.size} installed modules detected.` : `Missing ${missingModules.length} modules: ${missingModules.join(', ')}`,
     details: {
       expected: [...truthModules],
       actual: [...capturedModules],
@@ -139,17 +116,12 @@ export function reconcilePrebidSurface(
   }
 
   const configPassed = missingConfigKeys.length === 0 && valueMismatches.length === 0;
-  const configScore =
-    truthConfigKeys.length > 0
-      ? Math.round(((truthConfigKeys.length - missingConfigKeys.length - valueMismatches.length) / truthConfigKeys.length) * 100)
-      : 100;
+  const configScore = truthConfigKeys.length > 0 ? Math.round(((truthConfigKeys.length - missingConfigKeys.length - valueMismatches.length) / truthConfigKeys.length) * 100) : 100;
   const configResult: DomainAuditResult = {
     domain: 'Configuration (pbjs.getConfig)',
     passed: configPassed,
     score: Math.max(0, configScore),
-    summary: configPassed
-      ? `All ${truthConfigKeys.length} config sections correctly surfaced.`
-      : `Config discrepancies: missing [${missingConfigKeys.join(', ')}], mismatched values [${valueMismatches.join(', ')}]`,
+    summary: configPassed ? `All ${truthConfigKeys.length} config sections correctly surfaced.` : `Config discrepancies: missing [${missingConfigKeys.join(', ')}], mismatched values [${valueMismatches.join(', ')}]`,
     details: {
       missing: missingConfigKeys,
       discrepancies: valueMismatches,
@@ -179,19 +151,12 @@ export function reconcilePrebidSurface(
   }
 
   const eventsPassed = missingEventTypes.length === 0 && countMismatches.length === 0;
-  const eventsScore =
-    truthEvents.length > 0
-      ? Math.round(
-          ((truthEvents.length - missingEventTypes.length - countMismatches.length) / Math.max(1, truthEvents.length)) * 100
-        )
-      : 100;
+  const eventsScore = truthEvents.length > 0 ? Math.round(((truthEvents.length - missingEventTypes.length - countMismatches.length) / Math.max(1, truthEvents.length)) * 100) : 100;
   const eventsResult: DomainAuditResult = {
     domain: 'Events Stream (pbjs.getEvents)',
     passed: eventsPassed,
     score: Math.max(0, Math.min(100, eventsScore)),
-    summary: eventsPassed
-      ? `All ${truthEvents.length} events across ${Object.keys(eventCountsTruth).length} event types surfaced.`
-      : `Missing event types: [${missingEventTypes.join(', ')}]; count discrepancies: [${countMismatches.join(', ')}]`,
+    summary: eventsPassed ? `All ${truthEvents.length} events across ${Object.keys(eventCountsTruth).length} event types surfaced.` : `Missing event types: [${missingEventTypes.join(', ')}]; count discrepancies: [${countMismatches.join(', ')}]`,
     details: {
       expected: eventCountsTruth,
       actual: eventCountsCaptured,
@@ -207,15 +172,12 @@ export function reconcilePrebidSurface(
   const capturedSources = capturedEids.map((e: any) => e.source).filter(Boolean);
   const missingSources = truthSources.filter((s: string) => !capturedSources.includes(s));
   const userIdsPassed = missingSources.length === 0;
-  const userIdsScore =
-    truthSources.length > 0 ? Math.round(((truthSources.length - missingSources.length) / truthSources.length) * 100) : 100;
+  const userIdsScore = truthSources.length > 0 ? Math.round(((truthSources.length - missingSources.length) / truthSources.length) * 100) : 100;
   const userIdsResult: DomainAuditResult = {
     domain: 'User IDs & EIDs',
     passed: userIdsPassed,
     score: userIdsScore,
-    summary: userIdsPassed
-      ? `All ${truthSources.length} EID sources surfaced (${truthSources.join(', ') || 'none'}).`
-      : `Missing EID sources: ${missingSources.join(', ')}`,
+    summary: userIdsPassed ? `All ${truthSources.length} EID sources surfaced (${truthSources.join(', ') || 'none'}).` : `Missing EID sources: ${missingSources.join(', ')}`,
     details: {
       expected: truthSources,
       actual: capturedSources,
@@ -233,9 +195,7 @@ export function reconcilePrebidSurface(
     domain: 'Bids & Winning Bids',
     passed: bidsPassed,
     score: bidsPassed ? 100 : 50,
-    summary: bidsPassed
-      ? `Winning bids accounted for (${truthWinners.length} winners).`
-      : `Winning bids mismatch: expected ${truthWinners.length}, captured ${capturedWinners.length}`,
+    summary: bidsPassed ? `Winning bids accounted for (${truthWinners.length} winners).` : `Winning bids mismatch: expected ${truthWinners.length}, captured ${capturedWinners.length}`,
     details: {
       expected: truthWinners,
       actual: capturedWinners,
@@ -250,22 +210,13 @@ export function reconcilePrebidSurface(
     domain: 'Ad Units',
     passed: adUnitsPassed,
     score: adUnitsPassed ? 100 : 50,
-    summary: adUnitsPassed
-      ? `Ad units accounted for (${truthCodes.length} units).`
-      : `Ad units count discrepancy`,
+    summary: adUnitsPassed ? `Ad units accounted for (${truthCodes.length} units).` : `Ad units count discrepancy`,
     details: {
       expected: truthCodes,
     },
   };
 
-  const overallPassed =
-    versionResult.passed &&
-    modulesResult.passed &&
-    configResult.passed &&
-    eventsResult.passed &&
-    userIdsResult.passed &&
-    bidsResult.passed &&
-    adUnitsResult.passed;
+  const overallPassed = versionResult.passed && modulesResult.passed && configResult.passed && eventsResult.passed && userIdsResult.passed && bidsResult.passed && adUnitsResult.passed;
 
   return {
     timestamp: new Date().toISOString(),
@@ -287,7 +238,7 @@ export function reconcilePrebidSurface(
 /**
  * Formats a SurfaceAuditReport into a clean Markdown table.
  */
-export function formatAuditReportMarkdown(report: SurfaceAuditReport): string {
+export const formatAuditReportMarkdown = function(report: SurfaceAuditReport): string {
   const statusBadge = report.overallPassed ? '✅ **PASS (100% Surface Match)**' : '❌ **FAIL (Discrepancies Found)**';
 
   let md = `# Professor Prebid Data Surface Audit Report\n\n`;

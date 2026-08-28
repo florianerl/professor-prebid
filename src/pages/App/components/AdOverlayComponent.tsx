@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid';
 import { theme } from '../../../theme/theme';
 import { ThemeProvider } from '@mui/material';
 import GamDetailsComponent from './GamDetailsComponent';
-import Paper from '@mui/material/Paper';
+
 import PopOverComponent from './PopOverComponent';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
@@ -31,9 +31,7 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
       if (window.top && window.top.document) {
         bodyContainer = window.top.document.body;
       }
-    } catch (e) {
-      // Ignore cross-origin error, fallback to window.document
-    }
+    } catch (e) {}
     setAnchorEl(bodyContainer);
   };
   useEffect(() => {
@@ -92,7 +90,7 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
                   justifyContent: 'flex-end',
                   alignItems: 'center',
                   color: 'text.secondary',
-                  flexShrink: 0
+                  flexShrink: 0,
                 }}
               >
                 <IconButton sx={{ p: 0.25 }} onClick={() => setExpanded(!expanded)}>
@@ -103,53 +101,53 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
                   <OpenInFullIcon sx={{ fontSize: 16 }} />
                 </IconButton>
 
-              {window.parent.googletag && typeof window.parent.googletag?.pubads === 'function' && (
-                <IconButton
-                  sx={{ p: 0.25 }}
-                  onClick={() => {
-                    window.parent.googletag.pubads().refresh([slot]);
-                  }}
-                >
-                  <Refresh sx={{ fontSize: 16 }} />
-                </IconButton>
-              )}
+                {window.parent.googletag && typeof window.parent.googletag?.pubads === 'function' && (
+                  <IconButton
+                    sx={{ p: 0.25 }}
+                    onClick={() => {
+                      window.parent.googletag.pubads().refresh([slot]);
+                    }}
+                  >
+                    <Refresh sx={{ fontSize: 16 }} />
+                  </IconButton>
+                )}
 
                 <IconButton sx={{ p: 0.25 }} onClick={closePortal}>
                   <Close sx={{ fontSize: 16 }} />
                 </IconButton>
               </Grid>
             </Grid>
-            </Grid>
-            
-            {expanded && (currency || winningBidder || winningCPM || timeToRespond || elementId) && (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1, width: '100%' }}>
-                {winningCPM && (
-                  <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.5)', border: '1px solid', borderColor: 'primary.light' }}>
-                    <Typography variant="caption" sx={{ color: 'text.primary' }}>
-                      <strong style={{ color: '#f99b0c' }}>CPM: </strong>
-                      {winningCPM} {currency}
-                    </Typography>
-                  </Box>
-                )}
-                {winningBidder && (
-                  <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.5)', border: '1px solid', borderColor: 'primary.light' }}>
-                    <Typography variant="caption" sx={{ color: 'text.primary' }}>
-                      <strong style={{ color: '#f99b0c' }}>Bidder: </strong>
-                      {winningBidder}
-                    </Typography>
-                  </Box>
-                )}
-                {timeToRespond && (
-                  <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.5)', border: '1px solid', borderColor: 'primary.light' }}>
-                    <Typography variant="caption" sx={{ color: 'text.primary' }}>
-                      <strong style={{ color: '#f99b0c' }}>TTR: </strong>
-                      {timeToRespond}ms
-                    </Typography>
-                  </Box>
-                )}
-                {elementId && <GamDetailsComponent elementId={elementId} inPopOver={false} truncate={truncate} />}
-              </Box>
-            )}
+          </Grid>
+
+          {expanded && (currency || winningBidder || winningCPM || timeToRespond || elementId) && (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1, width: '100%' }}>
+              {winningCPM && (
+                <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.5)', border: '1px solid', borderColor: 'primary.light' }}>
+                  <Typography variant="caption" sx={{ color: 'text.primary' }}>
+                    <strong style={{ color: '#f99b0c' }}>CPM: </strong>
+                    {winningCPM} {currency}
+                  </Typography>
+                </Box>
+              )}
+              {winningBidder && (
+                <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.5)', border: '1px solid', borderColor: 'primary.light' }}>
+                  <Typography variant="caption" sx={{ color: 'text.primary' }}>
+                    <strong style={{ color: '#f99b0c' }}>Bidder: </strong>
+                    {winningBidder}
+                  </Typography>
+                </Box>
+              )}
+              {timeToRespond && (
+                <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.5)', border: '1px solid', borderColor: 'primary.light' }}>
+                  <Typography variant="caption" sx={{ color: 'text.primary' }}>
+                    <strong style={{ color: '#f99b0c' }}>TTR: </strong>
+                    {timeToRespond}ms
+                  </Typography>
+                </Box>
+              )}
+              {elementId && <GamDetailsComponent elementId={elementId} inPopOver={false} truncate={truncate} />}
+            </Box>
+          )}
         </Box>
       </CacheProvider>
     </ThemeProvider>

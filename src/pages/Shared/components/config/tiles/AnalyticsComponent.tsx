@@ -33,14 +33,7 @@ const AnalyticsComponent = (): JSX.Element | null => {
   const adapters = Array.isArray(analytics) ? analytics : typeof analytics === 'object' ? Object.keys(analytics) : [String(analytics)];
 
   return (
-    <ExpandableTile
-      icon={<AnalyticsIcon />}
-      title="Analytics"
-      subtitle={`${adapters.length} adapter(s) / settings`}
-      defaultMaxWidth={4}
-      expandedMaxWidth={8}
-      headerAction={jsonToggleAction}
-    >
+    <ExpandableTile icon={<AnalyticsIcon />} title="Analytics" subtitle={`${adapters.length} adapter(s) / settings`} defaultMaxWidth={4} expandedMaxWidth={8} headerAction={jsonToggleAction}>
       {showJson ? (
         <Grid size={{ xs: 12 }}>
           <JSONViewerComponent src={analytics} name="" collapsed={1} />
@@ -52,14 +45,7 @@ const AnalyticsComponent = (): JSX.Element | null => {
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
             {adapters.map((item, idx) => (
-              <Chip
-                key={idx}
-                label={typeof item === 'object' ? item.provider || item.type || `Adapter ${idx + 1}` : item}
-                size="small"
-                color="info"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
+              <Chip key={idx} label={typeof item === 'object' ? item.provider || item.type || `Adapter ${idx + 1}` : item} size="small" color="info" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />
             ))}
           </Box>
         </Grid>

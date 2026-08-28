@@ -1,8 +1,3 @@
-/**
- * Standalone DevTools MCP Diagnostic Module for Prebid.js
- * Injected on-demand into pages to expose auction telemetry, bid metrics, and TTLs
- * to Chrome DevTools MCP and AI coding agents.
- */
 (function initDevtoolsMcpStandalone() {
   const win = typeof window !== 'undefined' ? (window as any) : {};
   if (win.__PREBID_DEVTOOLS_MCP_INITIALIZED__) {
@@ -46,7 +41,6 @@
       }
     }
 
-    // Emit DevTools performance marks for tracing
     try {
       if (typeof performance !== 'undefined' && performance.mark) {
         performance.mark(`prebid:${eventType}`);
@@ -59,15 +53,13 @@
   const attachPbjs = (instance: any) => {
     if (!instance || typeof instance.onEvent !== 'function') return;
 
-    ['auctionInit', 'auctionEnd', 'bidRequested', 'bidResponse', 'noBid', 'bidWon', 'bidTimeout', 'setTargeting'].forEach(
-      (evt) => {
-        try {
-          instance.onEvent(evt, (data: any) => recordEvent(evt, data));
-        } catch (e) {
-          // Ignored
-        }
+    ['auctionInit', 'auctionEnd', 'bidRequested', 'bidResponse', 'noBid', 'bidWon', 'bidTimeout', 'setTargeting'].forEach((evt) => {
+      try {
+        instance.onEvent(evt, (data: any) => recordEvent(evt, data));
+      } catch (e) {
+        // Ignored
       }
-    );
+    });
 
     // Register devtoolsMcp in installedModules if not present
     if (Array.isArray(instance.installedModules) && !instance.installedModules.includes('devtoolsMcp')) {

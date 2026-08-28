@@ -5,8 +5,7 @@ import { Config, EventRecord } from 'prebid.js/types.d.ts';
 const TIMESTAMP = 1_700_000_000_000;
 const AUCTION_END = TIMESTAMP + 1000;
 
-const makeAuctionEndEvent = (metrics?: SerializedMetrics) =>
-  ({ eventType: 'auctionEnd', args: { timestamp: TIMESTAMP, auctionEnd: AUCTION_END, metrics } } as unknown as EventRecord<'auctionEnd'>);
+const makeAuctionEndEvent = (metrics?: SerializedMetrics) => ({ eventType: 'auctionEnd', args: { timestamp: TIMESTAMP, auctionEnd: AUCTION_END, metrics } } as unknown as EventRecord<'auctionEnd'>);
 
 const EMPTY_CONFIG = {} as Config;
 
@@ -20,7 +19,6 @@ describe('getPreAuctionTimeline', () => {
   });
 
   it('derives the pre-auction start from requestBids.total', () => {
-    // 1200ms from requestBids() to auction end, of which 1000ms was the auction itself
     const timeline = getPreAuctionTimeline(makeAuctionEndEvent({ 'requestBids.total': 1200, 'requestBids.rtd': 100 }), EMPTY_CONFIG);
     expect(timeline.start).toBe(AUCTION_END - 1200);
     expect(timeline.duration).toBe(200);
@@ -43,7 +41,6 @@ describe('getPreAuctionTimeline', () => {
   });
 
   it('never starts later than the measured phases require', () => {
-    // an understated total would otherwise push phases past the auction start
     const timeline = getPreAuctionTimeline(makeAuctionEndEvent({ 'requestBids.total': 1000, 'requestBids.rtd': 300 }), EMPTY_CONFIG);
     expect(timeline.start).toBe(TIMESTAMP - 300);
   });
@@ -74,7 +71,6 @@ describe('getPreAuctionTimeline', () => {
   });
 
   it('clamps user id module bars to the start of the timeline', () => {
-    // the module initialized long before requestBids() was called
     const timeline = getPreAuctionTimeline(makeAuctionEndEvent({ 'requestBids.total': 1010, 'requestBids.userId': 5, 'userId.mods.id5Id.init': 900 }), EMPTY_CONFIG);
     const userIds = timeline.rows.find(({ metric }) => metric === 'requestBids.userId');
     expect(userIds.children[0].start).toBe(timeline.start);

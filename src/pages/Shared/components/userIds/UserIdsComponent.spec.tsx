@@ -43,18 +43,15 @@ describe('UserIdsComponent', () => {
     expect(screen.getByText('Modules: 1')).toBeTruthy();
     expect(screen.getByText('criteo.com')).toBeTruthy();
 
-    // Click Modules Tab
     const modulesTab = screen.getByText('Modules: 1');
     fireEvent.click(modulesTab);
 
     expect(screen.getByText('User ID Module')).toBeTruthy();
 
-    // Switch back to User IDs Tab
     const userIdsTab = screen.getByText('User IDs: 1');
     fireEvent.click(userIdsTab);
     expect(screen.getByText('criteo.com')).toBeTruthy();
 
-    // Type query in autocomplete filter
     const input = screen.getByPlaceholderText('Filter by source, ID or module name...');
     fireEvent.change(input, { target: { value: 'criteo' } });
     expect(screen.getByText('criteo.com')).toBeTruthy();
@@ -83,12 +80,10 @@ describe('UserIdsComponent', () => {
     fireEvent.click(downloadBtns[downloadBtns.length - 1]);
     expect(downloadSpy).toHaveBeenCalled();
 
-    // Toggle Raw JSON view
     const jsonBtn = screen.getByLabelText('Switch to raw JSON view');
     fireEvent.click(jsonBtn);
     expect(screen.getByText('Raw User ID Data Object:')).toBeTruthy();
 
-    // Toggle back to list view
     const listBtn = screen.getByLabelText('Switch to list view');
     fireEvent.click(listBtn);
     expect(screen.queryByText('Raw User ID Data Object:')).toBeNull();

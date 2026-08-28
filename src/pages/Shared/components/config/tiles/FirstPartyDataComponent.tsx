@@ -40,14 +40,7 @@ const FirstPartyDataComponent = (): JSX.Element | null => {
   );
 
   return (
-    <ExpandableTile
-      icon={<DataObjectOutlinedIcon />}
-      title="First Party Data (ortb2)"
-      subtitle="OpenRTB2 publisher & site data"
-      defaultMaxWidth={4}
-      expandedMaxWidth={8}
-      headerAction={jsonToggleAction}
-    >
+    <ExpandableTile icon={<DataObjectOutlinedIcon />} title="First Party Data (ortb2)" subtitle="OpenRTB2 publisher & site data" defaultMaxWidth={4} expandedMaxWidth={8} headerAction={jsonToggleAction}>
       {showJson ? (
         <Grid size={{ xs: 12 }}>
           <JSONViewerComponent src={ortb2} name="" collapsed={1} />
@@ -62,7 +55,12 @@ const FirstPartyDataComponent = (): JSX.Element | null => {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                 {site.domain && (
                   <Chip
-                    label={<><strong>Domain: </strong>{site.domain}</>}
+                    label={
+                      <>
+                        <strong>Domain: </strong>
+                        {site.domain}
+                      </>
+                    }
                     size="small"
                     color="primary"
                     variant="outlined"
@@ -71,7 +69,12 @@ const FirstPartyDataComponent = (): JSX.Element | null => {
                 )}
                 {site.name && (
                   <Chip
-                    label={<><strong>Name: </strong>{site.name}</>}
+                    label={
+                      <>
+                        <strong>Name: </strong>
+                        {site.name}
+                      </>
+                    }
                     size="small"
                     variant="outlined"
                     sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
@@ -79,7 +82,12 @@ const FirstPartyDataComponent = (): JSX.Element | null => {
                 )}
                 {site.publisher?.id && (
                   <Chip
-                    label={<><strong>Publisher ID: </strong>{site.publisher.id}</>}
+                    label={
+                      <>
+                        <strong>Publisher ID: </strong>
+                        {site.publisher.id}
+                      </>
+                    }
                     size="small"
                     color="secondary"
                     variant="outlined"
@@ -88,7 +96,12 @@ const FirstPartyDataComponent = (): JSX.Element | null => {
                 )}
                 {site.cat && Array.isArray(site.cat) && (
                   <Chip
-                    label={<><strong>Categories: </strong>{site.cat.join(', ')}</>}
+                    label={
+                      <>
+                        <strong>Categories: </strong>
+                        {site.cat.join(', ')}
+                      </>
+                    }
                     size="small"
                     color="info"
                     variant="outlined"
@@ -107,7 +120,12 @@ const FirstPartyDataComponent = (): JSX.Element | null => {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                 {app.name && (
                   <Chip
-                    label={<><strong>Name: </strong>{app.name}</>}
+                    label={
+                      <>
+                        <strong>Name: </strong>
+                        {app.name}
+                      </>
+                    }
                     size="small"
                     color="primary"
                     variant="outlined"
@@ -116,7 +134,12 @@ const FirstPartyDataComponent = (): JSX.Element | null => {
                 )}
                 {app.bundle && (
                   <Chip
-                    label={<><strong>Bundle: </strong>{app.bundle}</>}
+                    label={
+                      <>
+                        <strong>Bundle: </strong>
+                        {app.bundle}
+                      </>
+                    }
                     size="small"
                     variant="outlined"
                     sx={{ height: 22, fontSize: '0.7rem' }}
@@ -134,7 +157,12 @@ const FirstPartyDataComponent = (): JSX.Element | null => {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                 {user.gender && (
                   <Chip
-                    label={<><strong>Gender: </strong>{user.gender}</>}
+                    label={
+                      <>
+                        <strong>Gender: </strong>
+                        {user.gender}
+                      </>
+                    }
                     size="small"
                     color="info"
                     variant="outlined"
@@ -143,7 +171,12 @@ const FirstPartyDataComponent = (): JSX.Element | null => {
                 )}
                 {user.yob && (
                   <Chip
-                    label={<><strong>YOB: </strong>{user.yob}</>}
+                    label={
+                      <>
+                        <strong>YOB: </strong>
+                        {user.yob}
+                      </>
+                    }
                     size="small"
                     color="info"
                     variant="outlined"
@@ -152,7 +185,12 @@ const FirstPartyDataComponent = (): JSX.Element | null => {
                 )}
                 {user.buyeruid && (
                   <Chip
-                    label={<><strong>Buyer UID: </strong>{user.buyeruid}</>}
+                    label={
+                      <>
+                        <strong>Buyer UID: </strong>
+                        {user.buyeruid}
+                      </>
+                    }
                     size="small"
                     variant="outlined"
                     sx={{ height: 22, fontSize: '0.7rem' }}
@@ -168,14 +206,7 @@ const FirstPartyDataComponent = (): JSX.Element | null => {
                 {Object.keys(ortb2).length} top-level ortb2 key(s) configured:
               </Typography>
               {Object.keys(ortb2).map((key) => (
-                <Chip
-                  key={key}
-                  label={key}
-                  size="small"
-                  color="primary"
-                  variant="outlined"
-                  sx={{ height: 22, fontSize: '0.7rem' }}
-                />
+                <Chip key={key} label={key} size="small" color="primary" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
               ))}
             </Box>
           )}

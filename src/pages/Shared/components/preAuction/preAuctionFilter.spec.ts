@@ -22,7 +22,6 @@ describe('pre-auction provider filter', () => {
     expect(run('4dex.io')).toEqual(['adagio']);
   });
 
-  // a single substring match cannot express "these two providers"
   it('combines several providers with OR', () => {
     expect(run('permutive OR criteo')).toEqual(['permutiveRtd', 'criteoId']);
     expect(run('provider:permutive OR provider:criteo')).toEqual(['permutiveRtd', 'criteoId']);
@@ -42,7 +41,6 @@ describe('pre-auction provider filter', () => {
 
 describe('verdict labels', () => {
   it('says what is actually missing, per module type', () => {
-    // an RTD module produces real-time data, not an id
     expect(verdictLabel('never', 'identity')).toBe('no ID');
     expect(verdictLabel('never', 'rtd')).toBe('no RTD');
   });

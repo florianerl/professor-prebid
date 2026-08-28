@@ -23,7 +23,6 @@ class IabTcf {
       this.sendDetailsToContentScript();
     } else if (!this.stopLoop) {
       setTimeout(() => this.loop(), 1000);
-      // requestIdleCallback(() => this.loop());
     }
   }
 

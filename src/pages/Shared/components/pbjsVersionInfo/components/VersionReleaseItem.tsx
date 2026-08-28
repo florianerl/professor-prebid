@@ -25,12 +25,7 @@ export interface ReleaseItemProps {
   formatDate: (date: string) => string;
 }
 
-export const VersionReleaseItem: React.FC<ReleaseItemProps> = ({
-  version,
-  expanded,
-  onToggle,
-  formatDate,
-}) => {
+export const VersionReleaseItem: React.FC<ReleaseItemProps> = ({ version, expanded, onToggle, formatDate }) => {
   const tagName = version.tag_name || (typeof version.name === 'string' ? version.name.split(' ')[0] : 'Release');
   const cleanTag = tagName.startsWith('v') ? tagName : `v${tagName}`;
   const releaseTitle = typeof version.name === 'string' && version.name ? version.name : cleanTag;
@@ -65,13 +60,7 @@ export const VersionReleaseItem: React.FC<ReleaseItemProps> = ({
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-          <Chip
-            size="small"
-            label={cleanTag}
-            color="primary"
-            variant={expanded ? 'filled' : 'outlined'}
-            sx={{ fontWeight: 700, fontSize: '0.75rem', height: 22 }}
-          />
+          <Chip size="small" label={cleanTag} color="primary" variant={expanded ? 'filled' : 'outlined'} sx={{ fontWeight: 700, fontSize: '0.75rem', height: 22 }} />
           <Typography variant="body1" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>
             {releaseTitle}
           </Typography>
@@ -147,7 +136,13 @@ export const VersionReleaseItem: React.FC<ReleaseItemProps> = ({
             },
           }}
         >
-          {markdownContent ? <ReactMarkdown>{markdownContent}</ReactMarkdown> : <Typography variant="body2" color="text.secondary">No changelog description provided.</Typography>}
+          {markdownContent ? (
+            <ReactMarkdown>{markdownContent}</ReactMarkdown>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No changelog description provided.
+            </Typography>
+          )}
         </Box>
       </AccordionDetails>
     </Accordion>

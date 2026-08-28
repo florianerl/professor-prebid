@@ -59,9 +59,7 @@ const makeAuctionEndEvent = (bidderRequests: any[] = [makeBidderRequest()]): any
   },
 });
 
-const Wrapper = ({ children, contextOverrides }: { children: React.ReactNode; contextOverrides?: any }) => (
-  <AppStateContext.Provider value={makeStateContext(contextOverrides)}>{children}</AppStateContext.Provider>
-);
+const Wrapper = ({ children, contextOverrides }: { children: React.ReactNode; contextOverrides?: any }) => <AppStateContext.Provider value={makeStateContext(contextOverrides)}>{children}</AppStateContext.Provider>;
 
 describe('Popup GanttChartComponent', () => {
   beforeEach(() => {
@@ -167,10 +165,7 @@ describe('Popup GanttChartComponent', () => {
   });
 
   it('filters bidders correctly with structured bidder: prefix query', () => {
-    const auctionEndEvent = makeAuctionEndEvent([
-      makeBidderRequest({ bidderCode: 'rubicon' }),
-      makeBidderRequest({ bidderCode: 'appnexus' }),
-    ]);
+    const auctionEndEvent = makeAuctionEndEvent([makeBidderRequest({ bidderCode: 'rubicon' }), makeBidderRequest({ bidderCode: 'appnexus' })]);
     render(
       <Wrapper>
         <GanttChartComponent mode="single" auctionEndEvent={auctionEndEvent} query="bidder:rubicon" />
@@ -230,7 +225,6 @@ describe('Popup GanttChartComponent', () => {
     expect(document.querySelector('svg')).toBeTruthy();
     expect(screen.getByText('Auction Start')).toBeTruthy();
 
-    // Click on bidder row to open detail modal
     const bidderRow = screen.getByText('appnexus');
     fireEvent.click(bidderRow);
 
@@ -238,7 +232,6 @@ describe('Popup GanttChartComponent', () => {
     expect(closeBtn).toBeTruthy();
     fireEvent.click(closeBtn);
 
-    // Click on pre-auction row to open pre-auction detail modal
     const preAuctionRow = screen.getByText('Real Time Data');
     fireEvent.click(preAuctionRow);
 

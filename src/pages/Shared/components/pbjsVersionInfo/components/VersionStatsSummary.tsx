@@ -15,12 +15,7 @@ export interface VersionStatsSummaryProps {
   timeElapsedText: string;
 }
 
-export const VersionStatsSummary: React.FC<VersionStatsSummaryProps> = ({
-  newFeaturesCount,
-  maintenanceCount,
-  bugfixesCount,
-  timeElapsedText,
-}) => {
+export const VersionStatsSummary: React.FC<VersionStatsSummaryProps> = ({ newFeaturesCount, maintenanceCount, bugfixesCount, timeElapsedText }) => {
   const stats = [
     {
       label: 'New Features',

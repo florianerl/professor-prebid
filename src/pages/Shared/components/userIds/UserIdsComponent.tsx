@@ -23,7 +23,6 @@ const UserIdsComponent = (): JSX.Element => {
   const eidsCount = prebid?.eids?.length || 0;
   const modulesCount = prebid?.config?.userSync?.userIds?.length || 0;
 
-  // Build autocomplete options list from EID sources & module names
   const options = useMemo(() => {
     const setOptions = new Set<string>();
     ['source:', 'id:', 'name:'].forEach((k) => setOptions.add(k));
@@ -86,13 +85,7 @@ const UserIdsComponent = (): JSX.Element => {
       </GridCell>
 
       <Grid size={{ xs: 7 }} sx={{ display: 'flex', alignItems: 'center', border: 0, '& .MuiInputBase-input': { paddingLeft: '4px !important', paddingTop: '4px !important' } }}>
-        <AutoComplete
-          query={query}
-          onQueryChange={setQuery}
-          options={options}
-          fieldKeys={['source', 'id', 'name']}
-          placeholder="Filter by source, ID or module name..."
-        />
+        <AutoComplete query={query} onQueryChange={setQuery} options={options} fieldKeys={['source', 'id', 'name']} placeholder="Filter by source, ID or module name..." />
       </Grid>
 
       <GridCell cols={1} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', border: 0 }}>
@@ -115,14 +108,7 @@ const UserIdsComponent = (): JSX.Element => {
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
               Raw User ID Data Object:
             </Typography>
-            <JSONViewerComponent
-              src={{ eids: prebid?.eids, userSyncConfig: prebid?.config?.userSync }}
-              name={false}
-              collapsed={1}
-              displayObjectSize={false}
-              displayDataTypes={false}
-              style={{ fontSize: '11px', fontFamily: 'monospace' }}
-            />
+            <JSONViewerComponent src={{ eids: prebid?.eids, userSyncConfig: prebid?.config?.userSync }} name={false} collapsed={1} displayObjectSize={false} displayDataTypes={false} style={{ fontSize: '11px', fontFamily: 'monospace' }} />
           </Paper>
         </Grid>
       )}

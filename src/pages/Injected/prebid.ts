@@ -1,6 +1,6 @@
 import type { AdUnit, AdUnitBid, Bid, BidderRequest, Config, EventRecord, EventPayload, PrebidJS } from 'prebid.js';
-import { POPUP_LOADED, EVENTS, PREBID_DETECTION_TIMEOUT_IFRAME, PREBID_DETECTION_TIMEOUT } from '../Shared/constants';
-import { EventBus, detectIframe } from '../Shared/utils';
+import { POPUP_LOADED, EVENTS} from '../Shared/constants';
+import { EventBus} from '../Shared/utils';
 
 export type { AdUnit, AdUnitBid, Bid, BidderRequest, Config, EventRecord, EventPayload, PrebidJS };
 
@@ -10,7 +10,7 @@ export class Prebid {
   frameId: string | null;
   lastTimeUpdateSentToContentScript: number = 0;
   updateTimeout: ReturnType<typeof setTimeout> | null = null;
-  updateRateInterval: number = 2500; // milliseconds
+  updateRateInterval: number = 2500;
   sendToContentScriptPending: boolean = false;
   events: any[] = [];
   eventsApi: boolean = typeof this.globalPbjs?.getEvents === 'function' || false;
@@ -98,15 +98,7 @@ export class Prebid {
 
   getEventsObjUrl = () => {
     const events = this.globalPbjs?.getEvents ? this.globalPbjs.getEvents() : this.events;
-    
-    /**
-     * Serializes an event, replacing DOM nodes and genuine reference cycles.
-     *
-     * Tracks the chain of ancestors rather than every object seen: prebid deliberately shares objects
-     * between branches - the entries of `noBids` are the same objects held in `bidderRequests[].bids`
-     * - and a "seen anything twice" check would replace those siblings with '[Circular]', turning a
-     * bid into the literal string.
-     */
+
     const safeStringify = (obj: any): string => {
       const ancestors: any[] = [];
       return JSON.stringify(obj, function (key, value) {
@@ -116,7 +108,7 @@ export class Prebid {
         if (typeof value !== 'object' || value === null) {
           return value;
         }
-        // `this` is the object `value` was reached through; unwind to it to drop siblings we have left
+
         while (ancestors.length > 0 && ancestors[ancestors.length - 1] !== this) {
           ancestors.pop();
         }
@@ -246,7 +238,7 @@ export const addEventListenersForPrebid = (frameId: string) => {
         checkGlobals(val);
       },
       configurable: true,
-      enumerable: true
+      enumerable: true,
     });
   } catch (e) {
     // Fallback if defineProperty fails (e.g. non-configurable already)

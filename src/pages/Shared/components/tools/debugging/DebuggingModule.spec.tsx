@@ -58,21 +58,11 @@ describe('DebuggingModule', () => {
       };
       const handleRulesFormChange = vi.fn();
 
-      const { container } = render(
-        <MatchRule
-          groupIndex={1}
-          rule={mockRule}
-          ruleKey="adUnitCode"
-          prebid={mockPrebid}
-          handleRulesFormChange={handleRulesFormChange}
-          path={['intercept', '0', 'when', 'adUnitCode']}
-        />
-      );
+      const { container } = render(<MatchRule groupIndex={1} rule={mockRule} ruleKey="adUnitCode" prebid={mockPrebid} handleRulesFormChange={handleRulesFormChange} path={['intercept', '0', 'when', 'adUnitCode']} />);
 
       expect(screen.getByText('and')).toBeTruthy();
       expect(screen.getByLabelText('MatchRule Target')).toBeTruthy();
 
-      // Click delete icon when multiple when-keys exist
       const deleteBtn = container.querySelector('[data-testid="DeleteForeverIcon"]');
       if (deleteBtn) {
         fireEvent.click(deleteBtn);
@@ -84,16 +74,7 @@ describe('DebuggingModule', () => {
       const mockRule: any = { when: { adUnitCode: 'slot-1' }, then: { cpm: 10 } };
       const handleRulesFormChange = vi.fn();
 
-      const { container } = render(
-        <MatchRule
-          groupIndex={0}
-          rule={mockRule}
-          ruleKey="adUnitCode"
-          prebid={{ events: [] }}
-          handleRulesFormChange={handleRulesFormChange}
-          path={['intercept', '0', 'when', 'adUnitCode']}
-        />
-      );
+      const { container } = render(<MatchRule groupIndex={0} rule={mockRule} ruleKey="adUnitCode" prebid={{ events: [] }} handleRulesFormChange={handleRulesFormChange} path={['intercept', '0', 'when', 'adUnitCode']} />);
 
       const addBtn = container.querySelector('[data-testid="AddIcon"]');
       if (addBtn) {
@@ -106,39 +87,27 @@ describe('DebuggingModule', () => {
       const mockRule: any = { when: { adUnitCode: 'slot-1' }, then: { cpm: 10, mediaType: 'banner' } };
       const handleRulesFormChange = vi.fn();
 
-      const { container } = render(
-        <ReplaceRule
-          groupIndex={1}
-          rule={mockRule}
-          ruleKey="cpm"
-          handleRulesFormChange={handleRulesFormChange}
-          path={['intercept', '0', 'then', 'cpm']}
-        />
-      );
+      const { container } = render(<ReplaceRule groupIndex={1} rule={mockRule} ruleKey="cpm" handleRulesFormChange={handleRulesFormChange} path={['intercept', '0', 'then', 'cpm']} />);
 
       expect(screen.getByText('and')).toBeTruthy();
       expect(screen.getByLabelText('Replace-Rule Value')).toBeTruthy();
 
-      // Change number input
       const valInput = screen.getByDisplayValue('10');
       fireEvent.change(valInput, { target: { value: '15' } });
       expect(handleRulesFormChange).toHaveBeenCalled();
 
-      // Select target change
       const select = container.querySelector('select');
       if (select) {
         fireEvent.change(select, { target: { value: 'dealId' } });
         expect(handleRulesFormChange).toHaveBeenCalled();
       }
 
-      // Add icon click
       const addBtn = container.querySelector('[data-testid="AddIcon"]');
       if (addBtn) {
         fireEvent.click(addBtn);
         expect(handleRulesFormChange).toHaveBeenCalled();
       }
 
-      // Delete forever icon click
       const deleteForeverBtn = container.querySelector('[data-testid="DeleteForeverIcon"]');
       if (deleteForeverBtn) {
         fireEvent.click(deleteForeverBtn);
@@ -153,15 +122,7 @@ describe('DebuggingModule', () => {
       };
       const handleRulesFormChange = vi.fn();
 
-      render(
-        <ReplaceRule
-          groupIndex={0}
-          rule={mockRule}
-          ruleKey="mediaType"
-          handleRulesFormChange={handleRulesFormChange}
-          path={['intercept', '0', 'then', 'mediaType']}
-        />
-      );
+      render(<ReplaceRule groupIndex={0} rule={mockRule} ruleKey="mediaType" handleRulesFormChange={handleRulesFormChange} path={['intercept', '0', 'then', 'mediaType']} />);
 
       expect(screen.getByText('Replace-Rule Target')).toBeTruthy();
     });
@@ -173,15 +134,7 @@ describe('DebuggingModule', () => {
       };
       const handleRulesFormChange = vi.fn();
 
-      render(
-        <ReplaceRule
-          groupIndex={0}
-          rule={mockRule}
-          ruleKey="clickUrl"
-          handleRulesFormChange={handleRulesFormChange}
-          path={['intercept', '0', 'then', 'native', 'clickUrl']}
-        />
-      );
+      render(<ReplaceRule groupIndex={0} rule={mockRule} ruleKey="clickUrl" handleRulesFormChange={handleRulesFormChange} path={['intercept', '0', 'then', 'native', 'clickUrl']} />);
 
       expect(screen.getByDisplayValue('https://test.com')).toBeTruthy();
     });
@@ -191,15 +144,7 @@ describe('DebuggingModule', () => {
       const handleRulesFormChange = vi.fn();
       const removeRule = vi.fn();
 
-      render(
-        <RuleComponent
-          rule={mockRuleGroup}
-          ruleIndex={0}
-          prebid={{ events: [] }}
-          handleRulesFormChange={handleRulesFormChange}
-          removeRule={removeRule}
-        />
-      );
+      render(<RuleComponent rule={mockRuleGroup} ruleIndex={0} prebid={{ events: [] }} handleRulesFormChange={handleRulesFormChange} removeRule={removeRule} />);
 
       expect(screen.getByText('Rule #1')).toBeTruthy();
       expect(screen.getByText('WHEN (Match Request)')).toBeTruthy();
@@ -218,15 +163,7 @@ describe('DebuggingModule', () => {
       const handleRulesFormChange = vi.fn();
       const removeRule = vi.fn();
 
-      render(
-        <RuleComponent
-          rule={mockRuleGroup}
-          ruleIndex={0}
-          prebid={{ events: [] }}
-          handleRulesFormChange={handleRulesFormChange}
-          removeRule={removeRule}
-        />
-      );
+      render(<RuleComponent rule={mockRuleGroup} ruleIndex={0} prebid={{ events: [] }} handleRulesFormChange={handleRulesFormChange} removeRule={removeRule} />);
 
       expect(screen.getByText('Rule #1')).toBeTruthy();
       expect(screen.getByDisplayValue('Test Title')).toBeTruthy();
@@ -281,10 +218,7 @@ describe('DebuggingModule', () => {
       await act(async () => {
         fireEvent.click(persistSwitch);
       });
-      expect(global.chrome.storage.local.set).toHaveBeenCalledWith(
-        { [STORE_RULES_TOGGLE]: true },
-        expect.any(Function)
-      );
+      expect(global.chrome.storage.local.set).toHaveBeenCalledWith({ [STORE_RULES_TOGGLE]: true }, expect.any(Function));
     });
 
     it('adds a custom intercept rule and tests form modification and deletion', async () => {
@@ -295,7 +229,6 @@ describe('DebuggingModule', () => {
       });
       expect(screen.getByText('Rule #1')).toBeTruthy();
 
-      // Test delete rule button
       const deleteBtn = screen.getByTitle('Delete rule');
       await act(async () => {
         fireEvent.click(deleteBtn);
@@ -359,7 +292,6 @@ describe('DebuggingModule', () => {
         (window as any).FileReader = MockFileReader;
       };
 
-      // Test valid intercept config object
       createFileReader(JSON.stringify({ enabled: true, intercept: [{ when: {}, then: { cpm: 5 } }] }));
       const file = new File(['{}'], 'rules.json', { type: 'application/json' });
       await act(async () => {
@@ -367,21 +299,18 @@ describe('DebuggingModule', () => {
       });
       expect(screen.getByText(/Successfully imported 1 rule/i)).toBeTruthy();
 
-      // Test array format import
       createFileReader(JSON.stringify([{ when: { bidder: 'rubicon' }, then: { cpm: 12 } }]));
       await act(async () => {
         fireEvent.change(fileInput, { target: { files: [file] } });
       });
       expect(screen.getByText(/Successfully imported 1 rule/i)).toBeTruthy();
 
-      // Test unrecognized object format
       createFileReader(JSON.stringify({ someUnrecognizedKey: 123 }));
       await act(async () => {
         fireEvent.change(fileInput, { target: { files: [file] } });
       });
       expect(screen.getByText('Invalid rules JSON format!')).toBeTruthy();
 
-      // Test invalid JSON format
       createFileReader('not valid json');
       await act(async () => {
         fireEvent.change(fileInput, { target: { files: [file] } });
@@ -410,9 +339,7 @@ describe('DebuggingModule', () => {
 
     it('loads initial state from storage on mount', async () => {
       const savedConfig = { enabled: true, intercept: [{ when: { adUnitCode: 'slot-1' }, then: { cpm: 25 } }] };
-      (global.chrome.scripting.executeScript as any).mockResolvedValueOnce([
-        { result: JSON.stringify(savedConfig) },
-      ]);
+      (global.chrome.scripting.executeScript as any).mockResolvedValueOnce([{ result: JSON.stringify(savedConfig) }]);
 
       renderWithContext();
 

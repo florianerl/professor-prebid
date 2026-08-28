@@ -19,7 +19,6 @@ const EventRowComponent = ({ event, index }: { event: IPrebidEvent; index: numbe
   const { eventType, elapsedTime, args } = event;
   const argsType = args?.type;
 
-  // Determine Chip Color & Label
   let chipColor: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info' | 'default' = 'default';
   let chipLabel = eventType || 'event';
 
@@ -42,7 +41,6 @@ const EventRowComponent = ({ event, index }: { event: IPrebidEvent; index: numbe
     chipColor = 'info';
   }
 
-  // Extract Summary Text
   let summaryText = '';
   if (eventType === 'auctionDebug') {
     summaryText = args?.arguments ? Object.values(args.arguments).join(' ') : String(args?.message || argsType || '');
@@ -61,7 +59,10 @@ const EventRowComponent = ({ event, index }: { event: IPrebidEvent; index: numbe
     summaryText = `Auction ${id} ${count ? `(${count} ad unit(s))` : ''}`;
   } else if (args && typeof args === 'object') {
     const keys = Object.keys(args).filter((k) => typeof args[k] !== 'function');
-    summaryText = keys.slice(0, 4).map((k) => `${k}: ${typeof args[k] === 'object' ? '{...}' : String(args[k])}`).join(', ');
+    summaryText = keys
+      .slice(0, 4)
+      .map((k) => `${k}: ${typeof args[k] === 'object' ? '{...}' : String(args[k])}`)
+      .join(', ');
   }
 
   return (
@@ -87,19 +88,10 @@ const EventRowComponent = ({ event, index }: { event: IPrebidEvent; index: numbe
         onClick={() => setExpanded(!expanded)}
       >
         {/* Timestamp */}
-        <Chip
-          label={`+${elapsedTime || 0}ms`}
-          size="small"
-          sx={{ bgcolor: 'grey.200', color: 'text.primary', fontWeight: 600, height: 20, fontSize: '0.68rem', borderRadius: '4px' }}
-        />
+        <Chip label={`+${elapsedTime || 0}ms`} size="small" sx={{ bgcolor: 'grey.200', color: 'text.primary', fontWeight: 600, height: 20, fontSize: '0.68rem', borderRadius: '4px' }} />
 
         {/* Event Type Chip */}
-        <Chip
-          label={chipLabel}
-          size="small"
-          color={chipColor}
-          sx={{ height: 20, fontSize: '0.68rem', fontWeight: 600, textTransform: 'none' }}
-        />
+        <Chip label={chipLabel} size="small" color={chipColor} sx={{ height: 20, fontSize: '0.68rem', fontWeight: 600, textTransform: 'none' }} />
 
         {/* Summary Text */}
         <Typography

@@ -4,7 +4,6 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import RoutesComponent from './RoutesComponent';
 
-// Mock all child route components
 vi.mock('./adUnits/AdUnitsComponent', () => ({ default: () => <div data-testid="adunits">AdUnits</div> }));
 vi.mock('./userIds/UserIdsComponent', () => ({ default: () => <div data-testid="userids">UserIds</div> }));
 vi.mock('./config/ConfigComponent', () => ({ default: () => <div data-testid="config">Config</div> }));
@@ -16,38 +15,66 @@ vi.mock('./initiator/InitiatorComponent', () => ({ default: () => <div data-test
 vi.mock('./pbjsVersionInfo/PbjsVersionInfoComponent', () => ({ default: () => <div data-testid="version">Version</div> }));
 
 describe('RoutesComponent', () => {
-    it('renders AdUnitsComponent at root /', () => {
-        render(<MemoryRouter initialEntries={['/']}><RoutesComponent /></MemoryRouter>);
-        expect(screen.getByTestId('adunits')).toBeTruthy();
-    });
+  it('renders AdUnitsComponent at root /', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <RoutesComponent />
+      </MemoryRouter>
+    );
+    expect(screen.getByTestId('adunits')).toBeTruthy();
+  });
 
-    it('renders BidsComponent at /bids', () => {
-        render(<MemoryRouter initialEntries={['/bids']}><RoutesComponent /></MemoryRouter>);
-        expect(screen.getByTestId('bids')).toBeTruthy();
-    });
+  it('renders BidsComponent at /bids', () => {
+    render(
+      <MemoryRouter initialEntries={['/bids']}>
+        <RoutesComponent />
+      </MemoryRouter>
+    );
+    expect(screen.getByTestId('bids')).toBeTruthy();
+  });
 
-    it('renders ConfigComponent at /config', () => {
-        render(<MemoryRouter initialEntries={['/config']}><RoutesComponent /></MemoryRouter>);
-        expect(screen.getByTestId('config')).toBeTruthy();
-    });
+  it('renders ConfigComponent at /config', () => {
+    render(
+      <MemoryRouter initialEntries={['/config']}>
+        <RoutesComponent />
+      </MemoryRouter>
+    );
+    expect(screen.getByTestId('config')).toBeTruthy();
+  });
 
-    it('renders TimelineComponent at /timeline', () => {
-        render(<MemoryRouter initialEntries={['/timeline']}><RoutesComponent /></MemoryRouter>);
-        expect(screen.getByTestId('timeline')).toBeTruthy();
-    });
+  it('renders TimelineComponent at /timeline', () => {
+    render(
+      <MemoryRouter initialEntries={['/timeline']}>
+        <RoutesComponent />
+      </MemoryRouter>
+    );
+    expect(screen.getByTestId('timeline')).toBeTruthy();
+  });
 
-    it('renders ToolsComponent at /tools', () => {
-        render(<MemoryRouter initialEntries={['/tools']}><RoutesComponent /></MemoryRouter>);
-        expect(screen.getByTestId('tools')).toBeTruthy();
-    });
+  it('renders ToolsComponent at /tools', () => {
+    render(
+      <MemoryRouter initialEntries={['/tools']}>
+        <RoutesComponent />
+      </MemoryRouter>
+    );
+    expect(screen.getByTestId('tools')).toBeTruthy();
+  });
 
-    it('renders UserIdsComponent at /userId', () => {
-        render(<MemoryRouter initialEntries={['/userId']}><RoutesComponent /></MemoryRouter>);
-        expect(screen.getByTestId('userids')).toBeTruthy();
-    });
+  it('renders UserIdsComponent at /userId', () => {
+    render(
+      <MemoryRouter initialEntries={['/userId']}>
+        <RoutesComponent />
+      </MemoryRouter>
+    );
+    expect(screen.getByTestId('userids')).toBeTruthy();
+  });
 
-    it('renders VersionInfoComponent at /version', () => {
-        render(<MemoryRouter initialEntries={['/version']}><RoutesComponent /></MemoryRouter>);
-        expect(screen.getByTestId('version')).toBeTruthy();
-    });
+  it('renders VersionInfoComponent at /version', () => {
+    render(
+      <MemoryRouter initialEntries={['/version']}>
+        <RoutesComponent />
+      </MemoryRouter>
+    );
+    expect(screen.getByTestId('version')).toBeTruthy();
+  });
 });

@@ -89,7 +89,6 @@ describe('correlateHar', () => {
   });
 
   it('attributes non-script requests by endpoint, since only script detection is resource-type gated', () => {
-    // guards against the script-candidate tightening leaking into endpoint/host matching
     const providers = [{ name: 'hadronId', type: 'identity', awaited: true, awaitedReason: '', matchTokens: [], hosts: ['ad.gt'], auctions: [], landedCount: 0, config: {} }];
     const har = [toHarEntry({ url: 'https://api.ad.gt/api/v1/identity', startedDateTime: AUCTION_START, time: 30, resourceType: 'xhr' })];
     const { timings } = correlateHar(diagnostics(providers), har);
@@ -106,16 +105,12 @@ describe('correlateHar', () => {
   });
 
   it('does not let a request made after an auction make that auction look late', () => {
-    // the reported bug: a sync fired 60s into the page marked every earlier auction "+Xms late"
     const auctions = [
       { auctionId: 'a1', index: 1, timestamp: AUCTION_START, firstBidderStart: AUCTION_START + 100 },
       { auctionId: 'a2', index: 2, timestamp: AUCTION_START + 60_000, firstBidderStart: AUCTION_START + 60_000 },
     ];
     const providers = [{ name: 'criteo', type: 'identity', awaited: true, awaitedReason: '', matchTokens: ['criteo'], hosts: ['criteo.com'], auctions: [], landedCount: 0, config: {} }];
-    const har = [
-      entry('https://criteo.com/id', AUCTION_START, 50), // resolved in time for auction #1
-      entry('https://criteo.com/sync', AUCTION_START + 30_000, 200), // long after, irrelevant to #1
-    ];
+    const har = [entry('https://criteo.com/id', AUCTION_START, 50), entry('https://criteo.com/sync', AUCTION_START + 30_000, 200)];
     const { timings } = correlateHar(diagnostics(providers, auctions), har);
     expect(timings.criteo.races[0]).toMatchObject({ hasRequest: true, finishedAfterBidding: false, marginMs: -50, requestsBefore: 1 });
     expect(timings.criteo.races[1]).toMatchObject({ hasRequest: true, finishedAfterBidding: false, requestsBefore: 2 });
@@ -123,7 +118,7 @@ describe('correlateHar', () => {
 
   it('still flags a request that was genuinely in flight when bidding started', () => {
     const providers = [{ name: 'criteo', type: 'identity', awaited: true, awaitedReason: '', matchTokens: ['criteo'], hosts: ['criteo.com'], auctions: [], landedCount: 0, config: {} }];
-    const har = [entry('https://criteo.com/id', AUCTION_START + 100, 400)]; // ends 300ms after bidding
+    const har = [entry('https://criteo.com/id', AUCTION_START + 100, 400)];
     const { timings } = correlateHar(diagnostics(providers), har);
     expect(timings.criteo.races[0]).toMatchObject({ hasRequest: true, finishedAfterBidding: true, marginMs: 300 });
   });

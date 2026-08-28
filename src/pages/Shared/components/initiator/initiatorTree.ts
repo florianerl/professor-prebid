@@ -8,10 +8,7 @@ export interface INetworkTreeNode {
   depth: number;
 }
 
-export const buildNetworkTree = (
-  classifiedEntries: IClassifiedNetworkEntry[],
-  rootFilter?: string
-): INetworkTreeNode[] => {
+export const buildNetworkTree = (classifiedEntries: IClassifiedNetworkEntry[], rootFilter?: string): INetworkTreeNode[] => {
   if (!classifiedEntries || classifiedEntries.length === 0) return [];
 
   const entryMap = new Map<string, IClassifiedNetworkEntry>();
@@ -26,10 +23,8 @@ export const buildNetworkTree = (
 
   const parentMap = new Map<string, { parentId: string; relation: 'redirect' | 'initiator' }>();
 
-  // Pass 1: Link HTTP redirects
   classifiedEntries.forEach((current) => {
     if (current.entry.redirectURL) {
-      // Find following request matching redirectURL
       const candidates = urlToEntries.get(current.entry.redirectURL) || [];
       const match = candidates.find((c) => c.entry.startedDateTime >= current.entry.startedDateTime && c.entry.id !== current.entry.id);
       if (match && !parentMap.has(match.entry.id)) {
@@ -38,9 +33,8 @@ export const buildNetworkTree = (
     }
   });
 
-  // Pass 2: Link JS Initiators
   classifiedEntries.forEach((current) => {
-    if (parentMap.has(current.entry.id)) return; // Already linked via redirect
+    if (parentMap.has(current.entry.id)) return;
 
     const initiatorUrl = current.entry.initiator?.url;
     if (initiatorUrl) {
@@ -52,7 +46,6 @@ export const buildNetworkTree = (
       }
     }
 
-    // Check initiator stack frames
     const stackFrames = current.entry.initiator?.stack?.callFrames;
     if (Array.isArray(stackFrames)) {
       for (const frame of stackFrames) {
@@ -68,7 +61,6 @@ export const buildNetworkTree = (
     }
   });
 
-  // Build tree nodes
   const nodeMap = new Map<string, INetworkTreeNode>();
   classifiedEntries.forEach((c) => {
     nodeMap.set(c.entry.id, {
@@ -88,7 +80,7 @@ export const buildNetworkTree = (
       childNode.relation = relation;
       childNode.depth = currentDepth + 1;
       parentNode.children.push(childNode);
-      // Recursively update depth of any already attached grand-children
+
       childNode.children.forEach((grandChild) => {
         grandChild.depth = childNode.depth + 1;
       });
@@ -108,16 +100,12 @@ export const buildNetworkTree = (
     }
   });
 
-  // If a rootFilter is provided, find nodes matching the filter and return their subtree
   if (rootFilter && rootFilter.trim().length > 0) {
     const filterLower = rootFilter.trim().toLowerCase();
     const matchingRoots: INetworkTreeNode[] = [];
 
     const searchSubtree = (node: INetworkTreeNode): boolean => {
-      const match =
-        node.entry.entry.url.toLowerCase().includes(filterLower) ||
-        node.entry.entry.host.toLowerCase().includes(filterLower) ||
-        node.entry.providerName.toLowerCase().includes(filterLower);
+      const match = node.entry.entry.url.toLowerCase().includes(filterLower) || node.entry.entry.host.toLowerCase().includes(filterLower) || node.entry.providerName.toLowerCase().includes(filterLower);
       if (match) {
         matchingRoots.push(node);
         return true;

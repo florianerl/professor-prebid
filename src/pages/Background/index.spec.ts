@@ -143,7 +143,7 @@ describe('Background Index Module', () => {
     await flushPromises();
 
     expect(mockStorage['tab_info_1']).toEqual({
-      'top-window': { url: 'https://example.com' }
+      'top-window': { url: 'https://example.com' },
     });
     expect(mockSetBadgeText).toHaveBeenCalledWith({ text: '', tabId: 1 });
   });
@@ -192,7 +192,7 @@ describe('Background Index Module', () => {
   it('handles alarm event and cleans up inactive tab storage', async () => {
     mockQuery.mockResolvedValue([{ id: 1 }, { id: 2 }]);
     mockStorage['tab_info_1'] = { 'top-window': {} };
-    mockStorage['tab_info_99'] = { 'top-window': {} }; // obsolete
+    mockStorage['tab_info_99'] = { 'top-window': {} };
     mockStorage['other_key'] = 'keep';
 
     await onAlarmCallback({ name: 'cleanUpTabInfo' });

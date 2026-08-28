@@ -63,7 +63,6 @@ describe('Tools & OverlayControl components', () => {
     expect(screen.getByText('Quick Actions & Utilities')).toBeTruthy();
     expect(screen.getByText('Google GAM Console')).toBeTruthy();
 
-    // Click Google GAM Console button
     const gamBtn = screen.getByText('Google GAM Console');
     await act(async () => {
       fireEvent.click(gamBtn);
@@ -71,11 +70,9 @@ describe('Tools & OverlayControl components', () => {
 
     expect(chrome.scripting.executeScript).toHaveBeenCalled();
 
-    // Click Download Session JSON button
     const downloadBtn = screen.getByText('Download Session JSON');
     fireEvent.click(downloadBtn);
 
-    // Click Reset Extension Storage button
     const resetBtn = screen.getByText('Reset Extension Storage');
     fireEvent.click(resetBtn);
     expect(chrome.storage.local.set).toHaveBeenCalledWith({ tabInfos: null });
@@ -111,7 +108,6 @@ describe('Tools & OverlayControl components', () => {
 
     expect(screen.getByText('Quick Actions & Utilities')).toBeTruthy();
 
-    // Test download with undefined prebids (line 56 early return)
     const downloadBtn = screen.getByText('Download Session JSON');
     fireEvent.click(downloadBtn);
   });

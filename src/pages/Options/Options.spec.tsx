@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import Options from './Options';
 
-// Mock external deps
 vi.mock('react-error-boundary', () => ({
   ErrorBoundary: ({ children }: any) => <div>{children}</div>,
 }));
@@ -83,13 +82,11 @@ describe('Options Component', () => {
 
     expect(checkbox.checked).toBe(false);
 
-    // Toggle ON
     await act(async () => {
       fireEvent.click(popUpAdUnitsItem);
     });
     expect(checkbox.checked).toBe(true);
 
-    // Toggle OFF
     await act(async () => {
       fireEvent.click(popUpAdUnitsItem);
     });
@@ -106,13 +103,11 @@ describe('Options Component', () => {
 
     expect(checkbox.checked).toBe(false);
 
-    // Toggle ON
     await act(async () => {
       fireEvent.click(panelAdUnitsItem);
     });
     expect(checkbox.checked).toBe(true);
 
-    // Toggle OFF
     await act(async () => {
       fireEvent.click(panelAdUnitsItem);
     });

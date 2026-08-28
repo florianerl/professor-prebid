@@ -20,7 +20,7 @@ import HelpIcon from '@mui/icons-material/Help';
 import CrisisAlertIcon from '@mui/icons-material/CrisisAlert';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { Paper } from '@mui/material';
+
 
 const ExpandableItem = ({ avatar, children, title, json }: { avatar: JSX.Element; title: string; children?: JSX.Element; json?: object }): JSX.Element => {
   const [expanded, setExpanded] = React.useState(true);

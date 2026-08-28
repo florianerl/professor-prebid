@@ -38,7 +38,6 @@ const dfp_open_console = async () => {
         if (typeof win.googletag.openConsole === 'function') {
           win.googletag.openConsole();
         } else {
-          // Fallback if googletag.openConsole isn't loaded yet
           const url = new URL(window.location.href);
           if (!url.searchParams.has('google_console')) {
             url.searchParams.set('google_console', '1');
@@ -74,7 +73,7 @@ const ToolsComponent = (): JSX.Element => {
 
   return (
     <Grid container spacing={0.75} sx={{ width: '100%', p: 0.5 }}>
-      {/* Quick Actions Header Bar */}
+      {}
       <Grid size={{ xs: 12 }}>
         <Paper elevation={1} sx={{ p: 1.25, border: '1px solid', borderColor: 'divider' }}>
           <Typography variant="h3" sx={{ fontSize: '0.8rem', fontWeight: 700, mb: 0.75, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -114,9 +113,7 @@ const ToolsComponent = (): JSX.Element => {
       </Grid>
 
       {/* Prebid Debugging Module (v7.3.0+ or Legacy Fallback) */}
-      <Grid size={{ xs: 12 }}>
-        {isNewDebugVersion(prebid?.version) ? <DebuggingModuleComponent /> : <ModifyBidResponsesComponent />}
-      </Grid>
+      <Grid size={{ xs: 12 }}>{isNewDebugVersion(prebid?.version) ? <DebuggingModuleComponent /> : <ModifyBidResponsesComponent />}</Grid>
     </Grid>
   );
 };

@@ -68,9 +68,8 @@ describe('NetworkDetailDrawer', () => {
     expect(screen.getByText('ib.adnxs.com')).toBeTruthy();
     expect(screen.getByText('/ut/v3/prebid')).toBeTruthy();
     expect(screen.getByText('Timing Breakdown')).toBeTruthy();
-    expect(screen.getByText('100 ms')).toBeTruthy(); // TTFB / wait
+    expect(screen.getByText('100 ms')).toBeTruthy();
 
-    // Copy URL button
     const copyBtns = screen.getAllByRole('button');
     fireEvent.click(copyBtns[0]);
     expect(navigator.clipboard.writeText).toHaveBeenCalled();
@@ -80,40 +79,33 @@ describe('NetworkDetailDrawer', () => {
     const onClose = vi.fn();
     render(<NetworkDetailDrawer selectedEntry={classified} onClose={onClose} />);
 
-    // Privacy tab
     const privacyTab = screen.getByRole('tab', { name: /Privacy/i });
     fireEvent.click(privacyTab);
     expect(screen.getByText('TCF Consent String (gdpr_consent)')).toBeTruthy();
 
-    // Query Params tab
     const paramsTab = screen.getByRole('tab', { name: /Query Params/i });
     fireEvent.click(paramsTab);
     expect(screen.getByText('nested')).toBeTruthy();
     expect(screen.getByText(/URL Decoded:/)).toBeTruthy();
 
-    // Filter query params
     const filterInput = screen.getByPlaceholderText('Search query parameters...');
     fireEvent.change(filterInput, { target: { value: 'gdpr' } });
     expect(screen.getByText('gdpr_consent')).toBeTruthy();
 
-    // Headers tab
     const headersTab = screen.getByRole('tab', { name: /Headers/i });
     fireEvent.click(headersTab);
     expect(screen.getByText('Request Headers (1)')).toBeTruthy();
     expect(screen.getByText('Response Headers (1)')).toBeTruthy();
 
-    // Payload tab
     const payloadTab = screen.getByRole('tab', { name: /Payload/i });
     fireEvent.click(payloadTab);
     expect(screen.getByText('MIME: application/json')).toBeTruthy();
 
-    // Cookies tab
     const cookiesTab = screen.getByRole('tab', { name: /Cookies/i });
     fireEvent.click(cookiesTab);
     expect(screen.getByText('Request Cookies (1)')).toBeTruthy();
     expect(screen.getByText('Response Cookies / Set-Cookie (1)')).toBeTruthy();
 
-    // Initiator Stack tab
     const stackTab = screen.getByRole('tab', { name: /Initiator Stack/i });
     fireEvent.click(stackTab);
     expect(screen.getByText('requestBids')).toBeTruthy();
@@ -142,11 +134,9 @@ describe('NetworkDetailDrawer', () => {
     const payloadTab = screen.getByRole('tab', { name: /Payload/i });
     fireEvent.click(payloadTab);
 
-    // Wait for decompression effect to complete
     const badge = await screen.findByText(/Auto-Unzipped/i);
     expect(badge).toBeTruthy();
 
-    // Verify toggle button
     const toggleBtn = screen.getByRole('button', { name: /Show Raw Compressed/i });
     fireEvent.click(toggleBtn);
     expect(screen.getByRole('button', { name: /Show Unzipped JSON/i })).toBeTruthy();

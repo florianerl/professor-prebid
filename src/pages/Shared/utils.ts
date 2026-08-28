@@ -3,13 +3,12 @@ export const decycle = (obj: any) => {
   return JSON.stringify(obj, (key, value) => {
     if (typeof value === 'object' && !Array.isArray(value) && value !== null) {
       if (value['location']) {
-        // document object found, discard key
         return;
       }
       if (cache.has(value)) {
         return;
       }
-      // Store value in our set
+
       cache.add(value);
     }
     return value;
@@ -30,12 +29,12 @@ export const getTabId = (): Promise<number> => {
 
 export const EventBus = {
   PREFIX: 'PROF_PREBID_MESSAGE_',
-  
+
   emit: (type: string, payload: any): void => {
     const serializedPayload = JSON.parse(decycle(payload));
     const eventName = `${EventBus.PREFIX}${type}`;
-    const customEvent = new CustomEvent(eventName, { 
-      detail: serializedPayload 
+    const customEvent = new CustomEvent(eventName, {
+      detail: serializedPayload,
     });
 
     try {
@@ -47,9 +46,7 @@ export const EventBus = {
     const iframes = document.querySelectorAll('iframe');
     iframes.forEach((iframe) => {
       try {
-        iframe.contentDocument?.dispatchEvent(
-          new CustomEvent(eventName, { detail: serializedPayload })
-        );
+        iframe.contentDocument?.dispatchEvent(new CustomEvent(eventName, { detail: serializedPayload }));
       } catch (e) {
         // Ignore cross-origin iframe DOM access errors
       }
@@ -58,7 +55,7 @@ export const EventBus = {
 
   on: (type: string, callback: (payload: any) => void) => {
     const eventName = `${EventBus.PREFIX}${type}`;
-    
+
     const listener = (event: Event) => {
       const customEvent = event as CustomEvent;
       callback(customEvent.detail);
@@ -68,7 +65,7 @@ export const EventBus = {
 
     return () => document.removeEventListener(eventName, listener);
   },
-  
+
   onAny: (callback: (type: string, payload: any) => void, eventsToListen: string[]) => {
     const listeners: { eventName: string; listener: (event: Event) => void }[] = [];
 
@@ -87,7 +84,7 @@ export const EventBus = {
         document.removeEventListener(eventName, listener);
       });
     };
-  }
+  },
 };
 
 export const createRangeArray = (start: number, end: number, step: number, offsetRight: number): number[] => {
@@ -134,7 +131,6 @@ export const detectIframe = (): boolean => {
 };
 
 export const generateUniqueId = () => new Date().getTime() + '-' + Math.random().toString(36).substring(2, 11);
-
 
 export const download = (input: object, filename: string) => {
   const dataStr = JSON.stringify(input, null, 2);

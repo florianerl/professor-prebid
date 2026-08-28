@@ -84,9 +84,7 @@ export class ProfessorPrebidMcpBridge {
       if (typeof this.pbjs?.getAllWinningBids === 'function') {
         return this.pbjs.getAllWinningBids();
       }
-    } catch (e) {
-      // Fallback
-    }
+    } catch (e) {}
     return [];
   }
 
@@ -246,9 +244,7 @@ export class ProfessorPrebidMcpBridge {
           result[slotId] = slotTargeting;
         });
       }
-    } catch (e) {
-      // Ignored
-    }
+    } catch (e) {}
     return result;
   }
 
@@ -274,9 +270,7 @@ export class ProfessorPrebidMcpBridge {
           }
         });
       }
-    } catch (e) {
-      // Ignored
-    }
+    } catch (e) {}
 
     return status;
   }

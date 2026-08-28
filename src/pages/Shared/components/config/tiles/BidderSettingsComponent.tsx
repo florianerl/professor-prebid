@@ -30,14 +30,7 @@ const BidderSettingsComponent = (): JSX.Element | null => {
   );
 
   return (
-    <ExpandableTile
-      icon={<SettingsApplicationsIcon />}
-      title="Bidder Settings"
-      subtitle="Storage access & bidder defaults"
-      defaultMaxWidth={4}
-      expandedMaxWidth={8}
-      headerAction={jsonToggleAction}
-    >
+    <ExpandableTile icon={<SettingsApplicationsIcon />} title="Bidder Settings" subtitle="Storage access & bidder defaults" defaultMaxWidth={4} expandedMaxWidth={8} headerAction={jsonToggleAction}>
       {showJson ? (
         <Grid size={{ xs: 12 }}>
           <JSONViewerComponent src={bidderSettings} name="" collapsed={1} />
@@ -50,16 +43,7 @@ const BidderSettingsComponent = (): JSX.Element | null => {
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
             {storageBidders.map((bidder) => {
               const allowed = bidderSettings[bidder].storageAllowed;
-              return (
-                <Chip
-                  key={bidder}
-                  label={`${bidder}: ${allowed ? 'allowed' : 'denied'}`}
-                  size="small"
-                  color={allowed ? 'success' : 'error'}
-                  variant="outlined"
-                  sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-                />
-              );
+              return <Chip key={bidder} label={`${bidder}: ${allowed ? 'allowed' : 'denied'}`} size="small" color={allowed ? 'success' : 'error'} variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />;
             })}
           </Box>
         </Grid>

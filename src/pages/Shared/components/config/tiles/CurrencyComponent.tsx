@@ -35,19 +35,10 @@ const CurrencyComponent = (): JSX.Element | null => {
   const rates = !isString && typeof currency.rates === 'object' ? currency.rates : undefined;
   const rateKeys = rates ? Object.keys(rates) : [];
 
-  const otherEntries = !isString
-    ? Object.entries(currency).filter(([k, v]) => !['adServerCurrency', 'granularityMultiplier', 'rates'].includes(k) && v !== undefined)
-    : [];
+  const otherEntries = !isString ? Object.entries(currency).filter(([k, v]) => !['adServerCurrency', 'granularityMultiplier', 'rates'].includes(k) && v !== undefined) : [];
 
   return (
-    <ExpandableTile
-      icon={<AttachMoneyIcon />}
-      title="Currency"
-      subtitle={adServerCurrency ? `Ad Server: ${adServerCurrency}` : 'Currency conversion active'}
-      defaultMaxWidth={4}
-      expandedMaxWidth={8}
-      headerAction={jsonToggleAction}
-    >
+    <ExpandableTile icon={<AttachMoneyIcon />} title="Currency" subtitle={adServerCurrency ? `Ad Server: ${adServerCurrency}` : 'Currency conversion active'} defaultMaxWidth={4} expandedMaxWidth={8} headerAction={jsonToggleAction}>
       {showJson ? (
         <Grid size={{ xs: 12 }}>
           <JSONViewerComponent src={typeof currency === 'object' ? currency : { currency }} name="" collapsed={1} />
@@ -60,30 +51,20 @@ const CurrencyComponent = (): JSX.Element | null => {
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1.25 }}>
             {adServerCurrency && (
               <Chip
-                label={<><span>Ad Server Currency:</span> <strong>{adServerCurrency}</strong></>}
+                label={
+                  <>
+                    <span>Ad Server Currency:</span> <strong>{adServerCurrency}</strong>
+                  </>
+                }
                 size="small"
                 color="primary"
                 variant="outlined"
                 sx={{ height: 22, fontSize: '0.7rem', fontWeight: 600 }}
               />
             )}
-            {granularityMultiplier !== undefined && (
-              <Chip
-                label={`Granularity Multiplier: ${granularityMultiplier}`}
-                size="small"
-                color="info"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
-            )}
+            {granularityMultiplier !== undefined && <Chip label={`Granularity Multiplier: ${granularityMultiplier}`} size="small" color="info" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />}
             {otherEntries.map(([k, v]) => (
-              <Chip
-                key={k}
-                label={`${k}: ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`}
-                size="small"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem' }}
-              />
+              <Chip key={k} label={`${k}: ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
             ))}
           </Box>
 
@@ -94,13 +75,7 @@ const CurrencyComponent = (): JSX.Element | null => {
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                 {rateKeys.map((code) => (
-                  <Chip
-                    key={code}
-                    label={`${code}: ${rates[code]}`}
-                    size="small"
-                    variant="outlined"
-                    sx={{ height: 20, fontSize: '0.675rem' }}
-                  />
+                  <Chip key={code} label={`${code}: ${rates[code]}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.675rem' }} />
                 ))}
               </Box>
             </Box>

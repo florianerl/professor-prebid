@@ -32,7 +32,7 @@ export const NavbarSelector = (): JSX.Element => {
     }
     enterDelayRef.current = setTimeout(() => {
       setExpanded(true);
-    }, 200); // Delay of 200ms
+    }, 200);
   };
 
   const handleMouseLeave = () => {
@@ -54,11 +54,7 @@ export const NavbarSelector = (): JSX.Element => {
     setIframeId(event.target.value || '');
   };
 
-  if (
-    isPanel ||
-    expanded
-    // true
-  ) {
+  if (isPanel || expanded) {
     return (
       <Box component="form" sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', columnGap: 1, padding: '0 5px' }} onMouseEnter={() => setExpanded(true)} onMouseLeave={() => setExpanded(false)}>
         <FormControl sx={{ minWidth: 90, maxWidth: 180 }} size="small">

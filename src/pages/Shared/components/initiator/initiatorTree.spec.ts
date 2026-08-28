@@ -97,9 +97,7 @@ describe('initiatorTree', () => {
       initiator: {
         type: 'script',
         stack: {
-          callFrames: [
-            { functionName: 'requestBids', scriptId: '1', url: 'https://cdn.example.com/prebid.js', lineNumber: 10, columnNumber: 5 },
-          ],
+          callFrames: [{ functionName: 'requestBids', scriptId: '1', url: 'https://cdn.example.com/prebid.js', lineNumber: 10, columnNumber: 5 }],
         },
       },
     };

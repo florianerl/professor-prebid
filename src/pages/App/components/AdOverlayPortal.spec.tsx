@@ -22,7 +22,7 @@ describe('AdOverlayPortal', () => {
     winningCPM: 1.2,
     winningBidder: 'appnexus',
     currency: 'USD',
-    timeToRespond: 120
+    timeToRespond: 120,
   };
 
   beforeEach(() => {
@@ -41,7 +41,7 @@ describe('AdOverlayPortal', () => {
       const div1 = document.createElement('div');
       div1.style.zIndex = '5';
       document.body.appendChild(div1);
-      
+
       const div2 = document.createElement('div');
       div2.style.zIndex = '10';
       document.body.appendChild(div2);
@@ -52,68 +52,39 @@ describe('AdOverlayPortal', () => {
 
   describe('Component rendering', () => {
     it('renders iframe and appends container mask when consoleState is true', () => {
-      render(
-        <AdOverlayPortal 
-          container={container} 
-          mask={mockMask} 
-          consoleState={true} 
-          pbjsNameSpace="pbjs" 
-        />
-      );
-      
-      // The component creates a new div inside the container
+      render(<AdOverlayPortal container={container} mask={mockMask} consoleState={true} pbjsNameSpace="pbjs" />);
+
       const maskElement = document.getElementById(`prpb-mask--container-${mockMask.elementId}`);
       expect(maskElement).not.toBeNull();
       expect(maskElement?.style.position).toBe('absolute');
-      
+
       // Iframe should be inside the portal
       const iframe = document.querySelector('iframe');
       expect(iframe).not.toBeNull();
     });
 
     it('does not append mask when consoleState is false', () => {
-      render(
-        <AdOverlayPortal 
-          container={container} 
-          mask={mockMask} 
-          consoleState={false} 
-          pbjsNameSpace="pbjs" 
-        />
-      );
-      
+      render(<AdOverlayPortal container={container} mask={mockMask} consoleState={false} pbjsNameSpace="pbjs" />);
+
       expect(document.getElementById(`prpb-mask--container-${mockMask.elementId}`)).toBeNull();
     });
 
     it('updates dimensions when mask is already present and consoleState is true', () => {
       Object.defineProperty(container, 'offsetWidth', { value: 500, configurable: true });
       Object.defineProperty(container, 'offsetHeight', { value: 250, configurable: true });
-      
+
       const div = document.createElement('div');
       div.id = `prpb-mask--container-${mockMask.elementId}`;
       container.appendChild(div);
 
-      render(
-        <AdOverlayPortal 
-          container={container} 
-          mask={mockMask} 
-          consoleState={true} 
-          pbjsNameSpace="pbjs" 
-        />
-      );
-      
+      render(<AdOverlayPortal container={container} mask={mockMask} consoleState={true} pbjsNameSpace="pbjs" />);
+
       expect(div.style.width).toBe('500px');
       expect(div.style.height).toBe('250px');
     });
 
     it('hides the mask container when closePortal is triggered', () => {
-      render(
-        <AdOverlayPortal
-          container={container}
-          mask={mockMask}
-          consoleState={true}
-          pbjsNameSpace="pbjs"
-        />
-      );
+      render(<AdOverlayPortal container={container} mask={mockMask} consoleState={true} pbjsNameSpace="pbjs" />);
 
       const maskElement = document.getElementById(`prpb-mask--container-${mockMask.elementId}`);
       expect(maskElement).not.toBeNull();

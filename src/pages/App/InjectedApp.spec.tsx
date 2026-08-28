@@ -5,16 +5,10 @@ import InjectedApp from './InjectedApp';
 import { EVENTS, CONSOLE_TOGGLE, SAVE_MASKS } from '../Shared/constants';
 import { EventBus } from '../Shared/utils';
 
-// Mock AdOverlayPortal
 vi.mock('./components/AdOverlayPortal', () => ({
   default: ({ mask, consoleState, container, pbjsNameSpace }: any) => (
-    <div
-      data-testid={`overlay-portal-${mask.elementId}`}
-      data-console-state={consoleState}
-      data-pbjs-namespace={pbjsNameSpace}
-    >
-      AdOverlayPortal: {mask.elementId} | CPM: {mask.winningCPM ?? 'none'} | Bidder:{' '}
-      {mask.winningBidder ?? 'none'}
+    <div data-testid={`overlay-portal-${mask.elementId}`} data-console-state={consoleState} data-pbjs-namespace={pbjsNameSpace}>
+      AdOverlayPortal: {mask.elementId} | CPM: {mask.winningCPM ?? 'none'} | Bidder: {mask.winningBidder ?? 'none'}
     </div>
   ),
 }));

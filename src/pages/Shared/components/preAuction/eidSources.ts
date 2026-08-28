@@ -1,11 +1,3 @@
-/**
- * Maps each prebid user id module to the EID `source` values it can emit.
- *
- * GENERATED - do not edit by hand.
- * Run `node utils/prebidMetadata/extractEidSources.mjs` after bumping prebid.js.
- *
- * A module can own several sources, so this is deliberately one to many.
- */
 export const EID_SOURCES_BY_MODULE: { [moduleName: string]: string[] } = {
   '33acrossId': ['33across.com'],
   admixerId: ['admixer.net'],
@@ -33,7 +25,23 @@ export const EID_SOURCES_BY_MODULE: { [moduleName: string]: string[] } = {
   jixieId: ['jixie.io'],
   justId: ['justtag.com'],
   kpuid: ['kpuid.com'],
-  liveIntentId: ['bidswitch.net', 'fpid.liveintent.com', 'liveintent.com', 'liveintent.indexexchange.com', 'liveintent.sonobi.com', 'liveintent.sovrn.com', 'liveintent.triplelift.com', 'liveintent.unrulymedia.com', 'liveintent.vidazoo.com', 'media.net', 'openx.net', 'pubmatic.com', 'rubiconproject.com', 'sharethrough.com', 'zeta-ssp.liveintent.com'],
+  liveIntentId: [
+    'bidswitch.net',
+    'fpid.liveintent.com',
+    'liveintent.com',
+    'liveintent.indexexchange.com',
+    'liveintent.sonobi.com',
+    'liveintent.sovrn.com',
+    'liveintent.triplelift.com',
+    'liveintent.unrulymedia.com',
+    'liveintent.vidazoo.com',
+    'media.net',
+    'openx.net',
+    'pubmatic.com',
+    'rubiconproject.com',
+    'sharethrough.com',
+    'zeta-ssp.liveintent.com',
+  ],
   lmpid: ['loblawmedia.ca'],
   lotamePanoramaId: ['crwdcntrl.net'],
   merkleId: ['merkleinc.com'],

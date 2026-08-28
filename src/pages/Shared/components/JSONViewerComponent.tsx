@@ -11,20 +11,10 @@ const getType = (value: any) => {
   return typeof value;
 };
 
-const JsonNode = ({
-  keyName,
-  value,
-  depth,
-  collapsedDepth,
-  isLast,
-  indentWidth,
-  collapseStringsAfterLength,
-  sortKeys,
-  isRoot
-}: any) => {
+const JsonNode = ({ keyName, value, depth, collapsedDepth, isLast, indentWidth, collapseStringsAfterLength, sortKeys, isRoot }: any) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  
+
   const syntaxColors = {
     key: isDark ? '#9cdcfe' : '#0451a5',
     string: isDark ? '#ce9178' : '#a31515',
@@ -36,11 +26,9 @@ const JsonNode = ({
 
   const type = getType(value);
   const isComplex = type === 'object' || type === 'array';
-  
-  const isInitiallyCollapsed = typeof collapsedDepth === 'boolean' 
-    ? collapsedDepth 
-    : depth >= (collapsedDepth ?? 3);
-    
+
+  const isInitiallyCollapsed = typeof collapsedDepth === 'boolean' ? collapsedDepth : depth >= (collapsedDepth ?? 3);
+
   const [expanded, setExpanded] = useState(!isInitiallyCollapsed);
 
   const toggle = (e: React.MouseEvent) => {
@@ -74,9 +62,7 @@ const JsonNode = ({
   if (!isComplex) {
     return (
       <div style={{ paddingLeft, lineHeight: '1.5', fontFamily: 'monospace' }}>
-        {keyName !== undefined && (
-          <span style={{ color: syntaxColors.key }}>"{keyName}"</span>
-        )}
+        {keyName !== undefined && <span style={{ color: syntaxColors.key }}>"{keyName}"</span>}
         {keyName !== undefined && <span style={{ color: syntaxColors.bracket }}>: </span>}
         {renderValue()}
         {!isLast && <span style={{ color: syntaxColors.bracket }}>,</span>}
@@ -87,9 +73,9 @@ const JsonNode = ({
   const isArray = type === 'array';
   const openBracket = isArray ? '[' : '{';
   const closeBracket = isArray ? ']' : '}';
-  
+
   let childrenEntries = isArray ? Array.from(value) : Object.entries(value);
-  
+
   if (sortKeys && !isArray) {
     childrenEntries = (childrenEntries as [string, any][]).sort((a, b) => a[0].localeCompare(b[0]));
   }
@@ -98,34 +84,28 @@ const JsonNode = ({
 
   return (
     <div style={{ paddingLeft, lineHeight: '1.5', fontFamily: 'monospace' }}>
-      <div 
-        style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
           cursor: isEmpty ? 'default' : 'pointer',
-          userSelect: 'none'
-        }} 
+          userSelect: 'none',
+        }}
         onClick={isEmpty ? undefined : toggle}
       >
-        <div style={{ 
-          width: 16, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          marginLeft: isRoot ? 0 : -16 
-        }}>
-          {!isEmpty && (
-            expanded ? (
-              <ExpandMoreIcon style={{ fontSize: 16, color: syntaxColors.bracket }} />
-            ) : (
-              <ChevronRightIcon style={{ fontSize: 16, color: syntaxColors.bracket }} />
-            )
-          )}
+        <div
+          style={{
+            width: 16,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: isRoot ? 0 : -16,
+          }}
+        >
+          {!isEmpty && (expanded ? <ExpandMoreIcon style={{ fontSize: 16, color: syntaxColors.bracket }} /> : <ChevronRightIcon style={{ fontSize: 16, color: syntaxColors.bracket }} />)}
         </div>
-        
-        {keyName !== undefined && (
-          <span style={{ color: syntaxColors.key }}>"{keyName}"</span>
-        )}
+
+        {keyName !== undefined && <span style={{ color: syntaxColors.key }}>"{keyName}"</span>}
         {keyName !== undefined && <span style={{ color: syntaxColors.bracket }}>: </span>}
         <span style={{ color: syntaxColors.bracket }}>
           {openBracket}
@@ -133,41 +113,40 @@ const JsonNode = ({
           {isEmpty && `${closeBracket}${!isLast ? ',' : ''}`}
         </span>
       </div>
-      
+
       {expanded && !isEmpty && (
         <div>
-          {isArray ? (
-            (childrenEntries as any[]).map((val, idx) => (
-              <JsonNode
-                key={idx}
-                value={val}
-                depth={depth + 1}
-                collapsedDepth={collapsedDepth}
-                isLast={idx === childrenEntries.length - 1}
-                indentWidth={indentWidth}
-                collapseStringsAfterLength={collapseStringsAfterLength}
-                sortKeys={sortKeys}
-                isRoot={false}
-              />
-            ))
-          ) : (
-            (childrenEntries as [string, any][]).map(([k, v], idx) => (
-              <JsonNode
-                key={k}
-                keyName={k}
-                value={v}
-                depth={depth + 1}
-                collapsedDepth={collapsedDepth}
-                isLast={idx === childrenEntries.length - 1}
-                indentWidth={indentWidth}
-                collapseStringsAfterLength={collapseStringsAfterLength}
-                sortKeys={sortKeys}
-                isRoot={false}
-              />
-            ))
-          )}
+          {isArray
+            ? (childrenEntries as any[]).map((val, idx) => (
+                <JsonNode
+                  key={idx}
+                  value={val}
+                  depth={depth + 1}
+                  collapsedDepth={collapsedDepth}
+                  isLast={idx === childrenEntries.length - 1}
+                  indentWidth={indentWidth}
+                  collapseStringsAfterLength={collapseStringsAfterLength}
+                  sortKeys={sortKeys}
+                  isRoot={false}
+                />
+              ))
+            : (childrenEntries as [string, any][]).map(([k, v], idx) => (
+                <JsonNode
+                  key={k}
+                  keyName={k}
+                  value={v}
+                  depth={depth + 1}
+                  collapsedDepth={collapsedDepth}
+                  isLast={idx === childrenEntries.length - 1}
+                  indentWidth={indentWidth}
+                  collapseStringsAfterLength={collapseStringsAfterLength}
+                  sortKeys={sortKeys}
+                  isRoot={false}
+                />
+              ))}
           <div style={{ paddingLeft: isRoot ? '16px' : 0, color: syntaxColors.bracket }}>
-            {closeBracket}{!isLast ? ',' : ''}
+            {closeBracket}
+            {!isLast ? ',' : ''}
           </div>
         </div>
       )}
@@ -188,20 +167,10 @@ export interface IJSONViewerComponentProps {
   style?: React.CSSProperties;
 }
 
-const JSONViewerComponent = ({
-  src = null,
-  name = null,
-  collapsed = 3,
-  displayObjectSize = false,
-  displayDataTypes = false,
-  sortKeys = false,
-  indentWidth = 2,
-  collapseStringsAfterLength = 100,
-  style,
-}: IJSONViewerComponentProps): JSX.Element => {
+const JSONViewerComponent = ({ src = null, name = null, collapsed = 3, displayObjectSize = false, displayDataTypes = false, sortKeys = false, indentWidth = 2, collapseStringsAfterLength = 100, style }: IJSONViewerComponentProps): JSX.Element => {
   const [copied, setCopied] = useState(false);
   const theme = useTheme();
-  
+
   const isDark = theme.palette.mode === 'dark';
   const bgColor = isDark ? 'transparent' : 'transparent';
 
@@ -211,32 +180,32 @@ const JSONViewerComponent = ({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (e) {
-      console.error("Failed to copy JSON", e);
+      console.error('Failed to copy JSON', e);
     }
   };
 
   return (
-    <Box 
-      style={{ 
-        position: 'relative', 
-        fontSize: '12px', 
-        fontFamily: 'roboto, sans-serif', 
-        padding: '15px', 
+    <Box
+      style={{
+        position: 'relative',
+        fontSize: '12px',
+        fontFamily: 'roboto, sans-serif',
+        padding: '15px',
         backgroundColor: bgColor,
         borderRadius: '4px',
         overflowX: 'auto',
-        ...style 
+        ...style,
       }}
     >
       <Box style={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}>
-        <Tooltip title={copied ? "Copied!" : "Copy JSON"}>
+        <Tooltip title={copied ? 'Copied!' : 'Copy JSON'}>
           <IconButton onClick={handleCopy} size="small" style={{ opacity: 0.7 }}>
             {copied ? <CheckIcon fontSize="small" color="success" /> : <ContentCopyIcon fontSize="small" />}
           </IconButton>
         </Tooltip>
       </Box>
       <Box style={{ paddingRight: 40, overflowX: 'auto', minWidth: 'fit-content' }}>
-        <JsonNode 
+        <JsonNode
           keyName={name !== false && name !== null && name !== '' ? String(name) : undefined}
           value={src}
           depth={0}

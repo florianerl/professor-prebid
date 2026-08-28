@@ -1,7 +1,7 @@
 import { useState, useContext, useMemo, useCallback } from 'react';
 import AppStateContext from '../../contexts/appStateContext';
 import { createQueryEngine, distinct, getSortValue, getWidthXHeightStringFromBid, NUMERIC_FIELD_KEYS } from '../autocomplete/utils';
-import { Bid } from 'prebid.js/types.d.ts';
+
 
 export const BID_FIELD_MAP = {
   bidder: (b: any) => b?.bidder,
@@ -68,8 +68,14 @@ const BidsComponentState = () => {
 
   const { auctionEndEvents } = useContext(AppStateContext);
 
-  const bidsReceived = useMemo(() => auctionEndEvents.flatMap((e, eventIndex) => (e.args?.bidsReceived ?? []).map((b: any, i: number) => ({ ...b, auctionId: b.auctionId || e.args?.auctionId, _stableKey: `bidsReceived-${e.args?.auctionId || eventIndex}-${i}` }))), [auctionEndEvents]);
-  const noBids = useMemo(() => auctionEndEvents.flatMap((e, eventIndex) => (e.args?.noBids ?? []).map((b: any, i: number) => ({ ...b, auctionId: b.auctionId || e.args?.auctionId, _stableKey: `noBids-${e.args?.auctionId || eventIndex}-${i}` }))), [auctionEndEvents]);
+  const bidsReceived = useMemo(
+    () => auctionEndEvents.flatMap((e, eventIndex) => (e.args?.bidsReceived ?? []).map((b: any, i: number) => ({ ...b, auctionId: b.auctionId || e.args?.auctionId, _stableKey: `bidsReceived-${e.args?.auctionId || eventIndex}-${i}` }))),
+    [auctionEndEvents]
+  );
+  const noBids = useMemo(
+    () => auctionEndEvents.flatMap((e, eventIndex) => (e.args?.noBids ?? []).map((b: any, i: number) => ({ ...b, auctionId: b.auctionId || e.args?.auctionId, _stableKey: `noBids-${e.args?.auctionId || eventIndex}-${i}` }))),
+    [auctionEndEvents]
+  );
 
   const counts = useMemo(
     () => ({

@@ -1,10 +1,5 @@
 import { Config, EventRecord } from 'prebid.js/types.d.ts';
 
-/**
- * Prebid attaches its `Metrics` object to the auction and serializes it through `toJSON()`, which
- * flattens it into a plain `name -> duration` map. Repeated measurements (`fork()`ed metrics) are
- * collected into arrays, which is why values are not always numbers.
- */
 export type SerializedMetrics = { [name: string]: number | number[] };
 
 export interface IPreAuctionChild {
@@ -27,22 +22,13 @@ export interface IPreAuctionRow {
 }
 
 export interface IPreAuctionTimeline {
-  /** Wall clock timestamp at which `pbjs.requestBids()` was called. */
   start: number;
-  /** Time spent between `requestBids()` and the start of the bidding phase. */
+
   duration: number;
   rows: IPreAuctionRow[];
   metrics: SerializedMetrics;
 }
 
-/**
- * The order in which prebid runs the pre-auction hooks, derived from the priorities they register with:
- * on `requestBids` -> consent (50), currency (50), priceFloors (50), rules (50); on `startAuction` ->
- * userId (100), rules (50), rtd (20), fpd (10), dataController (10). `requestBids.validate` follows in
- * the body of `startAuction`.
- * Hooks sharing a priority run in module load order, which prebid does not report - within such a group
- * the order below is nominal.
- */
 const PRE_AUCTION_PHASES: { metric: string; label: string }[] = [
   { metric: 'requestBids.gdpr', label: 'Consent (TCF)' },
   { metric: 'requestBids.gpp', label: 'Consent (GPP)' },
@@ -59,16 +45,10 @@ const PRE_AUCTION_PHASES: { metric: string; label: string }[] = [
 
 const USER_ID_MODULE_METRIC = /^userId\.mods\.(.+)\.(init|callback)$/;
 
-/** Durations below this are noise from the surrounding hook plumbing and are not worth a row of their own. */
 const MIN_VISIBLE_DURATION = 0.5;
 
 const toNumber = (value: number | number[] | undefined): number | null => (typeof value === 'number' && isFinite(value) ? value : null);
 
-/**
- * The user id module joins its own metrics into the auction's, so every configured id module reports
- * how long it spent resolving an id. Note that this happens during module initialization, which starts
- * before `requestBids()` - only the durations are reported, not when they began.
- */
 const getUserIdChildren = (metrics: SerializedMetrics): Omit<IPreAuctionChild, 'start' | 'end'>[] => {
   const byModule = new Map<string, { [stage: string]: number }>();
   Object.entries(metrics).forEach(([key, value]) => {
@@ -81,7 +61,6 @@ const getUserIdChildren = (metrics: SerializedMetrics): Omit<IPreAuctionChild, '
   return Array.from(byModule, ([label, stages]) => ({ label, duration: Object.values(stages).reduce((acc, value) => acc + value, 0), metrics: stages })).sort((a, b) => b.duration - a.duration);
 };
 
-/** Prebid measures the real time data hook as a whole, so its providers can only be named, not timed. */
 const getRtdProviderNames = (config: Config): string[] => {
   const dataProviders = (config as { realTimeData?: { dataProviders?: { name?: string }[] } })?.realTimeData?.dataProviders;
   return (dataProviders || []).map(({ name }) => name).filter(Boolean);
@@ -91,11 +70,6 @@ const getChildren = (metric: string, metrics: SerializedMetrics): Omit<IPreAucti
 
 const getNotes = (metric: string, config: Config): string[] => (metric === 'requestBids.rtd' ? getRtdProviderNames(config) : []);
 
-/**
- * Reconstructs everything prebid did between `pbjs.requestBids()` and the first bidder request.
- * Returns `null` when the auction carries no usable metrics, which is the case for prebid versions
- * predating the performance metrics or when `performanceMetrics: false` is configured.
- */
 export const getPreAuctionTimeline = (auctionEndEvent: EventRecord<'auctionEnd'>, config: Config): IPreAuctionTimeline | null => {
   const { timestamp, auctionEnd } = auctionEndEvent?.args || ({} as EventRecord<'auctionEnd'>['args']);
   const metrics = (auctionEndEvent?.args as unknown as { metrics?: SerializedMetrics })?.metrics;
@@ -105,9 +79,7 @@ export const getPreAuctionTimeline = (auctionEndEvent: EventRecord<'auctionEnd'>
   if (phases.length === 0) return null;
 
   const measured = phases.reduce((acc, { duration }) => acc + duration, 0);
-  // `requestBids.total` spans the `requestBids()` call to the end of the auction, so subtracting it from
-  // the auction end gives the moment the pre-auction phase began. Fall back to - and never start later
-  // than - the sum of the measured phases, so that every phase fits into the rendered window.
+
   const total = toNumber(metrics['requestBids.total']);
   const start = Math.min(total !== null ? auctionEnd - total : timestamp - measured, timestamp - measured);
 
@@ -127,15 +99,11 @@ export const getPreAuctionTimeline = (auctionEndEvent: EventRecord<'auctionEnd'>
     return row;
   });
 
-  // Prebid does not measure everything it does before the auction - enriching first party data and the
-  // hook plumbing itself are untimed. Show what is left rather than silently stretching the last phase.
   const unattributed = timestamp - cursor;
   if (unattributed > MIN_VISIBLE_DURATION) {
     rows.push({ metric: '', label: 'Unattributed', start: cursor, end: timestamp, duration: unattributed, variant: 'unattributed', children: [], notes: [] });
   }
 
-  // Building the bid requests happens once the auction has already started, but it still delays the
-  // first bidder call, so it belongs to the same story.
   const makeRequests = toNumber(metrics['requestBids.makeRequests']);
   if (makeRequests !== null) {
     rows.push({ metric: 'requestBids.makeRequests', label: 'Build Bid Requests', start: timestamp, end: timestamp + makeRequests, duration: makeRequests, variant: 'afterAuctionStart', children: [], notes: [] });

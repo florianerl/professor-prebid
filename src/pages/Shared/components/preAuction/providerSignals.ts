@@ -1,22 +1,10 @@
-/**
- * Where each RTD module writes its contribution, used to check that a provider's data reached an
- * auction rather than inferring it from the module name.
- *
- * GENERATED - do not edit by hand.
- * Run \`node utils/prebidMetadata/extractProviderSignals.mjs\` after bumping prebid.js.
- *
- * Keys are \`<componentType>:<componentName>\`, matching \`realTimeData.dataProviders[].name\`.
- * Paths come from the module source, from its \`.md\`, and from a small curated map.
- * \`ortb2Imp\` paths are relative to a bid's \`ortb2Imp\`. Container paths are excluded.
- */
 export interface IProviderSignal {
-  /** Paths within a bid's \`ortb2Imp\` that this module writes. */
   ortb2Imp: string[];
-  /** Paths within the bidder request's \`ortb2\` that this module writes. */
+
   ortb2: string[];
-  /** ortb2 data segment names, matched exactly rather than by token. */
+
   segments: string[];
-  /** EID sources this RTD module publishes. */
+
   eidSources: string[];
 }
 

@@ -15,9 +15,7 @@ describe('AdUnitsComponentState', () => {
       allAdUnitCodes: [],
     };
 
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <AppStateContext.Provider value={mockContext}>{children}</AppStateContext.Provider>
-    );
+    const wrapper = ({ children }: { children: React.ReactNode }) => <AppStateContext.Provider value={mockContext}>{children}</AppStateContext.Provider>;
 
     const { result } = renderHook(() => AdUnitsComponentState(), { wrapper });
 
@@ -33,7 +31,14 @@ describe('AdUnitsComponentState', () => {
             adUnits: [
               {
                 code: 'unit-1',
-                mediaTypes: { banner: { sizes: [[300, 250], [300, 600]] } },
+                mediaTypes: {
+                  banner: {
+                    sizes: [
+                      [300, 250],
+                      [300, 600],
+                    ],
+                  },
+                },
                 sizes: [[300, 250]],
                 bids: [{ bidder: 'rubicon', params: { siteId: '1' } }],
                 ortb2Imp: { ext: { gpid: '/123/banner' } },
@@ -49,7 +54,6 @@ describe('AdUnitsComponentState', () => {
               {
                 code: 'unit-3-native',
                 mediaTypes: { native: { title: { required: true } } } as any,
-                // no sizes, no bids
               },
             ],
           },
@@ -59,7 +63,14 @@ describe('AdUnitsComponentState', () => {
             adUnits: [
               {
                 code: 'unit-1',
-                mediaTypes: { banner: { sizes: [[300, 250], [300, 600]] } },
+                mediaTypes: {
+                  banner: {
+                    sizes: [
+                      [300, 250],
+                      [300, 600],
+                    ],
+                  },
+                },
                 sizes: [[300, 250]],
                 bids: [{ bidder: 'rubicon', params: { siteId: '1' } }],
                 customField: { deep: { prop: 'merged-value' } },
@@ -75,16 +86,13 @@ describe('AdUnitsComponentState', () => {
       allAdUnitCodes: ['unit-1', 'unit-2', 'unit-3-native'],
     };
 
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <AppStateContext.Provider value={mockContext}>{children}</AppStateContext.Provider>
-    );
+    const wrapper = ({ children }: { children: React.ReactNode }) => <AppStateContext.Provider value={mockContext}>{children}</AppStateContext.Provider>;
 
     const { result } = renderHook(() => AdUnitsComponentState(), { wrapper });
 
     expect(result.current.adUnits.length).toBe(3);
     expect(result.current.suggestions.length).toBeGreaterThan(0);
 
-    // Test filter query matching via setQuery
     act(() => {
       result.current.setQuery('mediatype:native');
     });

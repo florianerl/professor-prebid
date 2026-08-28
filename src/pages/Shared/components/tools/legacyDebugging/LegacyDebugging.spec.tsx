@@ -61,23 +61,19 @@ describe('LegacyDebugging components', () => {
     expect(screen.getByText('Filter Bidder(s)')).toBeTruthy();
     expect(screen.getByText('rubicon')).toBeTruthy();
 
-    // Test chip mousedown stopPropagation
     const chip = screen.getByText('rubicon');
     fireEvent.mouseDown(chip);
 
-    // Test chip delete
     const cancelIcons = container.querySelectorAll('[data-testid="CancelIcon"]');
     if (cancelIcons.length > 0) {
       fireEvent.click(cancelIcons[0]);
       expect(setDebugConfigState).toHaveBeenCalled();
     }
 
-    // Toggle switch off
     const switchBtn = screen.getByRole('checkbox');
     fireEvent.click(switchBtn);
     expect(setDebugConfigState).toHaveBeenCalled();
 
-    // Toggle switch on
     fireEvent.click(switchBtn);
     expect(setDebugConfigState).toHaveBeenCalled();
   });
@@ -85,9 +81,7 @@ describe('LegacyDebugging components', () => {
   it('renders BidOverWriteComponent and handles cpm, currency, bidder select, adUnit select, and chip deletion', () => {
     const mockConfig: any = {
       enabled: true,
-      bids: [
-        { bidder: 'rubicon', adUnitCode: 'slot-1-very-long-name-exceeding-twenty-six-characters', cpm: 5, currency: 'USD' },
-      ],
+      bids: [{ bidder: 'rubicon', adUnitCode: 'slot-1-very-long-name-exceeding-twenty-six-characters', cpm: 5, currency: 'USD' }],
     };
     const mockAppState: any = {
       events: [
@@ -108,28 +102,23 @@ describe('LegacyDebugging components', () => {
       </AppStateContext.Provider>
     );
 
-    // Test CPM change
     const cpmInput = screen.getByDisplayValue('5');
     fireEvent.change(cpmInput, { target: { value: '15' } });
     expect(setDebugConfigState).toHaveBeenCalled();
 
-    // Test Currency change
     const currencyInput = screen.getByDisplayValue('USD');
     fireEvent.change(currencyInput, { target: { value: 'EUR' } });
     expect(setDebugConfigState).toHaveBeenCalled();
 
-    // Test chip mousedown stopPropagation
     const chips = container.querySelectorAll('.MuiChip-root');
     chips.forEach((c) => fireEvent.mouseDown(c));
 
-    // Test deleting chip
     const deleteIcons = container.querySelectorAll('[data-testid="CancelIcon"]');
     deleteIcons.forEach((icon) => {
       fireEvent.click(icon);
       expect(setDebugConfigState).toHaveBeenCalled();
     });
 
-    // Toggle switch off
     const switchBtn = screen.getAllByRole('checkbox')[0];
     fireEvent.click(switchBtn);
     expect(setDebugConfigState).toHaveBeenCalled();
@@ -156,12 +145,10 @@ describe('LegacyDebugging components', () => {
       </AppStateContext.Provider>
     );
 
-    // Turn switch on
     const switchBtn = screen.getAllByRole('checkbox')[0];
     fireEvent.click(switchBtn);
     expect(setDebugConfigState).toBeDefined();
 
-    // Test select inputs
     const selects = screen.getAllByRole('combobox');
     if (selects.length >= 2) {
       fireEvent.mouseDown(selects[0]);

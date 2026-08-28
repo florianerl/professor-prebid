@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent} from '@testing-library/react';
+import { describe, it, expect, vi} from 'vitest';
 import AdUnitsComponent from './AdUnitsComponent';
-import { HeaderGridItem, AdUnitsGridComponent, AdUnitGridRow } from './AdUnitsGridComponent';
+import { HeaderGridItem} from './';
 import AppStateContext from '../../contexts/appStateContext';
 
 import * as utils from '../../utils';
@@ -105,7 +105,6 @@ describe('AdUnitsComponent & Grid', () => {
     fireEvent.click(header);
     expect(onClick).toHaveBeenCalled();
 
-    // Test with children prop
     render(
       <HeaderGridItem>
         <div>Child Content</div>

@@ -11,12 +11,7 @@ test.describe('Professor Prebid DevTools MCP Bridge E2E', () => {
     const userDataDir = path.join(__dirname, '../test-results/test_mcp_user_data_dir_' + Date.now());
 
     const isHeadless = process.env.HEADED !== 'true' && process.env.HEADLESS !== 'false';
-    const args = [
-      `--disable-extensions-except=${pathToExtension}`,
-      `--load-extension=${pathToExtension}`,
-      '--no-sandbox',
-      '--disable-web-security',
-    ];
+    const args = [`--disable-extensions-except=${pathToExtension}`, `--load-extension=${pathToExtension}`, '--no-sandbox', '--disable-web-security'];
     if (isHeadless) {
       args.push('--headless=new');
     }
@@ -48,7 +43,6 @@ test.describe('Professor Prebid DevTools MCP Bridge E2E', () => {
     }
 
     extensionId = serviceWorker.url().split('/')[2];
-    console.log(`Extension loaded with ID: ${extensionId}`);
   });
 
   test.afterAll(async () => {
@@ -216,10 +210,14 @@ test.describe('Professor Prebid DevTools MCP Bridge E2E', () => {
     }, extensionId);
 
     // Wait for standalone script attachment
-    await page.waitForFunction(() => {
-      const win = window as any;
-      return win.__PREBID_DEVTOOLS_MCP__ && win.__PROFESSOR_PREBID_MCP__?.hasDevtoolsMcp();
-    }, null, { timeout: 5000 });
+    await page.waitForFunction(
+      () => {
+        const win = window as any;
+        return win.__PREBID_DEVTOOLS_MCP__ && win.__PROFESSOR_PREBID_MCP__?.hasDevtoolsMcp();
+      },
+      null,
+      { timeout: 5000 }
+    );
 
     isMcpActive = await page.evaluate(() => {
       const win = window as any;

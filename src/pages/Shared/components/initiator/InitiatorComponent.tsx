@@ -3,7 +3,7 @@ import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import Chip from '@mui/material/Chip';
+
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
@@ -26,11 +26,7 @@ import { createQueryEngine, distinct } from '../autocomplete/utils';
 import { download } from '../../utils';
 import { PRE_AUCTION_HAR } from '../../constants';
 
-import {
-  classifyRequest,
-  IClassifiedNetworkEntry,
-  NetworkCategory,
-} from './networkClassifier';
+import { classifyRequest, IClassifiedNetworkEntry, NetworkCategory } from './networkClassifier';
 import { NetworkWaterfallView } from './NetworkWaterfallView';
 import { NetworkCascadeView } from './NetworkCascadeView';
 import { NetworkPrivacyAuditView } from './NetworkPrivacyAuditView';
@@ -87,9 +83,7 @@ const InitiatorComponent = (): JSX.Element => {
   React.useEffect(() => {
     let active = true;
     const rawList = harLog || [];
-    const entriesToDecompress = rawList.filter(
-      (e: any) => e.postData?.text && decompressedMap[e.id] === undefined
-    );
+    const entriesToDecompress = rawList.filter((e: any) => e.postData?.text && decompressedMap[e.id] === undefined);
 
     if (entriesToDecompress.length > 0) {
       Promise.all(
@@ -318,21 +312,11 @@ const InitiatorComponent = (): JSX.Element => {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, mt: 0.5, flexShrink: 0 }}>
         {/* Search Bar */}
         <Box sx={{ flex: 1, minWidth: 260 }}>
-          <AutoComplete
-            query={query}
-            onQueryChange={setQuery}
-            options={suggestions}
-            fieldKeys={['category', 'bidder', 'status', 'domain', 'privacy']}
-            placeholder="Filter requests (e.g. bidder:rubicon category:sync privacy:valid)..."
-          />
+          <AutoComplete query={query} onQueryChange={setQuery} options={suggestions} fieldKeys={['category', 'bidder', 'status', 'domain', 'privacy']} placeholder="Filter requests (e.g. bidder:rubicon category:sync privacy:valid)..." />
         </Box>
 
         {/* View Switcher Tabs */}
-        <Tabs
-          value={viewMode}
-          onChange={(_, v) => setViewMode(v)}
-          sx={{ minHeight: 36, '& .MuiTab-root': { minHeight: 36, py: 0.5, px: 1.5, fontSize: '0.75rem' } }}
-        >
+        <Tabs value={viewMode} onChange={(_, v) => setViewMode(v)} sx={{ minHeight: 36, '& .MuiTab-root': { minHeight: 36, py: 0.5, px: 1.5, fontSize: '0.75rem' } }}>
           <Tab icon={<TableRowsIcon fontSize="small" />} iconPosition="start" label="Waterfall" />
           <Tab icon={<AccountTreeIcon fontSize="small" />} iconPosition="start" label="Initiator Cascade" />
           <Tab icon={<SecurityIcon fontSize="small" />} iconPosition="start" label="Privacy Audit" />
@@ -382,23 +366,11 @@ const InitiatorComponent = (): JSX.Element => {
             </Button>
           </Paper>
         ) : viewMode === 0 ? (
-          <NetworkWaterfallView
-            entries={filteredEntries}
-            selectedEntry={selectedEntry}
-            onSelectEntry={setSelectedEntry}
-          />
+          <NetworkWaterfallView entries={filteredEntries} selectedEntry={selectedEntry} onSelectEntry={setSelectedEntry} />
         ) : viewMode === 1 ? (
-          <NetworkCascadeView
-            entries={filteredEntries}
-            selectedEntry={selectedEntry}
-            onSelectEntry={setSelectedEntry}
-          />
+          <NetworkCascadeView entries={filteredEntries} selectedEntry={selectedEntry} onSelectEntry={setSelectedEntry} />
         ) : (
-          <NetworkPrivacyAuditView
-            entries={filteredEntries}
-            selectedEntry={selectedEntry}
-            onSelectEntry={setSelectedEntry}
-          />
+          <NetworkPrivacyAuditView entries={filteredEntries} selectedEntry={selectedEntry} onSelectEntry={setSelectedEntry} />
         )}
       </Box>
 

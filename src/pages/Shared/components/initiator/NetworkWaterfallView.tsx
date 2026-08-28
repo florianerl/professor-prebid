@@ -55,11 +55,7 @@ const getPrivacyChip = (entry: IClassifiedNetworkEntry) => {
   return <Chip label="None" size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem', color: 'text.disabled' }} />;
 };
 
-export const NetworkWaterfallView = ({
-  entries,
-  selectedEntry,
-  onSelectEntry,
-}: NetworkWaterfallViewProps): JSX.Element => {
+export const NetworkWaterfallView = ({ entries, selectedEntry, onSelectEntry }: NetworkWaterfallViewProps): JSX.Element => {
   const maxDuration = Math.max(...entries.map((e) => e.entry.time || 1), 100);
 
   if (entries.length === 0) {
@@ -104,18 +100,11 @@ export const NetworkWaterfallView = ({
               >
                 {/* Status */}
                 <TableCell sx={{ p: 0.75 }}>
-                  <Chip
-                    label={c.entry.status || '0'}
-                    size="small"
-                    color={getStatusColor(c.entry.status)}
-                    sx={{ height: 20, fontSize: '0.7rem', fontWeight: 700 }}
-                  />
+                  <Chip label={c.entry.status || '0'} size="small" color={getStatusColor(c.entry.status)} sx={{ height: 20, fontSize: '0.7rem', fontWeight: 700 }} />
                 </TableCell>
 
                 {/* Method */}
-                <TableCell sx={{ p: 0.75, fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 600 }}>
-                  {c.entry.method}
-                </TableCell>
+                <TableCell sx={{ p: 0.75, fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 600 }}>{c.entry.method}</TableCell>
 
                 {/* Host & Path */}
                 <TableCell sx={{ p: 0.75 }}>

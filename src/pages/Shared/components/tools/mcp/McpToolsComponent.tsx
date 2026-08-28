@@ -208,51 +208,26 @@ export const McpToolsComponent: React.FC = () => {
       <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
         <Tooltip title="Inject Prebid.js PR #15356 Standalone MCP Module onto the active page" arrow>
           <span>
-            <Button
-              size="small"
-              variant="outlined"
-              color="primary"
-              onClick={handleInject}
-              disabled={isMcpActive}
-              startIcon={<PlayArrowIcon />}
-              sx={{ fontSize: '0.75rem', textTransform: 'none', fontWeight: 600, py: 0.25 }}
-            >
+            <Button size="small" variant="outlined" color="primary" onClick={handleInject} disabled={isMcpActive} startIcon={<PlayArrowIcon />} sx={{ fontSize: '0.75rem', textTransform: 'none', fontWeight: 600, py: 0.25 }}>
               {isMcpActive ? 'MCP Module Injected' : 'Inject DevTools MCP Standalone'}
             </Button>
           </span>
         </Tooltip>
 
         <Tooltip title="Copy structured diagnostic snapshot formatted for AI Coding Agents (Markdown)" arrow>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={handleCopySnapshot}
-            startIcon={<ContentCopyIcon />}
-            sx={{ fontSize: '0.75rem', textTransform: 'none', fontWeight: 600, py: 0.25 }}
-          >
+          <Button size="small" variant="outlined" onClick={handleCopySnapshot} startIcon={<ContentCopyIcon />} sx={{ fontSize: '0.75rem', textTransform: 'none', fontWeight: 600, py: 0.25 }}>
             Copy AI Diagnostic Snapshot
           </Button>
         </Tooltip>
 
         <Tooltip title="Download standardized MCP diagnostic telemetry as JSON" arrow>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={handleDownloadMcpJson}
-            startIcon={<FileDownloadIcon />}
-            sx={{ fontSize: '0.75rem', textTransform: 'none', fontWeight: 600, py: 0.25 }}
-          >
+          <Button size="small" variant="outlined" onClick={handleDownloadMcpJson} startIcon={<FileDownloadIcon />} sx={{ fontSize: '0.75rem', textTransform: 'none', fontWeight: 600, py: 0.25 }}>
             Export MCP JSON
           </Button>
         </Tooltip>
       </Box>
 
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
+      <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => setSnackbarOpen(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%', fontSize: '0.8rem' }}>
           {snackbarMessage}
         </Alert>

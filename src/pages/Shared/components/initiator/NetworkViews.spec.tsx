@@ -18,7 +18,10 @@ describe('Network Views', () => {
       status: 200,
       startedDateTime: 1000,
       time: 150,
-      queryString: [{ name: 'gdpr', value: '1' }, { name: 'gdpr_consent', value: 'CP12345' }],
+      queryString: [
+        { name: 'gdpr', value: '1' },
+        { name: 'gdpr_consent', value: 'CP12345' },
+      ],
     } as IHarLogEntry),
     classifyRequest({
       id: 'req_2',
@@ -75,13 +78,11 @@ describe('Network Views', () => {
       expect(screen.getByText('pixel.rubiconproject.com')).toBeTruthy();
       expect(screen.getByText('Redirect ➔')).toBeTruthy();
 
-      // Test filter input
       const filterInput = screen.getByPlaceholderText(/Filter tree cascade/i);
       fireEvent.change(filterInput, { target: { value: 'adnxs' } });
       expect(screen.getByText('ib.adnxs.com')).toBeTruthy();
       expect(screen.queryByText('sync.rubiconproject.com')).toBeNull();
 
-      // Clear filter chip
       const clearChip = screen.getByText('Clear Filter');
       fireEvent.click(clearChip);
       expect(screen.getByText('sync.rubiconproject.com')).toBeTruthy();

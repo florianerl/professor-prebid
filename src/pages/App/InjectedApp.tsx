@@ -38,14 +38,9 @@ const InjectedApp = (): JSX.Element => {
       )
     );
     const masks = allAdunitCodes
-      .filter(
-        (adUnitCode) =>
-          document.getElementById(adUnitCode) || document.querySelector(`[id*="${adUnitCode}"]:not([id^=prpb-mask--container-])`)
-      )
+      .filter((adUnitCode) => document.getElementById(adUnitCode) || document.querySelector(`[id*="${adUnitCode}"]:not([id^=prpb-mask--container-])`))
       .map((adUnitCode) => {
-        const slotsBidWonEvent = (pbsjsEvents as IPrebidBidWonEventData[])
-          .filter((event) => event.eventType === 'bidWon' && event.args.adUnitCode === adUnitCode)
-          .sort((a, b) => (a.args.responseTimestamp < b.args.responseTimestamp ? 1 : -1))[0];
+        const slotsBidWonEvent = (pbsjsEvents as IPrebidBidWonEventData[]).filter((event) => event.eventType === 'bidWon' && event.args.adUnitCode === adUnitCode).sort((a, b) => (a.args.responseTimestamp < b.args.responseTimestamp ? 1 : -1))[0];
 
         return {
           elementId: adUnitCode,
@@ -69,10 +64,9 @@ const InjectedApp = (): JSX.Element => {
     pendingNamespaceRef.current = pbjsNameSpace;
 
     const now = Date.now();
-    const interval = 1000; // max 1 getEvents() per second
+    const interval = 1000;
     const last = lastGetEventsRef.current;
 
-    // first call (or after interval)
     if (!last || now - last >= interval) {
       lastGetEventsRef.current = now;
       const ns = pendingNamespaceRef.current;
@@ -83,7 +77,6 @@ const InjectedApp = (): JSX.Element => {
       return;
     }
 
-    // schedule one call at the end of the interval (if not already pending
     if (getEventsTimeoutRef.current == null) {
       const remaining = interval - (now - last);
       getEventsTimeoutRef.current = window.setTimeout(() => {
@@ -120,8 +113,7 @@ const InjectedApp = (): JSX.Element => {
   return (
     <React.Fragment>
       {masks.map((mask) => {
-        const container =
-          document.getElementById(mask.elementId) || document.querySelector(`[id*="${mask.elementId}"]:not([id^=prpb-mask--container-])`);
+        const container = document.getElementById(mask.elementId) || document.querySelector(`[id*="${mask.elementId}"]:not([id^=prpb-mask--container-])`);
         return <AdOverlayPortal key={mask.elementId} mask={mask} consoleState={consoleState} container={container} pbjsNameSpace={pbjsNameSpace} />;
       })}
     </React.Fragment>

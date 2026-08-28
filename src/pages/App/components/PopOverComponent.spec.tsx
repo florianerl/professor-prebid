@@ -84,7 +84,7 @@ describe('PopOverComponent', () => {
     render(<PopOverComponent {...defaultProps} />);
 
     const copyButtons = screen.getAllByRole('button');
-    // Click one of the copy icon buttons inside info cards
+
     if (copyButtons.length > 1) {
       fireEvent.click(copyButtons[1]);
       expect(navigator.clipboard.writeText).toHaveBeenCalled();

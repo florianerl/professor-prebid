@@ -75,8 +75,8 @@ const PreAuctionHelp = (): JSX.Element => {
               ))}
               <Typography variant="body2" sx={{ fontSize: '0.72rem', mt: 0.5 }}>
                 For identity modules this is <strong>exact</strong> — the EID <code>source</code> is compared string for string against each auction’s bidder requests. For RTD it depends on the module: where prebid’s own source shows the path it writes to (
-                <code>ortb2Imp.ext.data.&lt;vendor&gt;</code> and the like) a value found there is <strong>proof</strong>, and its absence is proof too. The rest fall back to matching the module name against ortb2 segment names, which is <strong>best effort</strong> —
-                those providers may also contribute through bid params, which is not tracked.
+                <code>ortb2Imp.ext.data.&lt;vendor&gt;</code> and the like) a value found there is <strong>proof</strong>, and its absence is proof too. The rest fall back to matching the module name against ortb2 segment names, which is{' '}
+                <strong>best effort</strong> — those providers may also contribute through bid params, which is not tracked.
               </Typography>
             </Section>
 

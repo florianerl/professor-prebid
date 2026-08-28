@@ -5,6 +5,8 @@ import PreAuctionComponent, { PROVIDER_FIELD_MAP } from './PreAuctionComponent';
 import AppStateContext from '../../contexts/appStateContext';
 import InspectedPageContext from '../../contexts/inspectedPageContext';
 
+import { download } from '../../utils';
+
 vi.mock('../../utils', async () => {
   const actual = await vi.importActual<any>('../../utils');
   return {
@@ -12,8 +14,6 @@ vi.mock('../../utils', async () => {
     download: vi.fn(),
   };
 });
-
-import { download } from '../../utils';
 
 const makeContext = (prebid: any = {}, auctionEndEvents: any[] = [], harLog: any[] = []) => {
   const appState: any = {
@@ -196,8 +196,6 @@ describe('PreAuctionComponent', () => {
     const codeBtn = screen.getByTestId('CodeIcon').closest('button')!;
     fireEvent.click(codeBtn);
 
-    // In JSON view, the provider rows are replaced by the JSON view
-    // Toggle back
     fireEvent.click(codeBtn);
     expect(screen.getAllByText('permutive').length).toBeGreaterThanOrEqual(1);
   });
@@ -239,7 +237,6 @@ describe('PreAuctionComponent', () => {
     const rowHeader = screen.getAllByText('permutive')[0];
     fireEvent.click(rowHeader);
 
-    // After expanding, the Collapse component displays the awaited reason
     expect(screen.getAllByText(/waitForIt/i).length).toBeGreaterThanOrEqual(1);
   });
 
@@ -276,7 +273,7 @@ describe('PreAuctionComponent', () => {
         url: 'https://api.permutive.com/v1/segments',
         host: 'api.permutive.com',
         startedDateTime: 150,
-        time: 100, // finishes at 250 (after bidder request start 200 -> lost race)
+        time: 100,
       },
     ];
 
@@ -287,7 +284,6 @@ describe('PreAuctionComponent', () => {
 
     expect(screen.getByText(/Auction #1 — permutive/)).toBeTruthy();
 
-    // Expand provider row to see lost races and hosts
     const rowHeader = screen.getAllByText('permutive')[0];
     fireEvent.click(rowHeader);
   });
@@ -304,9 +300,7 @@ describe('PreAuctionComponent', () => {
 
     renderComponent(prebid);
 
-    expect(
-      screen.getByText(/Verdicts below come from config and auction data and are complete/i)
-    ).toBeTruthy();
+    expect(screen.getByText(/Verdicts below come from config and auction data and are complete/i)).toBeTruthy();
   });
 
   it('renders unmatched sections including ortb2, ortb2Imp, eids, and segments if present', () => {
@@ -402,7 +396,6 @@ describe('PreAuctionComponent', () => {
 
     const { rerender } = renderComponent(prebid, [{ args: { auctionId: 'auc-1' } }]);
 
-    // Rerender with empty auctionEndEvents so findAuctionEvent returns undefined
     const { appState, inspectedState } = makeContext(prebid, [], []);
     rerender(
       <AppStateContext.Provider value={appState}>
@@ -412,8 +405,6 @@ describe('PreAuctionComponent', () => {
       </AppStateContext.Provider>
     );
 
-    // Diagnostics with empty auctionEndEvents creates no auctions for that provider
-    // Let's verify empty state
     expect(screen.getByText(/Provider: 1/i)).toBeTruthy();
   });
 });

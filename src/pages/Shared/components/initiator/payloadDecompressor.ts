@@ -1,18 +1,12 @@
-/**
- * Utility to detect and decompress gzipped/deflated POST payloads (e.g. Criteo OpenRTB requests).
- */
-
 export const decompressPayload = async (rawText: string): Promise<{ text: string; isDecompressed: boolean }> => {
   if (!rawText || typeof rawText !== 'string') {
     return { text: rawText || '', isDecompressed: false };
   }
 
-  // If DecompressionStream is not available, return raw
   if (typeof DecompressionStream === 'undefined') {
     return { text: rawText, isDecompressed: false };
   }
 
-  // 1. Try decompressing binary string bytes (where each char represents a byte 0-255)
   try {
     const bytes = new Uint8Array(rawText.length);
     for (let i = 0; i < rawText.length; i++) {
@@ -23,11 +17,8 @@ export const decompressPayload = async (rawText: string): Promise<{ text: string
     if (decompressed) {
       return { text: decompressed, isDecompressed: true };
     }
-  } catch {
-    // Continue to next attempt
-  }
+  } catch {}
 
-  // 2. Try decompressing base64 encoded gzip
   try {
     const trimmed = rawText.trim();
     if (/^[A-Za-z0-9+/=_-]+$/.test(trimmed) && trimmed.length > 20) {
@@ -42,9 +33,7 @@ export const decompressPayload = async (rawText: string): Promise<{ text: string
         return { text: decompressed, isDecompressed: true };
       }
     }
-  } catch {
-    // Ignore and fallback
-  }
+  } catch {}
 
   return { text: rawText, isDecompressed: false };
 };
@@ -62,9 +51,7 @@ const tryDecompress = async (bytes: Uint8Array): Promise<string | null> => {
           return text;
         }
       }
-    } catch {
-      // Try next format
-    }
+    } catch {}
   }
   return null;
 };

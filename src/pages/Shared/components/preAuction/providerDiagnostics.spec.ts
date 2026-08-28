@@ -10,9 +10,9 @@ interface IAuctionStub {
   eidSources?: string[];
   segmentNames?: string[];
   starts?: number[];
-  /** One `ortb2Imp` per bid, which is where RTD providers write their per-adUnit enrichment. */
+
   imps?: any[];
-  /** Merged onto each bidder request's ortb2, where providers that enrich globally write. */
+
   ortb2?: any;
 }
 
@@ -169,7 +169,6 @@ describe('getProviderDiagnostics - ortb2Imp evidence', () => {
   const withProvider = (name: string) => ({ realTimeData: { auctionDelay: 300, dataProviders: [{ name, waitForIt: true }] } });
 
   it('proves landing from the path the module writes, not from its name', () => {
-    // the write is per adUnit, not an ortb2 segment
     const auction = makeAuction({ imps: [{ ext: { data: { browsi: { pvd: '0.42' } } } }] });
     const { providers } = getProviderDiagnostics(makePrebid(withProvider('browsi')), [auction]);
     expect(providers[0].auctions[0].verdict).toBe('landed');
@@ -177,7 +176,6 @@ describe('getProviderDiagnostics - ortb2Imp evidence', () => {
   });
 
   it('reports never - not unknown - when the module has a known write path and used none of it', () => {
-    // a known write path makes absence meaningful
     const { providers } = getProviderDiagnostics(makePrebid(withProvider('browsi')), [makeAuction({ imps: [{ ext: { gpid: '/123/slot' } }] })]);
     expect(providers[0].auctions[0].verdict).toBe('never');
   });
@@ -210,7 +208,6 @@ describe('getProviderDiagnostics - ortb2Imp evidence', () => {
     expect(providers[0].auctions[0].evidenceDetail?.['device.ext.wurfl']).toEqual({ at: 'ortb2.device.ext.wurfl', value: { is_robot: false } });
   });
 
-  // a bare segment name does not say which branch carried it
   it('locates a segment name and carries the entry that held it', () => {
     const { providers } = getProviderDiagnostics(makePrebid(withProvider('permutive')), [makeAuction({ segmentNames: ['permutive.com'] })]);
     expect(providers[0].auctions[0].evidenceDetail?.['permutive.com']).toEqual({ at: 'ortb2.user.data[]', value: { name: 'permutive.com' } });
@@ -228,7 +225,6 @@ describe('getProviderDiagnostics - ortb2Imp evidence', () => {
   });
 
   it('proves landing from a global ortb2 path the vendor payload writes', () => {
-    // the key is chosen by the vendor response, so the path is curated from a live auction
     const auction = makeAuction({ ortb2: { device: { ext: { wurfl: { is_robot: false, wurfl_id: 'chrome' } } } } });
     const { providers } = getProviderDiagnostics(makePrebid(withProvider('wurfl')), [auction]);
     expect(providers[0].auctions[0].verdict).toBe('landed');
@@ -255,7 +251,6 @@ describe('getProviderDiagnostics - ortb2Imp evidence', () => {
   });
 
   it('proves landing through a path reached via a local ortb2Fragments alias', () => {
-    // the module writes through a local alias of ortb2Fragments.global
     const auction = makeAuction({ ortb2: { user: { ext: { data: { im_segments: ['a', 'b'] } } } } });
     const { providers } = getProviderDiagnostics(makePrebid(withProvider('im')), [auction]);
     expect(providers[0].auctions[0].verdict).toBe('landed');
@@ -263,14 +258,12 @@ describe('getProviderDiagnostics - ortb2Imp evidence', () => {
   });
 
   it('does not count a provider that wrote its keys but left them empty', () => {
-    // keys written, no values resolved
     const auction = makeAuction({ ortb2: { user: { ext: { data: { im_segments: [], im_uid: '' } } } } });
     const { providers } = getProviderDiagnostics(makePrebid(withProvider('im')), [auction]);
     expect(providers[0].auctions[0].verdict).toBe('never');
   });
 
   it('does not report prebid first-party-data enrichment as unattributed', () => {
-    // prebid writes these on every page
     const auction = makeAuction({ ortb2: { device: { ext: { vpw: 1280, vph: 800 } }, site: { ext: { data: { documentLang: 'en' } } } } });
     const { unmatchedOrtb2Paths } = getProviderDiagnostics(makePrebid(withProvider('wurfl')), [auction]);
     expect(unmatchedOrtb2Paths).toEqual([]);
@@ -302,7 +295,6 @@ describe('getProviderDiagnostics - endpoint hosts', () => {
   });
 
   it('keeps config hosts at full length so a shared cdn is not claimed wholesale', () => {
-    // collapsing to the registrable domain would claim every request to that cdn
     const config = { realTimeData: { auctionDelay: 300, dataProviders: [{ name: 'browsi', params: { url: 'browsi.somecdn.com' } }] } };
     const { providers } = getProviderDiagnostics(makePrebid(config), [makeAuction()]);
     expect(providers[0].hosts).toEqual(['browsi.somecdn.com']);

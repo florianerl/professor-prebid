@@ -21,13 +21,7 @@ export interface VersionStatusHeroProps {
   isRefreshing?: boolean;
 }
 
-export const VersionStatusHero: React.FC<VersionStatusHeroProps> = ({
-  installedVersion,
-  latestVersion,
-  releasesCount,
-  onRefresh,
-  isRefreshing = false,
-}) => {
+export const VersionStatusHero: React.FC<VersionStatusHeroProps> = ({ installedVersion, latestVersion, releasesCount, onRefresh, isRefreshing = false }) => {
   const [copied, setCopied] = useState(false);
 
   const cleanInstalled = installedVersion.startsWith('v') ? installedVersion : `v${installedVersion}`;
@@ -35,9 +29,7 @@ export const VersionStatusHero: React.FC<VersionStatusHeroProps> = ({
   const isLatest = cleanInstalled === cleanLatest;
 
   const handleCopy = () => {
-    const summary = isLatest
-      ? `Prebid.js ${cleanInstalled} (Up to date)`
-      : `Prebid.js installed: ${cleanInstalled}, latest: ${cleanLatest} (${releasesCount} release${releasesCount === 1 ? '' : 's'} behind)`;
+    const summary = isLatest ? `Prebid.js ${cleanInstalled} (Up to date)` : `Prebid.js installed: ${cleanInstalled}, latest: ${cleanLatest} (${releasesCount} release${releasesCount === 1 ? '' : 's'} behind)`;
 
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard.writeText(summary).catch(() => {});
@@ -62,11 +54,7 @@ export const VersionStatusHero: React.FC<VersionStatusHeroProps> = ({
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-        {isLatest ? (
-          <CheckCircleOutlineIcon color="success" sx={{ fontSize: 30 }} />
-        ) : (
-          <WarningAmberOutlinedIcon color="warning" sx={{ fontSize: 30 }} />
-        )}
+        {isLatest ? <CheckCircleOutlineIcon color="success" sx={{ fontSize: 30 }} /> : <WarningAmberOutlinedIcon color="warning" sx={{ fontSize: 30 }} />}
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
             <Typography variant="h3" sx={{ fontSize: '0.9rem', fontWeight: 700 }}>
@@ -102,9 +90,7 @@ export const VersionStatusHero: React.FC<VersionStatusHeroProps> = ({
             )}
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, fontSize: '0.75rem' }}>
-            {isLatest
-              ? `Currently running ${cleanInstalled}. All latest features and bug fixes are present.`
-              : `Currently running ${cleanInstalled}. Upgrade to ${cleanLatest} to receive the latest features & fixes.`}
+            {isLatest ? `Currently running ${cleanInstalled}. All latest features and bug fixes are present.` : `Currently running ${cleanInstalled}. Upgrade to ${cleanLatest} to receive the latest features & fixes.`}
           </Typography>
         </Box>
       </Box>
@@ -119,12 +105,7 @@ export const VersionStatusHero: React.FC<VersionStatusHeroProps> = ({
 
         <Tooltip title="Check GitHub for release updates" arrow>
           <span>
-            <IconButton
-              size="small"
-              onClick={onRefresh}
-              disabled={isRefreshing}
-              sx={{ border: '1px solid', borderColor: 'divider', p: 0.5 }}
-            >
+            <IconButton size="small" onClick={onRefresh} disabled={isRefreshing} sx={{ border: '1px solid', borderColor: 'divider', p: 0.5 }}>
               <RefreshIcon fontSize="small" sx={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
             </IconButton>
           </span>

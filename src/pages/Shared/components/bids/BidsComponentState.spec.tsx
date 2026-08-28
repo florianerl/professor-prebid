@@ -46,19 +46,15 @@ describe('BidsComponentState', () => {
             bidsReceived: [
               { bidder: 'rubicon', cpm: 5, timeToRespond: 100, width: 300, height: 250, currency: 'USD', adUnitCode: 'slot-1' },
               { bidder: 'appnexus', cpm: 2, timeToRespond: 200, width: 728, height: 90, currency: 'EUR', adUnitCode: 'slot-2' },
-              { bidder: 'criteo', cpm: undefined, timeToRespond: 150 }, // missing CPM
+              { bidder: 'criteo', cpm: undefined, timeToRespond: 150 },
             ],
-            noBids: [
-              { bidder: 'pubmatic', adUnitCode: 'slot-1' },
-            ],
+            noBids: [{ bidder: 'pubmatic', adUnitCode: 'slot-1' }],
           },
         },
       ],
     };
 
-    const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <AppStateContext.Provider value={mockContext}>{children}</AppStateContext.Provider>
-    );
+    const wrapper = ({ children }: { children: React.ReactNode }) => <AppStateContext.Provider value={mockContext}>{children}</AppStateContext.Provider>;
 
     const { result } = renderHook(() => BidsComponentState(), { wrapper });
 
@@ -67,26 +63,22 @@ describe('BidsComponentState', () => {
     expect(result.current.counts.nobid).toBe(1);
     expect(result.current.suggestions.length).toBeGreaterThan(0);
 
-    // Toggle global open
     act(() => {
       result.current.toggleGlobalOpen();
     });
     expect(result.current.globalOpen).toBe(true);
 
-    // Toggle sort on same column flips direction
     act(() => {
       result.current.toggleSort('cpm');
     });
     expect(result.current.sort.dir).toBe('asc');
 
-    // Toggle sort on different column defaults to asc
     act(() => {
       result.current.toggleSort('bidder');
     });
     expect(result.current.sort.key).toBe('bidder');
     expect(result.current.sort.dir).toBe('asc');
 
-    // Test filter query
     act(() => {
       result.current.setQuery('bidder:rubicon');
     });

@@ -86,14 +86,7 @@ const ConfigComponent = (): JSX.Element => {
     <Grid container alignItems="flex-start">
       {/* Header Bar: Full-width search bar + download button */}
       <Grid size={{ xs: 11.5 }} sx={{ display: 'flex', alignItems: 'center', border: 0, '& .MuiInputBase-input': { paddingLeft: '4px !important', paddingTop: '4px !important' } }}>
-        <AutoComplete
-          query={query}
-          fieldKeys={fieldKeys}
-          options={options}
-          onPick={(opt) => setQuery((cur) => replaceLastToken(cur, opt))}
-          onQueryChange={setQuery}
-          placeholder="Filter config..."
-        />
+        <AutoComplete query={query} fieldKeys={fieldKeys} options={options} onPick={(opt) => setQuery((cur) => replaceLastToken(cur, opt))} onQueryChange={setQuery} placeholder="Filter config..." />
       </Grid>
 
       <GridCell cols={0.5} sx={{ display: 'flex', alignItems: 'center', border: 0 }}>
@@ -107,13 +100,7 @@ const ConfigComponent = (): JSX.Element => {
       {/* Content View Switcher */}
       {query.trim() !== '' ? (
         <Grid size={{ xs: 12 }}>
-          <Paper sx={{ p: 1, mt: 0.5 }}>
-            {Object.keys(filteredConfig).length > 0 ? (
-              <JSONViewerComponent src={filteredConfig} name="config" collapsed={false} />
-            ) : (
-              <Paper sx={{ p: 2, textAlign: 'center' }}>No matching configuration parameters</Paper>
-            )}
-          </Paper>
+          <Paper sx={{ p: 1, mt: 0.5 }}>{Object.keys(filteredConfig).length > 0 ? <JSONViewerComponent src={filteredConfig} name="config" collapsed={false} /> : <Paper sx={{ p: 2, textAlign: 'center' }}>No matching configuration parameters</Paper>}</Paper>
         </Grid>
       ) : (
         <Grid size={{ xs: 12 }} sx={{ columnCount: { xs: 1, sm: 2, md: 3 }, columnGap: '4px', '& > *': { width: '100% !important', maxWidth: '100% !important' } }}>

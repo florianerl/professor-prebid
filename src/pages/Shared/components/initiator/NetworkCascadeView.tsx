@@ -79,12 +79,7 @@ const TreeNodeRow = ({ node, selectedEntry, onSelectEntry }: TreeNodeRowProps): 
 
         {relationChip}
 
-        <Chip
-          label={node.entry.entry.status || '0'}
-          size="small"
-          color={getStatusColor(node.entry.entry.status)}
-          sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }}
-        />
+        <Chip label={node.entry.entry.status || '0'} size="small" color={getStatusColor(node.entry.entry.status)} sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }} />
 
         <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700 }}>
           {node.entry.entry.method}
@@ -113,9 +108,7 @@ const TreeNodeRow = ({ node, selectedEntry, onSelectEntry }: TreeNodeRowProps): 
 
         <Chip label={node.entry.categoryLabel} size="small" color={node.entry.categoryColor} sx={{ height: 18, fontSize: '0.6rem' }} />
 
-        {node.entry.providerName && (
-          <Chip label={node.entry.providerName} size="small" variant="outlined" sx={{ height: 18, fontSize: '0.6rem' }} />
-        )}
+        {node.entry.providerName && <Chip label={node.entry.providerName} size="small" variant="outlined" sx={{ height: 18, fontSize: '0.6rem' }} />}
 
         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, minWidth: 50, textAlign: 'right' }}>
           {Math.round(node.entry.entry.time)} ms
@@ -133,27 +126,15 @@ const TreeNodeRow = ({ node, selectedEntry, onSelectEntry }: TreeNodeRowProps): 
   );
 };
 
-export const NetworkCascadeView = ({
-  entries,
-  selectedEntry,
-  onSelectEntry,
-}: NetworkCascadeViewProps): JSX.Element => {
+export const NetworkCascadeView = ({ entries, selectedEntry, onSelectEntry }: NetworkCascadeViewProps): JSX.Element => {
   const [rootFilter, setRootFilter] = useState<string>('');
   const treeNodes = buildNetworkTree(entries, rootFilter);
 
   return (
     <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 1, overflow: 'hidden' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-        <TextField
-          size="small"
-          placeholder="Filter tree cascade by Root URL, Domain or Provider (e.g. adnxs.com or /getuid)..."
-          value={rootFilter}
-          onChange={(e) => setRootFilter(e.target.value)}
-          sx={{ flex: 1 }}
-        />
-        {rootFilter && (
-          <Chip label="Clear Filter" size="small" onClick={() => setRootFilter('')} sx={{ cursor: 'pointer' }} />
-        )}
+        <TextField size="small" placeholder="Filter tree cascade by Root URL, Domain or Provider (e.g. adnxs.com or /getuid)..." value={rootFilter} onChange={(e) => setRootFilter(e.target.value)} sx={{ flex: 1 }} />
+        {rootFilter && <Chip label="Clear Filter" size="small" onClick={() => setRootFilter('')} sx={{ cursor: 'pointer' }} />}
       </Box>
 
       {treeNodes.length === 0 ? (

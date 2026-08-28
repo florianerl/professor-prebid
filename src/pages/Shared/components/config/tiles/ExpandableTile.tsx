@@ -6,10 +6,10 @@ import Avatar from '@mui/material/Avatar';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import Collapse from '@mui/material/Collapse';
+
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
-import { tileHeight } from '../ConfigComponent';
+
 
 interface ExpandableTileProps {
   icon: ReactNode;

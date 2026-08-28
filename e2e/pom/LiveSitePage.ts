@@ -1,32 +1,21 @@
-import { Page, expect } from '@playwright/test';
+import { Page} from '@playwright/test';
 import { autoAcceptConsent } from '../fixtures/cmpConsentHandlers';
-
 export class LiveSitePage {
   constructor(readonly page: Page) {}
-
-  /**
-   * Navigates to a live URL and automatically handles any CMP consent modal.
-   */
   async navigateAndHandleConsent(url: string, timeoutMs: number = 30000): Promise<void> {
     try {
       await this.page.goto(url, {
         waitUntil: 'domcontentloaded',
         timeout: timeoutMs,
       });
-    } catch (e) {
-      console.log(`[LiveSitePage] Warning: Initial load timeout on ${url}, continuing...`);
-    }
-
+    } catch (e) {}
     // Wait a brief moment for CMP to mount
     await this.page.waitForTimeout(1500);
-
     // Accept consent if banner appears
     await autoAcceptConsent(this.page);
-
     // Wait for async Prebid scripts to load
     await this.page.waitForTimeout(3000);
   }
-
   /**
    * Waits for Professor Prebid MCP bridge to be active on the page.
    */
@@ -45,7 +34,6 @@ export class LiveSitePage {
       return false;
     }
   }
-
   /**
    * Reads the live AdTech snapshot from the injected MCP bridge.
    */
@@ -55,7 +43,6 @@ export class LiveSitePage {
       return win.__PROFESSOR_PREBID_MCP__?.getSnapshot ? win.__PROFESSOR_PREBID_MCP__.getSnapshot() : null;
     });
   }
-
   /**
    * Reads structured auctions from the injected MCP bridge.
    */
@@ -65,7 +52,6 @@ export class LiveSitePage {
       return win.__PROFESSOR_PREBID_MCP__?.getAuctions ? win.__PROFESSOR_PREBID_MCP__.getAuctions() : [];
     });
   }
-
   /**
    * Reads latency and timeout statistics from the injected MCP bridge.
    */
@@ -75,7 +61,6 @@ export class LiveSitePage {
       return win.__PROFESSOR_PREBID_MCP__?.getLatencySummary ? win.__PROFESSOR_PREBID_MCP__.getLatencySummary() : null;
     });
   }
-
   /**
    * Checks if Prebid global objects exist in window scope.
    */
@@ -90,7 +75,6 @@ export class LiveSitePage {
       };
     });
   }
-
   /**
    * Checks if on-page Professor Prebid Ad Overlays exist in DOM.
    */

@@ -65,14 +65,7 @@ const OtherConfigsComponent = (): JSX.Element | null => {
   );
 
   return (
-    <ExpandableTile
-      icon={<TuneIcon />}
-      title="Additional Configs"
-      subtitle={`${otherKeys.length} extra parameter(s)`}
-      defaultMaxWidth={4}
-      expandedMaxWidth={8}
-      headerAction={jsonToggleAction}
-    >
+    <ExpandableTile icon={<TuneIcon />} title="Additional Configs" subtitle={`${otherKeys.length} extra parameter(s)`} defaultMaxWidth={4} expandedMaxWidth={8} headerAction={jsonToggleAction}>
       {showJson ? (
         <Grid size={{ xs: 12 }}>
           <JSONViewerComponent src={otherConfigObject} name="" collapsed={1} />
@@ -89,7 +82,12 @@ const OtherConfigsComponent = (): JSX.Element | null => {
               return (
                 <Chip
                   key={key}
-                  label={<><strong>{key}: </strong>{strVal}</>}
+                  label={
+                    <>
+                      <strong>{key}: </strong>
+                      {strVal}
+                    </>
+                  }
                   size="small"
                   variant="outlined"
                   sx={{ height: 22, fontSize: '0.7rem', maxWidth: '100%' }}

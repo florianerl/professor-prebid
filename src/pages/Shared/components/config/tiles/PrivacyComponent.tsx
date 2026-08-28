@@ -33,79 +33,26 @@ const PrivacyComponent = (): JSX.Element | null => {
   );
 
   return (
-    <ExpandableTile
-      icon={<BusinessIcon />}
-      title="Consent Management"
-      subtitle="TCF, CPA, USP, …"
-      defaultMaxWidth={4}
-      expandedMaxWidth={8}
-      headerAction={jsonToggleAction}
-    >
+    <ExpandableTile icon={<BusinessIcon />} title="Consent Management" subtitle="TCF, CPA, USP, …" defaultMaxWidth={4} expandedMaxWidth={8} headerAction={jsonToggleAction}>
       {showJson ? (
         <Grid size={{ xs: 12 }}>
           <JSONViewerComponent src={{ consentManagement, tcf, coppa }} name="" collapsed={1} />
         </Grid>
       ) : (
         <Grid size={{ xs: 12 }}>
-          {/* Privacy Frameworks & Settings */}
+          {}
           <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: 'text.secondary', fontSize: '0.75rem' }}>
             Frameworks & Scope
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1.25 }}>
-            {cmpApi && (
-              <Chip
-                label={`CMP API: ${cmpApi}`}
-                size="small"
-                color="primary"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 600 }}
-              />
-            )}
-            {timeout !== undefined && (
-              <Chip
-                label={`Timeout: ${timeout}ms`}
-                size="small"
-                color="info"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
-            )}
+            {cmpApi && <Chip label={`CMP API: ${cmpApi}`} size="small" color="primary" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 600 }} />}
+            {timeout !== undefined && <Chip label={`Timeout: ${timeout}ms`} size="small" color="info" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />}
             {defaultGdprScope !== undefined && (
-              <Chip
-                label={`Default GDPR Scope: ${String(defaultGdprScope)}`}
-                size="small"
-                color={defaultGdprScope ? 'warning' : 'default'}
-                variant={defaultGdprScope ? 'filled' : 'outlined'}
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
+              <Chip label={`Default GDPR Scope: ${String(defaultGdprScope)}`} size="small" color={defaultGdprScope ? 'warning' : 'default'} variant={defaultGdprScope ? 'filled' : 'outlined'} sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />
             )}
-            {usp && (
-              <Chip
-                label={`USP CMP: ${usp.cmpApi || 'configured'}`}
-                size="small"
-                color="secondary"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
-            )}
-            {gpp && (
-              <Chip
-                label={`GPP CMP: ${gpp.cmpApi || 'configured'}`}
-                size="small"
-                color="info"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
-            )}
-            {coppa !== undefined && (
-              <Chip
-                label={`COPPA: ${coppa ? 'enabled' : 'disabled'}`}
-                size="small"
-                color={coppa ? 'warning' : 'default'}
-                variant={coppa ? 'filled' : 'outlined'}
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
-            )}
+            {usp && <Chip label={`USP CMP: ${usp.cmpApi || 'configured'}`} size="small" color="secondary" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />}
+            {gpp && <Chip label={`GPP CMP: ${gpp.cmpApi || 'configured'}`} size="small" color="info" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />}
+            {coppa !== undefined && <Chip label={`COPPA: ${coppa ? 'enabled' : 'disabled'}`} size="small" color={coppa ? 'warning' : 'default'} variant={coppa ? 'filled' : 'outlined'} sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />}
           </Box>
 
           {/* GDPR Rules */}
@@ -117,15 +64,7 @@ const PrivacyComponent = (): JSX.Element | null => {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                 {rules.map((rule: any, index: number) => {
                   const ruleText = typeof rule === 'object' ? JSON.stringify(rule) : String(rule);
-                  return (
-                    <Chip
-                      key={`rule-${index}`}
-                      label={`Rule #${index + 1}: ${ruleText}`}
-                      size="small"
-                      variant="outlined"
-                      sx={{ height: 22, fontSize: '0.7rem', maxWidth: '100%' }}
-                    />
-                  );
+                  return <Chip key={`rule-${index}`} label={`Rule #${index + 1}: ${ruleText}`} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', maxWidth: '100%' }} />;
                 })}
               </Box>
             </Box>
@@ -152,19 +91,8 @@ const TcfComponent = ({ tcf, tcfKey }: { tcf: any; tcfKey: string }): JSX.Elemen
   return (
     <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed', borderColor: 'divider' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.75, flexWrap: 'wrap' }}>
-        <Chip
-          label={`TCF Version: ${tcfKey}`}
-          size="small"
-          color="primary"
-          sx={{ height: 20, fontSize: '0.675rem', fontWeight: 600 }}
-        />
-        <Chip
-          label={consentData !== 'no consent string' ? 'Consent String Present' : 'No Consent String'}
-          size="small"
-          color={consentData !== 'no consent string' ? 'success' : 'default'}
-          variant="outlined"
-          sx={{ height: 20, fontSize: '0.675rem' }}
-        />
+        <Chip label={`TCF Version: ${tcfKey}`} size="small" color="primary" sx={{ height: 20, fontSize: '0.675rem', fontWeight: 600 }} />
+        <Chip label={consentData !== 'no consent string' ? 'Consent String Present' : 'No Consent String'} size="small" color={consentData !== 'no consent string' ? 'success' : 'default'} variant="outlined" sx={{ height: 20, fontSize: '0.675rem' }} />
       </Box>
 
       {consentData && (
@@ -179,18 +107,10 @@ const TcfComponent = ({ tcf, tcfKey }: { tcf: any; tcfKey: string }): JSX.Elemen
             Decoded Consent:
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-            {decoded.cmpId !== undefined && (
-              <Chip label={`CMP ID: ${decoded.cmpId}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />
-            )}
-            {decoded.cmpVersion !== undefined && (
-              <Chip label={`CMP Ver: ${decoded.cmpVersion}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />
-            )}
-            {decoded.consentScreen !== undefined && (
-              <Chip label={`Screen: ${decoded.consentScreen}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />
-            )}
-            {decoded.consentLanguage && (
-              <Chip label={`Lang: ${decoded.consentLanguage}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />
-            )}
+            {decoded.cmpId !== undefined && <Chip label={`CMP ID: ${decoded.cmpId}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />}
+            {decoded.cmpVersion !== undefined && <Chip label={`CMP Ver: ${decoded.cmpVersion}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />}
+            {decoded.consentScreen !== undefined && <Chip label={`Screen: ${decoded.consentScreen}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />}
+            {decoded.consentLanguage && <Chip label={`Lang: ${decoded.consentLanguage}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />}
           </Box>
         </Box>
       )}

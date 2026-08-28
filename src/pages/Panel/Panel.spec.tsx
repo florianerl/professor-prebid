@@ -7,7 +7,6 @@ import InspectedPageContext from '../Shared/contexts/inspectedPageContext';
 import { PBJS_NAMESPACE_CHANGE } from '../Shared/constants';
 import * as utils from '../Shared/utils';
 
-// Mock child components
 vi.mock('../Shared/components/navBar/Navbar', () => ({
   NavBar: () => <div data-testid="nav-bar">NavBar</div>,
 }));
@@ -88,10 +87,7 @@ describe('Panel Component', () => {
   });
 
   it('shows RoutesComponent when prebids exist for pbjsNamespace and downloading is "false"', () => {
-    renderPanel(
-      { pbjsNamespace: 'pbjs', prebids: { pbjs: { version: '7.0' } } },
-      { downloading: 'false' }
-    );
+    renderPanel({ pbjsNamespace: 'pbjs', prebids: { pbjs: { version: '7.0' } } }, { downloading: 'false' });
 
     expect(screen.getByTestId('routes-component')).toBeTruthy();
     expect(screen.queryByTestId('no-prebid-card')).toBeNull();
@@ -101,10 +97,8 @@ describe('Panel Component', () => {
   it('shows DownloadingCardComponent after 1s delay when downloading is "true"', () => {
     renderPanel({ pbjsNamespace: 'pbjs', prebids: null }, { downloading: 'true' });
 
-    // Before 1 second
     expect(screen.queryByTestId('downloading-card')).toBeNull();
 
-    // Advance timer past 1000ms
     act(() => {
       vi.advanceTimersByTime(1100);
     });
@@ -115,10 +109,8 @@ describe('Panel Component', () => {
   it('shows DownloadingCardComponent after 1s delay when downloading is "error"', () => {
     renderPanel({ pbjsNamespace: 'pbjs', prebids: null }, { downloading: 'error' });
 
-    // Before 1 second
     expect(screen.queryByTestId('downloading-card')).toBeNull();
 
-    // Advance timer past 1000ms
     act(() => {
       vi.advanceTimersByTime(1100);
     });
@@ -127,20 +119,14 @@ describe('Panel Component', () => {
   });
 
   it('hides RoutesComponent when downloading card is displayed', () => {
-    renderPanel(
-      { pbjsNamespace: 'pbjs', prebids: { pbjs: { version: '7.0' } } },
-      { downloading: 'true' }
-    );
+    renderPanel({ pbjsNamespace: 'pbjs', prebids: { pbjs: { version: '7.0' } } }, { downloading: 'true' });
 
-    // Before 1s delay, RoutesComponent is shown because showDownloadCard is false
     expect(screen.getByTestId('routes-component')).toBeTruthy();
 
-    // Advance timer
     act(() => {
       vi.advanceTimersByTime(1100);
     });
 
-    // After 1s delay, DownloadingCardComponent is shown, RoutesComponent is hidden
     expect(screen.getByTestId('downloading-card')).toBeTruthy();
     expect(screen.queryByTestId('routes-component')).toBeNull();
   });
@@ -154,7 +140,6 @@ describe('Panel Component', () => {
 
     expect(screen.getByTestId('downloading-card')).toBeTruthy();
 
-    // Rerender with downloading = 'false'
     rerender(
       <InspectedPageContext.Provider value={{ downloading: 'false' }}>
         <StateContext.Provider value={{ pbjsNamespace: 'pbjs', prebids: null }}>
@@ -175,7 +160,5 @@ describe('Panel Component', () => {
     act(() => {
       vi.advanceTimersByTime(1100);
     });
-
-    // Passes without warnings or errors
   });
 });

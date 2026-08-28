@@ -20,7 +20,6 @@ describe('PreAuctionHelp', () => {
     expect(screen.getByText(/What this answers/)).toBeTruthy();
     expect(screen.getByRole('button').getAttribute('aria-expanded')).toBe('true');
 
-    // the collapse animation unmounts asynchronously, so assert the state, not the DOM removal
     fireEvent.click(header);
     expect(screen.getByRole('button').getAttribute('aria-expanded')).toBe('false');
   });
@@ -29,7 +28,6 @@ describe('PreAuctionHelp', () => {
     render(<PreAuctionHelp />);
     fireEvent.click(screen.getByText(/How this works/));
 
-    // a level missing here would leave a chip in the table unexplained
     (['landed', 'late', 'never', 'unknown'] as LandedVerdict[]).forEach((verdict) => {
       expect(screen.getByText(`#1 ${verdictLabel(verdict)}`)).toBeTruthy();
     });

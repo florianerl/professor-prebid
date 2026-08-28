@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent} from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import EventsComponent from './EventsComponent';
 import AppStateContext from '../../contexts/appStateContext';
@@ -82,7 +82,6 @@ describe('EventsComponent & EventsState', () => {
     expect(screen.getByText('ERROR')).toBeTruthy();
     expect(screen.getAllByText(/rubicon — \$2.5 — slot-1/).length).toBeGreaterThan(0);
 
-    // Click event row to expand details
     const eventRow = screen.getAllByText(/rubicon — \$2.5 — slot-1/)[0];
     fireEvent.click(eventRow);
 
@@ -96,17 +95,14 @@ describe('EventsComponent & EventsState', () => {
       </AppStateContext.Provider>
     );
 
-    // Click Warning button
     const warningBtn = screen.getByText(/Warning: 1/);
     fireEvent.click(warningBtn);
     expect(screen.getByPlaceholderText('Filter events...')).toHaveValue('eventtype:auctionDebug argstype:WARNING');
 
-    // Click Error button
     const errorBtn = screen.getByText(/Error: 1/);
     fireEvent.click(errorBtn);
     expect(screen.getByPlaceholderText('Filter events...')).toHaveValue('eventtype:auctionDebug argstype:ERROR');
 
-    // Click Event button to clear filter
     const eventBtn = screen.getByText(/Events: 9/);
     fireEvent.click(eventBtn);
     expect(screen.getByPlaceholderText('Filter events...')).toHaveValue('');
@@ -119,13 +115,11 @@ describe('EventsComponent & EventsState', () => {
       </AppStateContext.Provider>
     );
 
-    // Toggle JSON mode
     const codeBtn = screen.getByLabelText('Switch to raw JSON view');
     fireEvent.click(codeBtn);
 
     expect(screen.getByText(/9 Events/)).toBeTruthy();
 
-    // Click download button
     const downloadBtn = screen.getByLabelText('Download filtered events as JSON');
     fireEvent.click(downloadBtn);
 

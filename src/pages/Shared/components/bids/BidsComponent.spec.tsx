@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent} from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import BidsComponent, { BidRowComponent, HeaderRow, GridCell } from './BidsComponent';
+import BidsComponent, { BidRowComponent,  GridCell } from './BidsComponent';
 import { BID_FIELD_MAP, getBidKey } from './BidsComponentState';
 import AppStateContext from '../../contexts/appStateContext';
 
@@ -83,25 +83,21 @@ describe('BidsComponent & BidsComponentState', () => {
     expect(screen.getByText('All (3)')).toBeTruthy();
     expect(screen.getByText('Received (2)')).toBeTruthy();
 
-    // Click "Received" filter preset
     const receivedFilterBtn = screen.getByText('Received (2)');
     fireEvent.click(receivedFilterBtn);
     expect(screen.getByPlaceholderText('Filter bids...')).toHaveValue('cpm>0');
 
-    // Click "No Bids" filter preset
     const noBidsFilterBtn = screen.getByText('No Bids (1)');
     fireEvent.click(noBidsFilterBtn);
     expect(screen.getByPlaceholderText('Filter bids...')).toHaveValue('cpm=0');
 
-    // Click "All" filter preset to clear
     const allFilterBtn = screen.getByText('All (3)');
     fireEvent.click(allFilterBtn);
     expect(screen.getByPlaceholderText('Filter bids...')).toHaveValue('');
 
-    // Click column headers to toggle sort
     const bidderHeader = screen.getByText(/Bidder Code/);
-    fireEvent.click(bidderHeader); // asc
-    fireEvent.click(bidderHeader); // desc
+    fireEvent.click(bidderHeader);
+    fireEvent.click(bidderHeader);
 
     const cpmHeader = screen.getByText(/CPM/);
     fireEvent.click(cpmHeader);
@@ -139,13 +135,11 @@ describe('BidsComponent & BidsComponentState', () => {
       </AppStateContext.Provider>
     );
 
-    // Expand all rows
     const expandAllBtn = screen.getByLabelText('expand all rows');
     fireEvent.click(expandAllBtn);
 
     expect(screen.getByLabelText('collapse all rows')).toBeTruthy();
 
-    // Collapse individual row
     const collapseRowBtns = screen.getAllByLabelText('collapse row');
     fireEvent.click(collapseRowBtns[0]);
   });
@@ -192,7 +186,11 @@ describe('BidsComponent & BidsComponentState', () => {
   });
 
   it('renders GridCell with custom variant and sx props', () => {
-    render(<GridCell cols={2} variant="h2" sx={{ color: 'red' }}>Cell Text</GridCell>);
+    render(
+      <GridCell cols={2} variant="h2" sx={{ color: 'red' }}>
+        Cell Text
+      </GridCell>
+    );
     expect(screen.getByText('Cell Text')).toBeTruthy();
   });
 });

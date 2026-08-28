@@ -56,9 +56,7 @@ const DataPreviewChip = ({ label, data, color = 'primary', icon, name = null }: 
 
 export const Ortb2ImpExtChipComponent = ({ input, label }: { input: AdUnit['ortb2Imp']; label: string }): JSX.Element => <DataPreviewChip label={label} data={input} />;
 
-export const MediaTypeChipComponent = ({ input, label, isWinner }: { input: any; label: string; isWinner?: boolean }): JSX.Element => (
-  <DataPreviewChip label={label} data={input} color={isWinner ? 'secondary' : 'primary'} />
-);
+export const MediaTypeChipComponent = ({ input, label, isWinner }: { input: any; label: string; isWinner?: boolean }): JSX.Element => <DataPreviewChip label={label} data={input} color={isWinner ? 'secondary' : 'primary'} />;
 
 export const InterstitialChipComponent = ({ adUnit }: { adUnit: AdUnit }): JSX.Element => (
   <Tooltip title={`ortb2Imp.instl: ${JSON.stringify(adUnit.ortb2Imp.instl)}`}>
@@ -146,17 +144,17 @@ export const AdUnitChipComponent = ({ adUnit }: { adUnit: AdUnit }): JSX.Element
             @keyframes pp-march-cycle {
               0% {
                 background-position:
-                  0 0,      /* Top */
-                  100% 0,   /* Right */
-                  0 100%,   /* Bottom */
-                  0 0;      /* Left */
+                  0 0,      
+                  100% 0,   
+                  0 100%,   
+                  0 0;      
               }
               100% {
                 background-position:
-                  80px 0,       /* Top moves Right */
-                  100% 80px,    /* Right moves Down */
-                  -80px 100%,   /* Bottom moves Left */
-                  0 -80px;      /* Left moves Up */
+                  80px 0,       
+                  100% 80px,    
+                  -80px 100%,   
+                  0 -80px;      
               }
             }
           `;

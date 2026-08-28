@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useEffect, useContext } from 'react';
+import React, {  useState, useCallback, useEffect} from 'react';
 import Grid from '@mui/material/Grid';
 import { IconButton, Paper, Tooltip, Typography } from '@mui/material';
 import { replaceLastToken } from '../autocomplete/utils';
@@ -35,7 +35,16 @@ export const BidsComponent = (): JSX.Element => {
       </Grid>
       <GridCell cols={0.5} sx={{ display: 'flex', alignItems: 'center', border: 0 }}>
         <Tooltip title="Download filtered bids as JSON" arrow>
-          <IconButton size="small" onClick={() => download(sortedBids.map(({ _stableKey, ...b }: any) => b), 'filtered-bids')} sx={{ p: 0.5, fontSize: '1.05rem', height: 'auto' }}>
+          <IconButton
+            size="small"
+            onClick={() =>
+              download(
+                sortedBids.map(({ _stableKey, ...b }: any) => b),
+                'filtered-bids'
+              )
+            }
+            sx={{ p: 0.5, fontSize: '1.05rem', height: 'auto' }}
+          >
             <DownloadIcon fontSize="inherit" />
           </IconButton>
         </Tooltip>

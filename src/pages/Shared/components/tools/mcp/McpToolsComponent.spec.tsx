@@ -161,7 +161,6 @@ describe('McpToolsComponent', () => {
 
     await injectDevtoolsMcpScript();
 
-    // Run captured func in window context with custom pbjs
     const registeredHandlers: { [k: string]: Function } = {};
     const mockPbjs: any = {
       installedModules: ['dfp'],
@@ -175,7 +174,6 @@ describe('McpToolsComponent', () => {
 
     capturedFunc();
 
-    // Trigger events inside inner function
     registeredHandlers['auctionInit']?.({ auctionId: 'auc-1', timeout: 2000 });
     registeredHandlers['bidResponse']?.({ auctionId: 'auc-1', cpm: 2.0 });
     registeredHandlers['noBid']?.({ auctionId: 'auc-1' });
@@ -184,7 +182,6 @@ describe('McpToolsComponent', () => {
     expect((window as any).__PREBID_DEVTOOLS_MCP__.getEvents().length).toBe(4);
     expect((window as any).__PREBID_DEVTOOLS_MCP__.getAuctions().length).toBe(1);
 
-    // Call captured func a second time to hit already initialized branch
     capturedFunc();
   });
 
@@ -205,10 +202,7 @@ describe('McpToolsComponent', () => {
   });
 
   it('generateMcpAiPrompt formats complete prompt string', () => {
-    const prompt = generateMcpAiPrompt(
-      { version: '11.29.0', installedModules: ['rubiconBidAdapter', 'devtoolsMcp'], timeout: 1200, debug: true, eids: [{ source: 'id5' }] },
-      { pbjs: { version: '11.29.0', installedModules: [] } }
-    );
+    const prompt = generateMcpAiPrompt({ version: '11.29.0', installedModules: ['rubiconBidAdapter', 'devtoolsMcp'], timeout: 1200, debug: true, eids: [{ source: 'id5' }] }, { pbjs: { version: '11.29.0', installedModules: [] } });
     expect(prompt).toContain('11.29.0');
     expect(prompt).toContain('DevTools MCP Active:** `Yes`');
     expect(prompt).toContain('1200ms');

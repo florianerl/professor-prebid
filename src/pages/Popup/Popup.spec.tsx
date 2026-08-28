@@ -6,7 +6,6 @@ import AppStateContext from '../Shared/contexts/appStateContext';
 import { PBJS_NAMESPACE_CHANGE, POPUP_LOADED } from '../Shared/constants';
 import * as utils from '../Shared/utils';
 
-// Mock child components to isolate Popup logic
 vi.mock('../Shared/components/navBar/Navbar', () => ({
   NavBar: () => <div data-testid="nav-bar">Mock NavBar</div>,
 }));
@@ -17,12 +16,10 @@ vi.mock('../Shared/components/RoutesComponent', () => ({
   default: () => <div data-testid="routes-component">Mock Routes</div>,
 }));
 
-// Mock utils
 vi.mock('../Shared/utils', () => ({
   sendChromeTabsMessage: vi.fn(),
 }));
 
-// Mock MUI Box
 vi.mock('@mui/material/Box', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="box">{children}</div>,
 }));

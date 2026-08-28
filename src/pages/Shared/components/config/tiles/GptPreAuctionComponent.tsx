@@ -31,14 +31,7 @@ const GptPreAuctionComponent = (): JSX.Element | null => {
   const otherEntries = Object.entries(otherProps).filter(([, val]) => val !== undefined && val !== null);
 
   return (
-    <ExpandableTile
-      icon={<BorderBottomIcon />}
-      title="GPT Pre-Auction Module"
-      subtitle="MCM & Pre-Auction Config"
-      defaultMaxWidth={4}
-      expandedMaxWidth={8}
-      headerAction={jsonToggleAction}
-    >
+    <ExpandableTile icon={<BorderBottomIcon />} title="GPT Pre-Auction Module" subtitle="MCM & Pre-Auction Config" defaultMaxWidth={4} expandedMaxWidth={8} headerAction={jsonToggleAction}>
       {showJson ? (
         <Grid size={{ xs: 12 }}>
           <JSONViewerComponent src={gptPreAuction} name="" collapsed={1} />
@@ -49,30 +42,9 @@ const GptPreAuctionComponent = (): JSX.Element | null => {
             Module Status & MCM
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
-            <Chip
-              label={`Status: ${enabled === false ? 'disabled' : 'enabled'}`}
-              size="small"
-              color={enabled === false ? 'default' : 'success'}
-              variant={enabled === false ? 'outlined' : 'filled'}
-              sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-            />
-            {mcmEnabled !== undefined && (
-              <Chip
-                label={`MCM Enabled: ${String(mcmEnabled)}`}
-                size="small"
-                color={mcmEnabled ? 'primary' : 'default'}
-                variant={mcmEnabled ? 'filled' : 'outlined'}
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
-            )}
-            {customGptSlots && (
-              <Chip
-                label={`Custom Slots: ${Array.isArray(customGptSlots) ? customGptSlots.length : 'Configured'}`}
-                size="small"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
-            )}
+            <Chip label={`Status: ${enabled === false ? 'disabled' : 'enabled'}`} size="small" color={enabled === false ? 'default' : 'success'} variant={enabled === false ? 'outlined' : 'filled'} sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />
+            {mcmEnabled !== undefined && <Chip label={`MCM Enabled: ${String(mcmEnabled)}`} size="small" color={mcmEnabled ? 'primary' : 'default'} variant={mcmEnabled ? 'filled' : 'outlined'} sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />}
+            {customGptSlots && <Chip label={`Custom Slots: ${Array.isArray(customGptSlots) ? customGptSlots.length : 'Configured'}`} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />}
           </Box>
 
           {otherEntries.length > 0 && (
@@ -82,13 +54,7 @@ const GptPreAuctionComponent = (): JSX.Element | null => {
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                 {otherEntries.map(([key, val]) => (
-                  <Chip
-                    key={key}
-                    label={`${key}: ${typeof val === 'object' ? JSON.stringify(val) : String(val)}`}
-                    size="small"
-                    variant="outlined"
-                    sx={{ height: 20, fontSize: '0.675rem' }}
-                  />
+                  <Chip key={key} label={`${key}: ${typeof val === 'object' ? JSON.stringify(val) : String(val)}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.675rem' }} />
                 ))}
               </Box>
             </Box>

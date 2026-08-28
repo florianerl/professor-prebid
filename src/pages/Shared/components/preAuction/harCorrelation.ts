@@ -1,23 +1,18 @@
 import { IDiagnosedAuction, IProviderDiagnostic, IProviderDiagnostics, normalizeToken } from './providerDiagnostics';
 
-/** Flat request record written by the devtools HAR collector; deliberately much smaller than a HAR entry. */
 export interface IHarEntry {
   url: string;
   host: string;
   method: string;
   status: number;
-  /** Epoch milliseconds, directly comparable with `bidderRequest.start` (`Date.now()`). */
+
   startedDateTime: number;
-  /** Total request duration in milliseconds. */
+
   time: number;
-  /** devtools resource type ('script', 'xhr', 'fetch'...), when reported. */
+
   resourceType?: string;
 }
 
-/**
- * `endpoint` - the host is a documented endpoint of this module in prebid's source.
- * `host`     - the module name appears in the hostname, which is a guess.
- */
 export type AttributionSource = 'endpoint' | 'host';
 
 export interface IProviderRequest {
@@ -33,38 +28,34 @@ export interface IProviderRequest {
 export interface IAuctionRace {
   auctionId: string;
   auctionIndex: number;
-  /** False when the provider had made no request at all by the time this auction started. */
+
   hasRequest: boolean;
-  /** True when a request was still in flight as the first bidder was called. */
+
   finishedAfterBidding: boolean;
-  /**
-   * Milliseconds between the relevant request finishing and bidding starting. Positive means it was
-   * still running that long after the first bidder call; negative means it had finished that long
-   * before. Only meaningful when `hasRequest`.
-   */
+
   marginMs: number;
-  /** How many of this provider's requests had started by the time this auction began bidding. */
+
   requestsBefore: number;
 }
 
 export interface IProviderTiming {
   name: string;
   requests: IProviderRequest[];
-  /** Slowest single request; a meaningful "how long does this provider take". */
+
   slowestMs: number;
-  /** Sum of every request's duration - inflated by refreshes, so not latency. */
+
   totalDuration: number;
   firstStart: number;
   lastEnd: number;
   races: IAuctionRace[];
-  /** `endpoint` when any request matched a documented endpoint; drives the confidence shown in the UI. */
+
   via: AttributionSource;
 }
 
 export interface IHarCorrelation {
   available: boolean;
   timings: { [providerName: string]: IProviderTiming };
-  /** Requests we could not attribute, kept so nothing is silently dropped. */
+
   unmatched: IHarEntry[];
 }
 
@@ -86,16 +77,12 @@ export const toHarEntry = (raw: Partial<IHarEntry> & { url: string }): IHarEntry
   resourceType: raw.resourceType,
 });
 
-/** Endpoint domains from prebid's source; the strongest host-level signal. */
 const knownDomains = (provider: IProviderDiagnostic): string[] => (provider.hosts || []).map((host) => host.toLowerCase());
 
-/** Weaker fallback: module name and EID sources as hostname fragments. */
 const candidateTokens = (provider: IProviderDiagnostic): string[] => {
-  // One and two character tokens match almost any hostname.
   return Array.from(new Set(provider.matchTokens.map(normalizeToken).filter((token) => token.length > 2)));
 };
 
-/** True when the request host is, or is a subdomain of, one of the provider's known endpoints. */
 const matchesDomain = (host: string, domains: string[]): boolean => {
   const lower = host.toLowerCase();
   return domains.some((domain) => lower === domain || lower.endsWith(`.${domain}`));

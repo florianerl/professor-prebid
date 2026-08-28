@@ -15,24 +15,14 @@ export interface LaunchOptions {
 /**
  * Launches Chromium with Professor Prebid unpacked extension loaded.
  */
-export async function launchExtensionContext(options?: LaunchOptions | string): Promise<ExtensionContextInfo> {
+export const launchExtensionContext = async function(options?: LaunchOptions | string): Promise<ExtensionContextInfo> {
   const customUserDataDir = typeof options === 'string' ? options : options?.customUserDataDir;
-  const isHeadless =
-    process.env.HEADED === 'true' || process.env.HEADLESS === 'false'
-      ? false
-      : typeof options === 'object' && options?.headless !== undefined
-      ? options.headless
-      : true;
+  const isHeadless = process.env.HEADED === 'true' || process.env.HEADLESS === 'false' ? false : typeof options === 'object' && options?.headless !== undefined ? options.headless : true;
 
   const pathToExtension = path.join(__dirname, '../../build');
   const userDataDir = customUserDataDir || path.join(__dirname, '../../test-results/ext_user_dir_' + Date.now());
 
-  const args = [
-    `--disable-extensions-except=${pathToExtension}`,
-    `--load-extension=${pathToExtension}`,
-    '--no-sandbox',
-    '--disable-web-security',
-  ];
+  const args = [`--disable-extensions-except=${pathToExtension}`, `--load-extension=${pathToExtension}`, '--no-sandbox', '--disable-web-security'];
 
   if (isHeadless) {
     args.push('--headless=new');
@@ -77,7 +67,7 @@ export async function launchExtensionContext(options?: LaunchOptions | string): 
 /**
  * Retrieves all stored key-values from chrome.storage.local.
  */
-export async function getExtensionStorage(serviceWorker: any): Promise<Record<string, any>> {
+export const getExtensionStorage = async function(serviceWorker: any): Promise<Record<string, any>> {
   return await serviceWorker.evaluate(async () => {
     return await chrome.storage.local.get(null);
   });
@@ -86,7 +76,7 @@ export async function getExtensionStorage(serviceWorker: any): Promise<Record<st
 /**
  * Opens Professor Prebid's DevTools Panel page.
  */
-export async function openExtensionPanel(browserContext: BrowserContext, extensionId: string): Promise<Page> {
+export const openExtensionPanel = async function(browserContext: BrowserContext, extensionId: string): Promise<Page> {
   const page = await browserContext.newPage();
   await page.goto(`chrome-extension://${extensionId}/panel.html`);
   await page.waitForLoadState('domcontentloaded');
@@ -96,7 +86,7 @@ export async function openExtensionPanel(browserContext: BrowserContext, extensi
 /**
  * Opens Professor Prebid's Popup window page.
  */
-export async function openExtensionPopup(browserContext: BrowserContext, extensionId: string): Promise<Page> {
+export const openExtensionPopup = async function(browserContext: BrowserContext, extensionId: string): Promise<Page> {
   const page = await browserContext.newPage();
   await page.goto(`chrome-extension://${extensionId}/popup.html`);
   await page.waitForLoadState('domcontentloaded');

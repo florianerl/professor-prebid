@@ -5,7 +5,6 @@ win.googletag.cmd.push(() => {
   if (typeof win.googletag.openConsole === 'function') {
     win.googletag.openConsole();
   } else {
-    // Fallback if openConsole is not available
     const url = new URL(window.location.href);
     if (!url.searchParams.has('google_console')) {
       url.searchParams.set('google_console', '1');

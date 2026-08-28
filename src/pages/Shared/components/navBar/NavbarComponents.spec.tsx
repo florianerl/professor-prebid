@@ -9,14 +9,14 @@ import OptionsContext from '../../contexts/optionsContext';
 import InspectedPageContext from '../../contexts/inspectedPageContext';
 import { MemoryRouter } from 'react-router-dom';
 
+import { getTabId } from '../../utils';
+
 (global as any).__APP_VERSION__ = '1.0.0';
 
 vi.mock('../../utils', () => ({
   sendChromeTabsMessage: vi.fn(),
   getTabId: vi.fn().mockResolvedValue(123),
 }));
-
-import { getTabId } from '../../utils';
 
 describe('NavBar components', () => {
   beforeEach(() => {
@@ -97,21 +97,18 @@ describe('NavBar components', () => {
       });
 
       expect(screen.getAllByText('Frame-ID')[0]).toBeTruthy();
-      // 1. Enter badge, then leave immediately before 200ms (clears enterDelayRef and sets leaveDelayRef)
+
       fireEvent.mouseEnter(badge);
       fireEvent.mouseLeave(badge);
 
-      // 2. Re-enter badge immediately before 200ms (clears leaveDelayRef and sets enterDelayRef)
       fireEvent.mouseEnter(badge);
 
-      // 3. Advance timer so it expands
       act(() => {
         vi.advanceTimersByTime(250);
       });
 
       expect(screen.getAllByText('Namespace')[0]).toBeTruthy();
 
-      // Test form mouse events and collapse
       const form = container.querySelector('form')!;
       fireEvent.mouseLeave(form);
       act(() => {
@@ -150,13 +147,12 @@ describe('NavBar components', () => {
       );
 
       const comboboxes = screen.getAllByRole('combobox');
-      // Open and select Frame-ID
+
       fireEvent.mouseDown(comboboxes[0]);
       const frameOption = screen.getByText('frame-1');
       fireEvent.click(frameOption);
       expect(mockSetFrameId).toHaveBeenCalledWith('frame-1');
 
-      // Open and select Namespace
       fireEvent.mouseDown(comboboxes[1]);
       const nsOption = screen.getByText('pbjsCustom');
       fireEvent.click(nsOption);
@@ -186,13 +182,11 @@ describe('NavBar components', () => {
       expect(screen.getByText('Bids')).toBeTruthy();
       expect(screen.getByText('Config')).toBeTruthy();
 
-      // Click tab button
       const bidsBtn = screen.getByRole('link', { name: /Bids/i });
       act(() => {
         fireEvent.click(bidsBtn);
       });
 
-      // Click tab container to trigger Tabs onChange
       const tabs = screen.getAllByRole('tab');
       if (tabs.length > 1) {
         act(() => {

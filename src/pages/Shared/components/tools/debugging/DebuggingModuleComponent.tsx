@@ -224,12 +224,7 @@ const DebuggingModuleComponent = (): JSX.Element => {
           <Typography variant="h3" sx={{ fontSize: '0.9rem', fontWeight: 700 }}>
             Prebid.js Debugging Module (v7.3.0+)
           </Typography>
-          <Chip
-            label={debuggingModuleConfig?.enabled ? 'MODULE ENABLED' : 'DISABLED'}
-            size="small"
-            color={debuggingModuleConfig?.enabled ? 'primary' : 'default'}
-            sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }}
-          />
+          <Chip label={debuggingModuleConfig?.enabled ? 'MODULE ENABLED' : 'DISABLED'} size="small" color={debuggingModuleConfig?.enabled ? 'primary' : 'default'} sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }} />
         </Box>
 
         {/* JSON Sharing Action Buttons */}
@@ -258,14 +253,7 @@ const DebuggingModuleComponent = (): JSX.Element => {
       <Grid container spacing={0.75} sx={{ mb: 1, alignItems: 'center' }}>
         <Grid size={{ xs: 12, sm: 4 }}>
           <FormControlLabel
-            control={
-              <Switch
-                checked={!!debuggingModuleConfig?.enabled}
-                onChange={() => handleRulesFormChange('update', !debuggingModuleConfig.enabled, ['enabled'])}
-                color="primary"
-                size="small"
-              />
-            }
+            control={<Switch checked={!!debuggingModuleConfig?.enabled} onChange={() => handleRulesFormChange('update', !debuggingModuleConfig.enabled, ['enabled'])} color="primary" size="small" />}
             label={
               <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.775rem', color: debuggingModuleConfig?.enabled ? 'primary.main' : 'text.secondary' }}>
                 Enable Rule Interceptor
@@ -311,13 +299,7 @@ const DebuggingModuleComponent = (): JSX.Element => {
           Add Custom Intercept Rule
         </Button>
 
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<AutoAwesomeIcon />}
-          onClick={(e) => setPresetAnchor(e.currentTarget)}
-          sx={{ fontSize: '0.75rem', textTransform: 'none', fontWeight: 600, py: 0.25 }}
-        >
+        <Button size="small" variant="outlined" startIcon={<AutoAwesomeIcon />} onClick={(e) => setPresetAnchor(e.currentTarget)} sx={{ fontSize: '0.75rem', textTransform: 'none', fontWeight: 600, py: 0.25 }}>
           Insert Preset Template
         </Button>
 

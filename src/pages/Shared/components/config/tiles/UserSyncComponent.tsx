@@ -20,16 +20,7 @@ const UserSyncComponent = (): JSX.Element | null => {
   if (!config?.userSync) return null;
   const userSync = config.userSync as Record<string, any>;
 
-  const {
-    syncEnabled,
-    iframeEnabled,
-    pixelEnabled,
-    aliasSyncEnabled,
-    auctionDelay,
-    syncDelay,
-    syncsPerBidder,
-    filterSettings,
-  } = userSync;
+  const { syncEnabled, iframeEnabled, pixelEnabled, aliasSyncEnabled, auctionDelay, syncDelay, syncsPerBidder, filterSettings } = userSync;
 
   const activeSyncTypes = [
     { label: 'iframe', enabled: iframeEnabled },
@@ -50,21 +41,14 @@ const UserSyncComponent = (): JSX.Element | null => {
   );
 
   return (
-    <ExpandableTile
-      icon={<PeopleOutlinedIcon />}
-      title="User Sync"
-      subtitle={syncEnabled === false ? 'Syncing disabled' : 'User sync rules'}
-      defaultMaxWidth={4}
-      expandedMaxWidth={8}
-      headerAction={jsonToggleAction}
-    >
+    <ExpandableTile icon={<PeopleOutlinedIcon />} title="User Sync" subtitle={syncEnabled === false ? 'Syncing disabled' : 'User sync rules'} defaultMaxWidth={4} expandedMaxWidth={8} headerAction={jsonToggleAction}>
       {showJson ? (
         <Grid size={{ xs: 12 }}>
           <JSONViewerComponent src={userSync} name="" collapsed={1} />
         </Grid>
       ) : (
         <Grid size={{ xs: 12 }}>
-          {/* Sync Modes / Chips */}
+          {}
           <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: 'text.secondary', fontSize: '0.75rem' }}>
             Sync Modes
           </Typography>
@@ -88,33 +72,9 @@ const UserSyncComponent = (): JSX.Element | null => {
                 Delays & Limits
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {auctionDelay !== undefined && (
-                  <Chip
-                    label={`Auction Delay: ${auctionDelay}ms`}
-                    size="small"
-                    color="info"
-                    variant="outlined"
-                    sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-                  />
-                )}
-                {syncDelay !== undefined && (
-                  <Chip
-                    label={`Sync Delay: ${syncDelay}ms`}
-                    size="small"
-                    color="info"
-                    variant="outlined"
-                    sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-                  />
-                )}
-                {syncsPerBidder !== undefined && (
-                  <Chip
-                    label={`Syncs / Bidder: ${syncsPerBidder}`}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                    sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-                  />
-                )}
+                {auctionDelay !== undefined && <Chip label={`Auction Delay: ${auctionDelay}ms`} size="small" color="info" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />}
+                {syncDelay !== undefined && <Chip label={`Sync Delay: ${syncDelay}ms`} size="small" color="info" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />}
+                {syncsPerBidder !== undefined && <Chip label={`Syncs / Bidder: ${syncsPerBidder}`} size="small" color="primary" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />}
               </Box>
             </Box>
           )}
@@ -132,7 +92,12 @@ const UserSyncComponent = (): JSX.Element | null => {
                   return (
                     <Chip
                       key={key}
-                      label={<><strong>{key}: </strong>{rule.filter || 'include'} (bidders: {biddersStr})</>}
+                      label={
+                        <>
+                          <strong>{key}: </strong>
+                          {rule.filter || 'include'} (bidders: {biddersStr})
+                        </>
+                      }
                       size="small"
                       variant="outlined"
                       sx={{ height: 22, fontSize: '0.7rem', maxWidth: '100%' }}

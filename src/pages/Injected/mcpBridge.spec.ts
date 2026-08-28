@@ -40,9 +40,7 @@ describe('ProfessorPrebidMcpBridge', () => {
   });
 
   it('returns winning bids correctly', () => {
-    const mockWinningBids = [
-      { adUnitCode: 'slot-1', bidder: 'appnexus', cpm: 2.5, currency: 'USD' },
-    ];
+    const mockWinningBids = [{ adUnitCode: 'slot-1', bidder: 'appnexus', cpm: 2.5, currency: 'USD' }];
     (window as any).pbjs = {
       getAllWinningBids: vi.fn().mockReturnValue(mockWinningBids),
     };
@@ -102,7 +100,6 @@ describe('ProfessorPrebidMcpBridge', () => {
     expect(auctions[0].noBids.length).toBe(1);
     expect(auctions[0].winningBids.length).toBe(1);
 
-    // Filter by non-matching adUnitCode
     const filteredAuctions = bridge.getAuctions({ adUnitCode: 'non-existent' });
     expect(filteredAuctions[0].bidsReceived.length).toBe(0);
   });

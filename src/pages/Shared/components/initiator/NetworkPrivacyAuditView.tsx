@@ -27,11 +27,7 @@ const copyToClipboard = (text: string, e: React.MouseEvent) => {
   }
 };
 
-export const NetworkPrivacyAuditView = ({
-  entries,
-  selectedEntry,
-  onSelectEntry,
-}: NetworkPrivacyAuditViewProps): JSX.Element => {
+export const NetworkPrivacyAuditView = ({ entries, selectedEntry, onSelectEntry }: NetworkPrivacyAuditViewProps): JSX.Element => {
   if (entries.length === 0) {
     return (
       <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', mt: 1 }}>
@@ -83,7 +79,7 @@ export const NetworkPrivacyAuditView = ({
                   '&:hover': { backgroundColor: 'action.hover' },
                 }}
               >
-                {/* Verdict */}
+                {}
                 <TableCell sx={{ p: 0.75 }}>
                   <Tooltip title={privacy.verdictReason} arrow>
                     <Box component="span" sx={{ display: 'inline-block' }}>
@@ -92,7 +88,7 @@ export const NetworkPrivacyAuditView = ({
                   </Tooltip>
                 </TableCell>
 
-                {/* Endpoint & Provider */}
+                {}
                 <TableCell sx={{ p: 0.75 }}>
                   <Tooltip title={c.entry.url} arrow placement="top-start">
                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -120,24 +116,18 @@ export const NetworkPrivacyAuditView = ({
                   </Tooltip>
                 </TableCell>
 
-                {/* Category */}
+                {}
                 <TableCell sx={{ p: 0.75 }}>
                   <Chip label={c.categoryLabel} size="small" color={c.categoryColor} sx={{ height: 20, fontSize: '0.65rem' }} />
                 </TableCell>
 
-                {/* TCF Consent String */}
+                {}
                 <TableCell sx={{ p: 0.75 }}>
                   {privacy.gdprConsent ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <Chip
-                            label={privacy.decodedTcf ? `TCF v${privacy.decodedTcf.version}` : 'TCF'}
-                            size="small"
-                            color={privacy.decodedTcf ? 'success' : 'warning'}
-                            variant="outlined"
-                            sx={{ height: 18, fontSize: '0.6rem' }}
-                          />
+                          <Chip label={privacy.decodedTcf ? `TCF v${privacy.decodedTcf.version}` : 'TCF'} size="small" color={privacy.decodedTcf ? 'success' : 'warning'} variant="outlined" sx={{ height: 18, fontSize: '0.6rem' }} />
                           {privacy.decodedTcf?.cmpId !== undefined && (
                             <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
                               CMP #{privacy.decodedTcf.cmpId}
@@ -166,7 +156,9 @@ export const NetworkPrivacyAuditView = ({
                   ) : privacy.hasGdpr ? (
                     <Chip label="gdpr=1 (No String)" size="small" color="error" sx={{ height: 18, fontSize: '0.6rem' }} />
                   ) : (
-                    <Typography variant="caption" color="text.secondary">None</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      None
+                    </Typography>
                   )}
                 </TableCell>
 
@@ -175,7 +167,9 @@ export const NetworkPrivacyAuditView = ({
                   {privacy.usPrivacy ? (
                     <Chip label={privacy.usPrivacy} size="small" color="primary" variant="outlined" sx={{ height: 20, fontSize: '0.7rem', fontWeight: 600 }} />
                   ) : (
-                    <Typography variant="caption" color="text.secondary">None</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      None
+                    </Typography>
                   )}
                 </TableCell>
 
@@ -183,16 +177,12 @@ export const NetworkPrivacyAuditView = ({
                 <TableCell sx={{ p: 0.75 }}>
                   {privacy.gpp ? (
                     <Tooltip title={`GPP String: ${privacy.gpp} (Sections: ${privacy.gppSid || 'all'})`} arrow>
-                      <Chip
-                        label={privacy.gppSid ? `GPP (${privacy.gppSid})` : 'GPP'}
-                        size="small"
-                        color="secondary"
-                        variant="outlined"
-                        sx={{ height: 20, fontSize: '0.65rem' }}
-                      />
+                      <Chip label={privacy.gppSid ? `GPP (${privacy.gppSid})` : 'GPP'} size="small" color="secondary" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />
                     </Tooltip>
                   ) : (
-                    <Typography variant="caption" color="text.secondary">None</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      None
+                    </Typography>
                   )}
                 </TableCell>
 
@@ -201,7 +191,9 @@ export const NetworkPrivacyAuditView = ({
                   {privacy.gpc === '1' ? (
                     <Chip label="GPC: 1" size="small" color="success" sx={{ height: 18, fontSize: '0.65rem' }} />
                   ) : (
-                    <Typography variant="caption" color="text.secondary">None</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      None
+                    </Typography>
                   )}
                 </TableCell>
               </TableRow>

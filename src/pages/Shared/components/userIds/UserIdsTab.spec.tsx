@@ -43,7 +43,6 @@ describe('UserIdsTab', () => {
     expect(screen.getByText('atype: 1')).toBeTruthy();
     expect(screen.getByText('Extension Metadata (ext):')).toBeTruthy();
 
-    // Copy UID button
     const copyBtns = screen.getAllByLabelText('Copy User ID to clipboard');
     await act(async () => {
       fireEvent.click(copyBtns[0]);
@@ -52,7 +51,6 @@ describe('UserIdsTab', () => {
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith('criteo-uid-123');
     expect(screen.getByText('User ID copied to clipboard!')).toBeTruthy();
 
-    // Toggle expand JSON
     const codeBtns = screen.getAllByLabelText('Toggle Raw EID JSON payload');
     fireEvent.click(codeBtns[0]);
   });
@@ -71,7 +69,6 @@ describe('UserIdsTab', () => {
     expect(screen.getByText('sharedid.org')).toBeTruthy();
     expect(screen.queryByText('criteo.com')).toBeNull();
 
-    // Structured source: query
     rerender(
       <AppStateContext.Provider value={mockContext}>
         <UserIdsTab searchQuery="source:criteo" />
@@ -80,7 +77,6 @@ describe('UserIdsTab', () => {
     expect(screen.getByText('criteo.com')).toBeTruthy();
     expect(screen.queryByText('sharedid.org')).toBeNull();
 
-    // Non-matching query
     rerender(
       <AppStateContext.Provider value={mockContext}>
         <UserIdsTab searchQuery="nonexistent" />

@@ -32,14 +32,7 @@ const FloorsModuleComponent = (): JSX.Element | null => {
   const otherEntries = Object.entries(otherProps).filter(([, val]) => val !== undefined && val !== null);
 
   return (
-    <ExpandableTile
-      icon={<BorderBottomIcon />}
-      title="Floors Module"
-      subtitle="Dynamic Floors"
-      defaultMaxWidth={4}
-      expandedMaxWidth={8}
-      headerAction={jsonToggleAction}
-    >
+    <ExpandableTile icon={<BorderBottomIcon />} title="Floors Module" subtitle="Dynamic Floors" defaultMaxWidth={4} expandedMaxWidth={8} headerAction={jsonToggleAction}>
       {showJson ? (
         <Grid size={{ xs: 12 }}>
           <JSONViewerComponent src={floors} name="" collapsed={1} />
@@ -50,42 +43,19 @@ const FloorsModuleComponent = (): JSX.Element | null => {
             Configuration & Rules
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
-            <Chip
-              label={`Status: ${enabled === false ? 'disabled' : 'enabled'}`}
-              size="small"
-              color={enabled === false ? 'default' : 'success'}
-              variant={enabled === false ? 'outlined' : 'filled'}
-              sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-            />
-            {currency && (
-              <Chip
-                label={`Currency: ${currency}`}
-                size="small"
-                color="primary"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 600 }}
-              />
-            )}
-            {floorMin !== undefined && (
-              <Chip
-                label={`Floor Min: ${floorMin}`}
-                size="small"
-                color="info"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
-            )}
-            {mode && (
-              <Chip
-                label={`Mode: ${mode}`}
-                size="small"
-                variant="outlined"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
-            )}
+            <Chip label={`Status: ${enabled === false ? 'disabled' : 'enabled'}`} size="small" color={enabled === false ? 'default' : 'success'} variant={enabled === false ? 'outlined' : 'filled'} sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />
+            {currency && <Chip label={`Currency: ${currency}`} size="small" color="primary" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 600 }} />}
+            {floorMin !== undefined && <Chip label={`Floor Min: ${floorMin}`} size="small" color="info" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />}
+            {mode && <Chip label={`Mode: ${mode}`} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />}
             {enforcement && (
               <Chip
-                label={`Enforcement: ${typeof enforcement === 'object' ? Object.keys(enforcement).filter(k => enforcement[k]).join(', ') || 'configured' : String(enforcement)}`}
+                label={`Enforcement: ${
+                  typeof enforcement === 'object'
+                    ? Object.keys(enforcement)
+                        .filter((k) => enforcement[k])
+                        .join(', ') || 'configured'
+                    : String(enforcement)
+                }`}
                 size="small"
                 variant="outlined"
                 sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
@@ -99,15 +69,9 @@ const FloorsModuleComponent = (): JSX.Element | null => {
                 Floor Data Provider
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {data.modelTimestamp && (
-                  <Chip label={`Timestamp: ${data.modelTimestamp}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.675rem' }} />
-                )}
-                {data.modelVersion && (
-                  <Chip label={`Version: ${data.modelVersion}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.675rem' }} />
-                )}
-                {data.schema && (
-                  <Chip label={`Schema: ${data.schema.fields ? data.schema.fields.join(' > ') : 'configured'}`} size="small" color="secondary" variant="outlined" sx={{ height: 20, fontSize: '0.675rem' }} />
-                )}
+                {data.modelTimestamp && <Chip label={`Timestamp: ${data.modelTimestamp}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.675rem' }} />}
+                {data.modelVersion && <Chip label={`Version: ${data.modelVersion}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.675rem' }} />}
+                {data.schema && <Chip label={`Schema: ${data.schema.fields ? data.schema.fields.join(' > ') : 'configured'}`} size="small" color="secondary" variant="outlined" sx={{ height: 20, fontSize: '0.675rem' }} />}
               </Box>
             </Box>
           )}
@@ -119,13 +83,7 @@ const FloorsModuleComponent = (): JSX.Element | null => {
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                 {otherEntries.map(([key, val]) => (
-                  <Chip
-                    key={key}
-                    label={`${key}: ${typeof val === 'object' ? JSON.stringify(val) : String(val)}`}
-                    size="small"
-                    variant="outlined"
-                    sx={{ height: 20, fontSize: '0.675rem' }}
-                  />
+                  <Chip key={key} label={`${key}: ${typeof val === 'object' ? JSON.stringify(val) : String(val)}`} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.675rem' }} />
                 ))}
               </Box>
             </Box>

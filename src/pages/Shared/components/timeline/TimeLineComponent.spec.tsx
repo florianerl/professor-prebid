@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent} from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import TimeLineComponent from './TimeLineComponent';
 import AppStateContext from '../../contexts/appStateContext';
@@ -8,7 +8,6 @@ import * as utils from '../../utils';
 
 vi.spyOn(utils, 'download').mockImplementation(() => {});
 
-// Mock GanttChartComponent to simplify SVG rendering test
 vi.mock('../../../Popup/components/timeline/GanttChartComponent', () => ({
   default: () => <div data-testid="gantt-chart">Gantt Chart View</div>,
 }));
@@ -69,19 +68,16 @@ describe('TimeLineComponent', () => {
     expect(screen.getByText('Timeout: 3000ms')).toBeTruthy();
     expect(screen.getByTestId('gantt-chart')).toBeTruthy();
 
-    // Click individual Auction #1 tab
     const auction1Btn = screen.getByText(/Auction #1/);
     fireEvent.click(auction1Btn);
 
     expect(screen.getByText('Duration: 1000ms')).toBeTruthy();
 
-    // Toggle JSON View button
     const codeBtn = screen.getByLabelText('Switch to raw JSON view');
     fireEvent.click(codeBtn);
 
     expect(screen.getByText(/"auctions"/)).toBeTruthy();
 
-    // Toggle back to Gantt view
     const svgBtn = screen.getByLabelText('Switch to SVG Timeline view');
     fireEvent.click(svgBtn);
 

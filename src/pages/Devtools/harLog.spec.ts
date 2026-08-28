@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { isRecordableUrl, toLogEntry, collectHarLog, IHarLogEntry } from './harLog';
+import { isRecordableUrl, toLogEntry, collectHarLog} from './harLog';
 import { PRE_AUCTION_HAR } from '../Shared/constants';
 
 describe('harLog', () => {
@@ -140,7 +140,6 @@ describe('harLog', () => {
         [PRE_AUCTION_HAR]: JSON.stringify([]),
       });
 
-      // Send a recordable request
       networkListener({
         request: { url: 'https://example.com/test', method: 'GET' },
         response: { status: 200 },
@@ -148,27 +147,21 @@ describe('harLog', () => {
         time: 50,
       });
 
-      // Should not flush synchronously
       expect(global.chrome.storage.local.set).toHaveBeenCalledTimes(1);
 
-      // Trigger debounce timer
       vi.advanceTimersByTime(300);
 
       expect(global.chrome.storage.local.set).toHaveBeenCalledTimes(2);
-      const saved = JSON.parse(
-        (global.chrome.storage.local.set as any).mock.calls[1][0][PRE_AUCTION_HAR]
-      );
+      const saved = JSON.parse((global.chrome.storage.local.set as any).mock.calls[1][0][PRE_AUCTION_HAR]);
       expect(saved.length).toBe(1);
       expect(saved[0].url).toBe('https://example.com/test');
 
-      // Send non-recordable URL
       networkListener({
         request: { url: 'chrome-extension://123/script.js' },
       });
       vi.advanceTimersByTime(300);
       expect(global.chrome.storage.local.set).toHaveBeenCalledTimes(2);
 
-      // Test reset on tab loading
       tabsListener(1, { status: 'loading' });
       expect(global.chrome.storage.local.set).toHaveBeenLastCalledWith({
         [PRE_AUCTION_HAR]: JSON.stringify([]),
@@ -193,12 +186,9 @@ describe('harLog', () => {
       }
 
       vi.advanceTimersByTime(300);
-      const saved = JSON.parse(
-        (global.chrome.storage.local.set as any).mock.calls.slice(-1)[0][0][PRE_AUCTION_HAR]
-      );
+      const saved = JSON.parse((global.chrome.storage.local.set as any).mock.calls.slice(-1)[0][0][PRE_AUCTION_HAR]);
       expect(saved.length).toBe(1000);
       expect(saved[saved.length - 1].url).toBe('https://example.com/req_1049');
     });
   });
 });
-

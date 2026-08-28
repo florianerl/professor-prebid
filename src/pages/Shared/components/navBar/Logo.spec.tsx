@@ -14,9 +14,7 @@ describe('ProfPrebidLogo Component', () => {
   });
 
   it('renders custom version, barColor, and textColor', () => {
-    const { container } = render(
-      <ProfPrebidLogo version="v1.0" barColor="#FF0000" textColor="#00FF00" />
-    );
+    const { container } = render(<ProfPrebidLogo version="v1.0" barColor="#FF0000" textColor="#00FF00" />);
     expect(screen.getByText('v1.0')).toBeTruthy();
     const g = container.querySelector('g');
     expect(g?.getAttribute('fill')).toBe('#FF0000');

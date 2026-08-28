@@ -1,13 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-  Ortb2ImpExtChipComponent,
-  MediaTypeChipComponent,
-  AdUnitChipComponent,
-  BidChipComponent,
-  InterstitialChipComponent,
-} from './AdUnitChips';
+import { Ortb2ImpExtChipComponent, MediaTypeChipComponent, AdUnitChipComponent, BidChipComponent, InterstitialChipComponent } from './AdUnitChips';
 import AppStateContext from '../../contexts/appStateContext';
 
 vi.mock('../../../Shared/utils', () => ({
@@ -31,11 +25,9 @@ describe('AdUnitChips components', () => {
     const chip = screen.getByText('ORTB2 Imp');
     expect(chip).toBeTruthy();
 
-    // Click chip to open Popover
     fireEvent.click(chip);
     expect(screen.getByText(/\/12345\/slot/)).toBeTruthy();
 
-    // Close Popover
     const popover = screen.getByRole('presentation');
     fireEvent.keyDown(popover, { key: 'Escape' });
   });
@@ -51,7 +43,6 @@ describe('AdUnitChips components', () => {
 
   it('renders AdUnitChipComponent and handles scroll2element success and timeout reset', async () => {
     const mockExecuteScript = vi.fn().mockImplementation(({ func, args }, cb) => {
-      // Simulate calling func inside injected tab
       const dummyElem = document.createElement('div');
       dummyElem.id = 'slot-1';
       dummyElem.scrollIntoView = vi.fn();
@@ -60,7 +51,6 @@ describe('AdUnitChips components', () => {
       const res = func('slot-1');
       expect(res).toBe(true);
 
-      // Advance 5000ms inside injected script
       vi.advanceTimersByTime(5000);
 
       document.body.removeChild(dummyElem);
@@ -87,13 +77,11 @@ describe('AdUnitChips components', () => {
 
     expect(screen.getByText('✓ slot-1')).toBeTruthy();
 
-    // Fast-forward timeout to reset label
     act(() => {
       vi.advanceTimersByTime(1500);
     });
     expect(screen.getByText('slot-1')).toBeTruthy();
 
-    // Update adUnit prop
     rerender(<AdUnitChipComponent adUnit={{ code: 'slot-2' }} />);
     expect(screen.getByText('slot-2')).toBeTruthy();
   });
@@ -130,44 +118,21 @@ describe('AdUnitChips components', () => {
 
     const { rerender } = render(
       <AppStateContext.Provider value={mockAppState}>
-        <BidChipComponent
-          input={mockBid}
-          label="rubicon: 2.5 USD"
-          isWinner={true}
-          bidReceived={{ args: mockBid } as any}
-          bidRequested={{ args: {} } as any}
-          isRendered={true}
-        />
+        <BidChipComponent input={mockBid} label="rubicon: 2.5 USD" isWinner={true} bidReceived={{ args: mockBid } as any} bidRequested={{ args: {} } as any} isRendered={true} />
       </AppStateContext.Provider>
     );
 
     expect(screen.getByText('rubicon: 2.5 USD')).toBeTruthy();
 
-    // Rerender with non-winner, received
     rerender(
       <AppStateContext.Provider value={mockAppState}>
-        <BidChipComponent
-          input={mockBid}
-          label="rubicon: 2.5 USD"
-          isWinner={false}
-          bidReceived={{ args: mockBid } as any}
-          bidRequested={undefined}
-          isRendered={false}
-        />
+        <BidChipComponent input={mockBid} label="rubicon: 2.5 USD" isWinner={false} bidReceived={{ args: mockBid } as any} bidRequested={undefined} isRendered={false} />
       </AppStateContext.Provider>
     );
 
-    // Rerender with nobid (bidReceived undefined)
     rerender(
       <AppStateContext.Provider value={mockAppState}>
-        <BidChipComponent
-          input={mockBid}
-          label="rubicon"
-          isWinner={false}
-          bidReceived={undefined}
-          bidRequested={undefined}
-          isRendered={false}
-        />
+        <BidChipComponent input={mockBid} label="rubicon" isWinner={false} bidReceived={undefined} bidRequested={undefined} isRendered={false} />
       </AppStateContext.Provider>
     );
 

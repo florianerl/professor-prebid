@@ -16,11 +16,7 @@ export interface VersionReleaseListProps {
   formatDate: (date: string) => string;
 }
 
-export const VersionReleaseList: React.FC<VersionReleaseListProps> = ({
-  releases = [],
-  installedVersion,
-  formatDate,
-}) => {
+export const VersionReleaseList: React.FC<VersionReleaseListProps> = ({ releases = [], installedVersion, formatDate }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
 
@@ -58,7 +54,7 @@ export const VersionReleaseList: React.FC<VersionReleaseListProps> = ({
 
   return (
     <Paper elevation={1} sx={{ p: 1.25, border: '1px solid', borderColor: 'divider' }}>
-      {/* Header bar with title, search input, and Expand All toggle */}
+      {}
       <Box
         sx={{
           display: 'flex',
@@ -117,7 +113,7 @@ export const VersionReleaseList: React.FC<VersionReleaseListProps> = ({
         </Box>
       </Box>
 
-      {/* Release List */}
+      {}
       <Box sx={{ mt: 1 }}>
         {filteredReleases.length === 0 ? (
           <Paper sx={{ p: 2, textAlign: 'center', backgroundColor: 'action.hover', border: '1px dashed', borderColor: 'divider' }}>
@@ -128,15 +124,7 @@ export const VersionReleaseList: React.FC<VersionReleaseListProps> = ({
         ) : (
           filteredReleases.map((release) => {
             const key = release.tag_name || (typeof release.name === 'string' ? release.name : Math.random().toString());
-            return (
-              <VersionReleaseItem
-                key={key}
-                version={release}
-                expanded={Boolean(expandedMap[key])}
-                onToggle={() => toggleRelease(key)}
-                formatDate={formatDate}
-              />
-            );
+            return <VersionReleaseItem key={key} version={release} expanded={Boolean(expandedMap[key])} onToggle={() => toggleRelease(key)} formatDate={formatDate} />;
           })
         )}
       </Box>

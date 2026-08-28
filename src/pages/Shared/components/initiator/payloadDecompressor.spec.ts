@@ -16,14 +16,12 @@ describe('payloadDecompressor', () => {
       user: { id: 'criteo-user-abc' },
     });
 
-    // Compress using native CompressionStream
     const cs = new CompressionStream('gzip');
     const encoder = new TextEncoder();
     const stream = new Response(encoder.encode(originalJson)).body?.pipeThrough(cs);
     const compressedBuffer = await new Response(stream).arrayBuffer();
     const compressedBytes = new Uint8Array(compressedBuffer);
 
-    // Convert to binary string (as Chrome HAR postData captures)
     let binaryStr = '';
     for (let i = 0; i < compressedBytes.length; i++) {
       binaryStr += String.fromCharCode(compressedBytes[i]);

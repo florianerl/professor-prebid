@@ -35,14 +35,7 @@ const PrebidConfigComponent = (): JSX.Element | null => {
   const cacheUrl = config.cache?.url;
 
   return (
-    <ExpandableTile
-      icon={<SettingsApplicationsIcon />}
-      title="Prebid Config"
-      subtitle="Timeouts, cache, & core settings"
-      defaultMaxWidth={4}
-      expandedMaxWidth={8}
-      headerAction={jsonToggleAction}
-    >
+    <ExpandableTile icon={<SettingsApplicationsIcon />} title="Prebid Config" subtitle="Timeouts, cache, & core settings" defaultMaxWidth={4} expandedMaxWidth={8} headerAction={jsonToggleAction}>
       {showJson ? (
         <Grid size={{ xs: 12 }}>
           <JSONViewerComponent src={config} name="" collapsed={1} />
@@ -54,21 +47,36 @@ const PrebidConfigComponent = (): JSX.Element | null => {
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1.25 }}>
             <Chip
-              label={<><span>Bidder Timeout: </span><strong>{bidderTimeout}</strong></>}
+              label={
+                <>
+                  <span>Bidder Timeout: </span>
+                  <strong>{bidderTimeout}</strong>
+                </>
+              }
               size="small"
               color="primary"
               variant="outlined"
               sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
             />
             <Chip
-              label={<><span>Bidder Sequence: </span><strong>{bidderSequence}</strong></>}
+              label={
+                <>
+                  <span>Bidder Sequence: </span>
+                  <strong>{bidderSequence}</strong>
+                </>
+              }
               size="small"
               color="info"
               variant="outlined"
               sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
             />
             <Chip
-              label={<><span>Max Nested Iframes: </span><strong>{String(maxNestedIframes)}</strong></>}
+              label={
+                <>
+                  <span>Max Nested Iframes: </span>
+                  <strong>{String(maxNestedIframes)}</strong>
+                </>
+              }
               size="small"
               variant="outlined"
               sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
@@ -80,14 +88,24 @@ const PrebidConfigComponent = (): JSX.Element | null => {
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
             <Chip
-              label={<><span>Send All Bids: </span><strong>{String(sendAllBids)}</strong></>}
+              label={
+                <>
+                  <span>Send All Bids: </span>
+                  <strong>{String(sendAllBids)}</strong>
+                </>
+              }
               size="small"
               color={sendAllBids ? 'success' : 'default'}
               variant={sendAllBids ? 'filled' : 'outlined'}
               sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
             />
             <Chip
-              label={<><span>Use Bid Cache: </span><strong>{String(useBidCache)}</strong></>}
+              label={
+                <>
+                  <span>Use Bid Cache: </span>
+                  <strong>{String(useBidCache)}</strong>
+                </>
+              }
               size="small"
               color={useBidCache ? 'success' : 'default'}
               variant={useBidCache ? 'filled' : 'outlined'}
@@ -95,7 +113,12 @@ const PrebidConfigComponent = (): JSX.Element | null => {
             />
             {deviceAccess !== undefined && (
               <Chip
-                label={<><span>Device Access: </span><strong>{String(deviceAccess)}</strong></>}
+                label={
+                  <>
+                    <span>Device Access: </span>
+                    <strong>{String(deviceAccess)}</strong>
+                  </>
+                }
                 size="small"
                 color={deviceAccess ? 'success' : 'warning'}
                 variant={deviceAccess ? 'filled' : 'outlined'}
@@ -104,7 +127,12 @@ const PrebidConfigComponent = (): JSX.Element | null => {
             )}
             {cacheUrl && (
               <Chip
-                label={<><span>Bid Cache Url: </span><strong>{cacheUrl}</strong></>}
+                label={
+                  <>
+                    <span>Bid Cache Url: </span>
+                    <strong>{cacheUrl}</strong>
+                  </>
+                }
                 size="small"
                 variant="outlined"
                 sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500, maxWidth: '100%' }}

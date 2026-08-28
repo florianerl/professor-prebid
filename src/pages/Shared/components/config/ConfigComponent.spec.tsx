@@ -37,7 +37,6 @@ describe('ConfigComponent & ExpandableTile', () => {
     const cardHeader = screen.getByText('Test Tile');
     fireEvent.click(cardHeader);
 
-    // Fast forward scrollIntoView timeout
     act(() => {
       vi.advanceTimersByTime(350);
     });
@@ -65,15 +64,12 @@ describe('ConfigComponent & ExpandableTile', () => {
 
     const input = screen.getByPlaceholderText('Filter config...');
 
-    // Search matching key
     fireEvent.change(input, { target: { value: 'bidderTimeout' } });
     expect(screen.getByText(/"config"/)).toBeTruthy();
 
-    // Search matching key with colon
     fireEvent.change(input, { target: { value: 'bidderTimeout:' } });
     expect(screen.getByText(/"config"/)).toBeTruthy();
 
-    // Search non-matching key
     fireEvent.change(input, { target: { value: 'nonExistentParam' } });
     expect(screen.getByText('No matching configuration parameters')).toBeTruthy();
   });
@@ -113,7 +109,6 @@ describe('ConfigComponent & ExpandableTile', () => {
     const originalConsoleError = console.error;
     console.error = vi.fn();
 
-    // Trigger an error in one tile by mocking a throwing getter
     const mockContext: any = {
       prebid: {
         config: {
@@ -132,7 +127,6 @@ describe('ConfigComponent & ExpandableTile', () => {
 
     expect(screen.getAllByText(/An error occurred: Test tile crash/i).length).toBeGreaterThanOrEqual(1);
 
-    // Fast-forward 1000ms timer
     act(() => {
       vi.advanceTimersByTime(1000);
     });

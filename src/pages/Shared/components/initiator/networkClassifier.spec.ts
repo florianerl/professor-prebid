@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { classifyRequest, decodeTcfString, auditPrivacy, IClassifiedNetworkEntry } from './networkClassifier';
+import { classifyRequest, decodeTcfString, auditPrivacy} from './networkClassifier';
 import { IHarLogEntry } from '../../../Devtools/harLog';
 
 describe('networkClassifier', () => {
@@ -12,10 +12,9 @@ describe('networkClassifier', () => {
     });
 
     it('decodes a valid TCF v2.2 test string', () => {
-      // Valid minimal TCF v2 string
       const tcfString = 'CP12345AP12345ABAAENA9CAAP_AAH_AAAAAGVwBgAAA';
       const result = decodeTcfString(tcfString);
-      // Even if invalid checksum, decodeTcfString safely catches and returns undefined or decoded model
+
       if (result) {
         expect(result.version).toBeDefined();
         expect(Array.isArray(result.purposeConsents)).toBe(true);

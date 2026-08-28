@@ -38,10 +38,8 @@ const NaviOptions: React.FC<{}> = () => {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    chrome.storage.sync.set({ selectedPopUpNavItems }, () => {
-    });
-    chrome.storage.sync.set({ selectedPanelNavItems }, () => {
-    });
+    chrome.storage.sync.set({ selectedPopUpNavItems }, () => {});
+    chrome.storage.sync.set({ selectedPanelNavItems }, () => {});
   };
 
   const handleReset = () => {

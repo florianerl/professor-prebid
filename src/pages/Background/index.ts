@@ -1,12 +1,9 @@
 import { BadgeService } from './BadgeService';
 import { MessageHandler } from './MessageHandler';
-import { TabContextService, debounce } from './TabContextService';
+import { TabContextService} from './TabContextService';
 
 class BackgroundService {
-  constructor(
-    private tabContextService: TabContextService,
-    private updateBadge: (tabId: number | undefined) => void
-  ) { }
+  constructor(private tabContextService: TabContextService, private updateBadge: (tabId: number | undefined) => void) {}
 
   async start(): Promise<void> {
     await this.tabContextService.load();
@@ -74,11 +71,9 @@ class Background {
   };
   private tabContextService = new TabContextService();
   private backgroundService = new BackgroundService(this.tabContextService, this.updateBadge);
-  // persistInStorageThrottled removed as persistence is immediate
 
   constructor() {
     this.backgroundService.start();
   }
-
 }
 new Background();

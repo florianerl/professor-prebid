@@ -6,18 +6,11 @@ import { PROVIDER_SIGNALS } from './providerSignals';
 
 export type ProviderType = 'identity' | 'rtd';
 
-/**
- * `landed`  - present in this auction's bidder requests
- * `late`    - present elsewhere on the page, absent here
- * `never`   - absent everywhere, at the paths this module writes
- * `unknown` - no known write path; nothing attributable either way
- */
 export type LandedVerdict = 'landed' | 'late' | 'never' | 'unknown';
 
 export interface IEvidenceDetail {
-  /** Where in the auction it was found. */
   at: string;
-  /** What was found there. */
+
   value?: unknown;
 }
 
@@ -26,21 +19,21 @@ export interface IAuctionVerdict {
   auctionIndex: number;
   verdict: LandedVerdict;
   evidence: string[];
-  /** Where each piece of evidence was found, and what was there. Keyed by the evidence entry. */
+
   evidenceDetail?: { [item: string]: IEvidenceDetail };
 }
 
 export interface IProviderDiagnostic {
   name: string;
   type: ProviderType;
-  /** Endpoint domains this provider is known to call, for attributing network requests to it. */
+
   hosts: string[];
-  /** False means prebid provably did not wait for this provider before calling bidders. */
+
   awaited: boolean;
   awaitedReason: string;
-  /** Identity only: every EID source this module can emit. */
+
   eidSources?: string[];
-  /** Hostname fragments used to associate network requests with this provider. */
+
   matchTokens: string[];
   auctions: IAuctionVerdict[];
   landedCount: number;
@@ -51,7 +44,7 @@ export interface IDiagnosedAuction {
   auctionId: string;
   index: number;
   timestamp: number;
-  /** Earliest `bidderRequest.start`; nothing arriving after this could reach the first bidder. */
+
   firstBidderStart: number;
 }
 
@@ -60,24 +53,19 @@ export interface IProviderDiagnostics {
   auctions: IDiagnosedAuction[];
   rtdAuctionDelay: number;
   userSyncAuctionDelay: number;
-  /** EID sources seen on the page that no configured module could be matched to. */
+
   unmatchedEidSources: string[];
-  /** `ortb2Imp` writes no configured provider claims. */
+
   unmatchedImpPaths: string[];
-  /** ortb2 writes no configured provider claims. */
+
   unmatchedOrtb2Paths: string[];
-  /** Every ortb2 data segment name seen, so the raw evidence is always inspectable. */
+
   segmentNames: string[];
 }
 
 const DOMAIN_IN_STRING = /(?:https?:)?\/\/([a-z0-9.-]*[a-z0-9-]\.[a-z]{2,})/i;
 const BARE_DOMAIN = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i;
 
-/**
- * Some providers take their endpoint from publisher config rather than hardcoding it, so the live
- * config is the only place it can be found. Kept as full hostnames rather than collapsed to a
- * registrable domain, which would claim every unrelated request to a shared CDN. Subdomains still match.
- */
 const hostsInConfig = (value: unknown, depth = 4): string[] => {
   if (depth < 0 || value == null) return [];
   if (typeof value === 'string') {

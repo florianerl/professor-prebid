@@ -2,14 +2,7 @@ import { TCString } from '@iabtcf/core';
 import { IHarLogEntry } from '../../../Devtools/harLog';
 import { PROVIDER_HOSTS } from '../preAuction/providerHosts';
 
-export type NetworkCategory =
-  | 'bid'
-  | 'sync'
-  | 'userId'
-  | 'rtd'
-  | 'analytics'
-  | 'gam'
-  | 'other';
+export type NetworkCategory = 'bid' | 'sync' | 'userId' | 'rtd' | 'analytics' | 'gam' | 'other';
 
 export type PrivacyVerdict = 'valid' | 'warning' | 'missing' | 'none';
 
@@ -65,10 +58,7 @@ export const CATEGORY_LABELS: Record<NetworkCategory, string> = {
   other: 'Other Request',
 };
 
-export const CATEGORY_COLORS: Record<
-  NetworkCategory,
-  'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'error' | 'default'
-> = {
+export const CATEGORY_COLORS: Record<NetworkCategory, 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'error' | 'default'> = {
   bid: 'primary',
   sync: 'info',
   userId: 'secondary',
@@ -78,7 +68,6 @@ export const CATEGORY_COLORS: Record<
   other: 'default',
 };
 
-// Optional friendly display name overrides for vendors whose Prebid module code is short or technical
 const VENDOR_DISPLAY_OVERRIDES: Record<string, string> = {
   ix: 'Index Exchange',
   adnxs: 'AppNexus / Xandr',
@@ -98,10 +87,8 @@ const formatComponentName = (rawName: string): string => {
   if (VENDOR_DISPLAY_OVERRIDES[rawName]) {
     return VENDOR_DISPLAY_OVERRIDES[rawName];
   }
-  const cleaned = rawName
-    .replace(/(BidAdapter|IdSystem|RTDModule|Provider|AnalyticsAdapter|Analytics)$/i, '')
-    .replace(/([a-z])([A-Z])/g, '$1 $2');
-  return VENDOR_DISPLAY_OVERRIDES[cleaned] || (cleaned.charAt(0).toUpperCase() + cleaned.slice(1));
+  const cleaned = rawName.replace(/(BidAdapter|IdSystem|RTDModule|Provider|AnalyticsAdapter|Analytics)$/i, '').replace(/([a-z])([A-Z])/g, '$1 $2');
+  return VENDOR_DISPLAY_OVERRIDES[cleaned] || cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 };
 
 const isCanonicalOwner = (componentName: string, domain: string): boolean => {
@@ -111,11 +98,9 @@ const isCanonicalOwner = (componentName: string, domain: string): boolean => {
   return domainBase.includes(nameLower) || nameLower.includes(domainBase);
 };
 
-// Inverted lookup map built dynamically from Prebid metadata (870+ modules / 1800+ domains)
 export const PREBID_PROVIDER_MAP: Map<string, { name: string; category: NetworkCategory }> = new Map();
 
 if (PROVIDER_HOSTS && typeof PROVIDER_HOSTS === 'object') {
-  // Pass 1: Register primary canonical owners first (e.g. appnexus -> adnxs.com)
   for (const [key, domains] of Object.entries(PROVIDER_HOSTS)) {
     const [componentType, componentName] = key.split(':');
     let category: NetworkCategory = 'other';
@@ -136,7 +121,6 @@ if (PROVIDER_HOSTS && typeof PROVIDER_HOSTS === 'object') {
     }
   }
 
-  // Pass 2: Fill in remaining shared or derivative domains
   for (const [key, domains] of Object.entries(PROVIDER_HOSTS)) {
     const [componentType, componentName] = key.split(':');
     let category: NetworkCategory = 'other';
@@ -158,7 +142,6 @@ if (PROVIDER_HOSTS && typeof PROVIDER_HOSTS === 'object') {
   }
 }
 
-// Non-Prebid external ad tech infrastructure (Ad Servers, TAM wrapper)
 export const EXTERNAL_PROVIDERS: Array<{
   name: string;
   hostPattern: RegExp;
@@ -236,28 +219,10 @@ const mapQueryParams = (params?: Array<{ name: string; value: string }>): { [key
   return map;
 };
 
-export const auditPrivacy = (
-  queryParams: { [key: string]: string },
-  requestHeaders: { [key: string]: string },
-  postText?: string,
-  decompressedPostText?: string,
-  cmpConsentString?: string,
-  url?: string
-): IPrivacyAudit => {
-  let gdpr =
-    queryParams['gdpr'] ||
-    queryParams['gdpr_applies'] ||
-    queryParams['gdpp_applies'] ||
-    queryParams['is_gdpr'] ||
-    queryParams['gdpr_str'];
+export const auditPrivacy = (queryParams: { [key: string]: string }, requestHeaders: { [key: string]: string }, postText?: string, decompressedPostText?: string, cmpConsentString?: string, url?: string): IPrivacyAudit => {
+  let gdpr = queryParams['gdpr'] || queryParams['gdpr_applies'] || queryParams['gdpp_applies'] || queryParams['is_gdpr'] || queryParams['gdpr_str'];
 
-  let usPrivacy =
-    queryParams['us_privacy'] ||
-    queryParams['usprivacy'] ||
-    queryParams['usp'] ||
-    queryParams['ccpa'] ||
-    queryParams['ccpa_string'] ||
-    queryParams['us_privacy_str'];
+  let usPrivacy = queryParams['us_privacy'] || queryParams['usprivacy'] || queryParams['usp'] || queryParams['ccpa'] || queryParams['ccpa_string'] || queryParams['us_privacy_str'];
 
   let gpp = queryParams['gpp'] || queryParams['gpp_string'] || queryParams['gpp_str'];
   let gppSid = queryParams['gpp_sid'] || queryParams['gpp_section_id'] || queryParams['gpp_section_ids'] || queryParams['gpps_sid'];
@@ -267,21 +232,7 @@ export const auditPrivacy = (
   let gdprConsent: string | undefined = undefined;
   let decodedTcf: IDecodedTcf | undefined = undefined;
 
-  // 1. Check known query parameter keys for TCF string
-  const knownConsentKeys = [
-    'gdpr_consent',
-    'gdprstring',
-    'gdpr_str',
-    'consent_string',
-    'consent',
-    'euconsent-v2',
-    'euconsent_v2',
-    'euconsent',
-    'tc_string',
-    'tcstring',
-    'tcf_consent',
-    'cmp_consent',
-  ];
+  const knownConsentKeys = ['gdpr_consent', 'gdprstring', 'gdpr_str', 'consent_string', 'consent', 'euconsent-v2', 'euconsent_v2', 'euconsent', 'tc_string', 'tcstring', 'tcf_consent', 'cmp_consent'];
 
   for (const k of knownConsentKeys) {
     if (queryParams[k]) {
@@ -291,7 +242,6 @@ export const auditPrivacy = (
     }
   }
 
-  // 2. Check JSON POST body (uncompressed or raw)
   const textToParse = decompressedPostText || postText;
   if (textToParse) {
     try {
@@ -308,12 +258,9 @@ export const auditPrivacy = (
       if (!gpp && regs?.ext?.gpp) gpp = String(regs.ext.gpp);
       if (!gppSid && regs?.ext?.gpp_sid) gppSid = Array.isArray(regs.ext.gpp_sid) ? regs.ext.gpp_sid.join(',') : String(regs.ext.gpp_sid);
       if (!coppa && regs?.coppa !== undefined) coppa = String(regs.coppa);
-    } catch {
-      // Ignored for non-JSON payloads
-    }
+    } catch {}
   }
 
-  // 3. Scan all query param values directly for TCF pattern if not found
   if (!gdprConsent) {
     for (const [, val] of Object.entries(queryParams)) {
       if (val && typeof val === 'string' && val.length >= 15) {
@@ -326,7 +273,6 @@ export const auditPrivacy = (
     }
   }
 
-  // 4. Scan POST text for any embedded TCF string
   if (!gdprConsent && textToParse) {
     const tcfRegex = /\b(C[A-Za-z0-9\-_]{20,}(?:\.[A-Za-z0-9\-_]+)*)\b/g;
     const matches = textToParse.match(tcfRegex);
@@ -336,7 +282,6 @@ export const auditPrivacy = (
     }
   }
 
-  // 5. Match against the page's CMP Consent String if available
   if (cmpConsentString && cmpConsentString.length > 10) {
     const cmpCore = cmpConsentString.split('.')[0];
     const fullTarget = `${url || ''} ${textToParse || ''} ${JSON.stringify(queryParams)}`;
@@ -390,11 +335,7 @@ export const auditPrivacy = (
   };
 };
 
-export const classifyRequest = (
-  entry: IHarLogEntry,
-  decompressedPostText?: string,
-  cmpConsentString?: string
-): IClassifiedNetworkEntry => {
+export const classifyRequest = (entry: IHarLogEntry, decompressedPostText?: string, cmpConsentString?: string): IClassifiedNetworkEntry => {
   const url = entry.url || '';
   const host = entry.host || '';
   const pathname = entry.pathname || '';
@@ -447,10 +388,7 @@ export const classifyRequest = (
 
   if (/googlesyndication|doubleclick|googleadservices/i.test(host)) {
     category = 'gam';
-  } else if (
-    /cookie_sync|usersync|setuid|getuid|(?<!id5-)sync\.|match\.|load-cookie|pixel\.rubicon|\/sync\b|\/cookie\b|idsync/i.test(lowerUrl) ||
-    /sync|match|pixel|user_sync/i.test(lowerPath)
-  ) {
+  } else if (/cookie_sync|usersync|setuid|getuid|(?<!id5-)sync\.|match\.|load-cookie|pixel\.rubicon|\/sync\b|\/cookie\b|idsync/i.test(lowerUrl) || /sync|match|pixel|user_sync/i.test(lowerPath)) {
     category = 'sync';
   } else if (/crwdcntrl|permutive|audigent|intentiq|browsi/i.test(lowerUrl)) {
     category = 'rtd';

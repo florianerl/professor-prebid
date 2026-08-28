@@ -30,14 +30,7 @@ const UserIdModuleComponent = (): JSX.Element | null => {
   );
 
   return (
-    <ExpandableTile
-      icon={<ContactPageOutlinedIcon />}
-      title="User IDs"
-      subtitle={`${userIds.length} detected module(s)`}
-      defaultMaxWidth={4}
-      expandedMaxWidth={8}
-      headerAction={jsonToggleAction}
-    >
+    <ExpandableTile icon={<ContactPageOutlinedIcon />} title="User IDs" subtitle={`${userIds.length} detected module(s)`} defaultMaxWidth={4} expandedMaxWidth={8} headerAction={jsonToggleAction}>
       {showJson ? (
         <Grid size={{ xs: 12 }}>
           <JSONViewerComponent src={userIds} name="" collapsed={1} />
@@ -46,14 +39,7 @@ const UserIdModuleComponent = (): JSX.Element | null => {
         <Grid size={{ xs: 12 }}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
             {userIds.map((userId, index) => (
-              <Chip
-                key={`${userId.name}-${index}`}
-                label={`${userId.name}${userId.storage?.type ? ` (${userId.storage.type})` : ''}`}
-                size="small"
-                variant="outlined"
-                color="secondary"
-                sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }}
-              />
+              <Chip key={`${userId.name}-${index}`} label={`${userId.name}${userId.storage?.type ? ` (${userId.storage.type})` : ''}`} size="small" variant="outlined" color="secondary" sx={{ height: 22, fontSize: '0.7rem', fontWeight: 500 }} />
             ))}
           </Box>
 
@@ -68,7 +54,12 @@ const UserIdModuleComponent = (): JSX.Element | null => {
                   {Object.entries(userId.params).map(([k, v]) => (
                     <Chip
                       key={k}
-                      label={<><strong>{k}: </strong>{typeof v === 'object' ? JSON.stringify(v) : String(v)}</>}
+                      label={
+                        <>
+                          <strong>{k}: </strong>
+                          {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+                        </>
+                      }
                       size="small"
                       variant="outlined"
                       sx={{ height: 20, fontSize: '0.675rem' }}

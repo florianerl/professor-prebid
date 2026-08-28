@@ -1,7 +1,7 @@
 import React, { useContext, useState, useMemo } from 'react';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
-import Typography from '@mui/material/Typography';
+
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Button from '@mui/material/Button';
@@ -22,7 +22,7 @@ import { getPreAuctionTimeline } from './preAuctionTimeline';
 
 const TimeLineComponent = (): JSX.Element => {
   const { prebid, auctionEndEvents } = useContext(AppStateContext);
-  // selectedTab: 0 = ALL AUCTIONS (Combined), 1 = Auction #1, 2 = Auction #2...
+
   const [selectedTab, setSelectedTab] = useState(0);
   const [query, setQuery] = useState('');
   const [showJson, setShowJson] = useState(false);
@@ -31,7 +31,6 @@ const TimeLineComponent = (): JSX.Element => {
   const { events, config } = prebid || {};
   const timeoutMs = config?.bidderTimeout || 3000;
 
-  // AutoComplete suggestions
   const suggestions = useMemo(() => {
     const set = new Set<string>();
     set.add('bidder:');
@@ -71,9 +70,7 @@ const TimeLineComponent = (): JSX.Element => {
     : 0;
 
   // What prebid spent on consent, user ids, real time data and first party data before bidding started
-  const preAuctionDuration = isAllAuctions
-    ? Math.max(0, ...auctionEndEvents.map((ae) => getPreAuctionTimeline(ae, config)?.duration ?? 0))
-    : getPreAuctionTimeline(activeAuction, config)?.duration ?? 0;
+  const preAuctionDuration = isAllAuctions ? Math.max(0, ...auctionEndEvents.map((ae) => getPreAuctionTimeline(ae, config)?.duration ?? 0)) : getPreAuctionTimeline(activeAuction, config)?.duration ?? 0;
 
   return (
     <Grid container sx={{ width: '100%', height: '100%', flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -93,19 +90,17 @@ const TimeLineComponent = (): JSX.Element => {
 
         {/* Search Bar */}
         <Grid size={{ xs: 4 }} sx={{ display: 'flex', alignItems: 'center', border: 0, '& .MuiInputBase-input': { paddingLeft: '4px !important', paddingTop: '4px !important' } }}>
-          <AutoComplete
-            fieldKeys={['bidder']}
-            options={suggestions}
-            onPick={(opt) => setQuery((cur) => replaceLastToken(cur, opt))}
-            onQueryChange={setQuery}
-            placeholder="Filter bidder timeline..."
-            query={query}
-          />
+          <AutoComplete fieldKeys={['bidder']} options={suggestions} onPick={(opt) => setQuery((cur) => replaceLastToken(cur, opt))} onQueryChange={setQuery} placeholder="Filter bidder timeline..." query={query} />
         </Grid>
 
         {/* Pre-Auction Toggle Button */}
         <GridCell cols={0.5} sx={{ display: 'flex', alignItems: 'center', border: 0 }}>
-          <Tooltip title={preAuctionDuration > 0 ? `${showPreAuction ? 'Hide' : 'Show'} the pre-auction phase — consent, user ids, real time data and first party data took ${Math.round(preAuctionDuration)}ms` : 'Prebid reported no pre-auction metrics for this auction'} arrow>
+          <Tooltip
+            title={
+              preAuctionDuration > 0 ? `${showPreAuction ? 'Hide' : 'Show'} the pre-auction phase — consent, user ids, real time data and first party data took ${Math.round(preAuctionDuration)}ms` : 'Prebid reported no pre-auction metrics for this auction'
+            }
+            arrow
+          >
             <span>
               <IconButton size="small" disabled={preAuctionDuration <= 0} onClick={() => setShowPreAuction(!showPreAuction)} color={showPreAuction ? 'secondary' : 'default'} sx={{ p: 0.5, fontSize: '1.05rem', height: 'auto' }}>
                 <HourglassTopIcon fontSize="inherit" />
@@ -198,13 +193,7 @@ const TimeLineComponent = (): JSX.Element => {
           <JSONViewerComponent src={isAllAuctions ? auctionEndEvents : activeAuction} name="auctions" collapsed={3} />
         </Grid>
       ) : (
-        <GanttChartComponent
-          auctionEndEvent={activeAuction}
-          auctionEndEvents={auctionEndEvents}
-          mode={mode}
-          query={query}
-          showPreAuction={showPreAuction}
-        />
+        <GanttChartComponent auctionEndEvent={activeAuction} auctionEndEvents={auctionEndEvents} mode={mode} query={query} showPreAuction={showPreAuction} />
       )}
     </Grid>
   );

@@ -12,7 +12,6 @@ import { IPrebidAuctionInitEventData, IPrebidDebugModuleConfigRule, IPrebidDetai
 export const matchRuleTargets: { value: string; label: string }[] = [
   { value: 'adUnitCode', label: 'AdUnitCode' },
   { value: 'bidder', label: 'Bidder' },
-  // { value: 'mediaType', label: 'Mediatype' }, // match on mediaType not working
 ];
 
 const MatchRule = ({ groupIndex, rule, ruleKey, handleRulesFormChange, prebid, path }: IMatchRuleProps): JSX.Element => {
@@ -29,7 +28,6 @@ const MatchRule = ({ groupIndex, rule, ruleKey, handleRulesFormChange, prebid, p
   };
 
   useEffect(() => {
-    // extract the matchRuleTargetOptions from  events
     const adUnitCodes = (events as IPrebidAuctionInitEventData[])?.reduce((prevValue, { args }) => {
       if (!args || !args.adUnitCodes) return prevValue;
 
@@ -123,9 +121,7 @@ const MatchRule = ({ groupIndex, rule, ruleKey, handleRulesFormChange, prebid, p
           }}
         />
       )}
-      {Object.keys(rule.when).length < matchRuleTargets.length && (
-        <IconButton size="small" color="primary" children={<AddIcon />} onClick={addMatchRule} />
-      )}
+      {Object.keys(rule.when).length < matchRuleTargets.length && <IconButton size="small" color="primary" children={<AddIcon />} onClick={addMatchRule} />}
     </React.Fragment>
   );
 };

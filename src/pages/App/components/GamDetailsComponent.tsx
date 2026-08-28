@@ -51,100 +51,180 @@ const GamDetailsComponent = ({ elementId, inPopOver, truncate }: IGamDetailCompo
   return (
     <React.Fragment>
       {lineItemId && (
-        <Box sx={{ p: inPopOver ? 1 : 0.5, borderRadius: 1, backgroundColor: inPopOver ? 'background.paper' : 'rgba(255,255,255,0.5)', border: inPopOver ? 'none' : '1px solid', borderColor: 'primary.light' }}>
-          <Typography component={'span'} variant="caption" sx={{ color: 'text.primary' }}>
-            <strong style={{ color: '#f99b0c' }}>LineItem-ID: </strong>
+        <div
+          className="prpb-chip"
+          style={{
+            padding: inPopOver ? '8px' : '3px 6px',
+            borderRadius: '4px',
+            backgroundColor: inPopOver ? undefined : '#ffffff',
+            border: inPopOver ? undefined : '1px solid rgba(67, 142, 217, 0.3)',
+            boxShadow: inPopOver ? undefined : '0 1px 2px rgba(0,0,0,0.06)',
+            fontSize: inPopOver ? undefined : '11px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '3px',
+            color: '#1e293b',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          <Typography component={'span'} variant="caption" sx={{ color: 'text.primary', fontSize: 'inherit' }}>
+            <strong style={{ color: '#d97706', fontWeight: 700 }}>LineItem-ID: </strong>
           </Typography>
-          <Typography component={'span'} variant="caption" sx={{ '& a': { color: 'primary.main', textDecoration: 'none', fontWeight: 600 } }}>
-              <a href={`https://admanager.google.com/${networktId[0]}#delivery/LineItemDetail/lineItemId=${lineItemId}`} rel="noreferrer" target="_blank">
-                {lineItemId}
-              </a>
-              {networktId[1] &&
-                networktId.map((nwId, index) => (
-                  <Typography key={nwId} component={'span'} variant="body1" sx={{ color: 'secondary.main', '& a': { color: 'secondary.main' } }}>
-                    {index === 0 && ' ('}
-                    {index > 0 && (
-                      <a href={`https://admanager.google.com/${nwId}#delivery/CreativeDetail/creativeId=${creativeId}`} rel="noreferrer" target="_blank">
-                        {`${index}`}
-                      </a>
-                    )}
-                    {index === networktId.length - 1 ? ')' : index === 0 ? '' : ', '}
-                  </Typography>
-                ))}
+          <Typography component={'span'} variant="caption" sx={{ fontSize: 'inherit', '& a': { color: '#1976d2', textDecoration: 'none', fontWeight: 600 } }}>
+            <a href={`https://admanager.google.com/${networktId[0]}#delivery/LineItemDetail/lineItemId=${lineItemId}`} rel="noreferrer" target="_blank" style={{ color: '#1976d2', textDecoration: 'none', fontWeight: 600 }}>
+              {lineItemId}
+            </a>
+            {networktId[1] &&
+              networktId.map((nwId, index) => (
+                <Typography key={nwId} component={'span'} variant="body1" sx={{ color: 'secondary.main', '& a': { color: 'secondary.main' } }}>
+                  {index === 0 && ' ('}
+                  {index > 0 && (
+                    <a href={`https://admanager.google.com/${nwId}#delivery/CreativeDetail/creativeId=${creativeId}`} rel="noreferrer" target="_blank">
+                      {`${index}`}
+                    </a>
+                  )}
+                  {index === networktId.length - 1 ? ')' : index === 0 ? '' : ', '}
+                </Typography>
+              ))}
           </Typography>
-        </Box>
+        </div>
       )}
 
       {creativeId && (
-        <Box sx={{ p: inPopOver ? 1 : 0.5, borderRadius: 1, backgroundColor: inPopOver ? 'background.paper' : 'rgba(255,255,255,0.5)', border: inPopOver ? 'none' : '1px solid', borderColor: 'primary.light' }}>
-          <Typography variant="caption" component={'span'} sx={{ color: 'text.primary' }}>
-            <strong style={{ color: '#f99b0c' }}>Creative-ID: </strong>
+        <div
+          className="prpb-chip"
+          style={{
+            padding: inPopOver ? '8px' : '3px 6px',
+            borderRadius: '4px',
+            backgroundColor: inPopOver ? undefined : '#ffffff',
+            border: inPopOver ? undefined : '1px solid rgba(67, 142, 217, 0.3)',
+            boxShadow: inPopOver ? undefined : '0 1px 2px rgba(0,0,0,0.06)',
+            fontSize: inPopOver ? undefined : '11px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '3px',
+            color: '#1e293b',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          <Typography variant="caption" component={'span'} sx={{ color: 'text.primary', fontSize: 'inherit' }}>
+            <strong style={{ color: '#d97706', fontWeight: 700 }}>Creative-ID: </strong>
           </Typography>
-          <Typography component={'span'} variant="caption" sx={{ '& a': { color: 'primary.main', textDecoration: 'none', fontWeight: 600 } }}>
-              <a href={`https://admanager.google.com/${networktId[0]}#delivery/CreativeDetail/creativeId=${creativeId}`} rel="noreferrer" target="_blank">
-                {creativeId}
-              </a>
-              {networktId[1] &&
-                networktId.map((nwId, index) => (
-                  <Typography key={nwId} component={'span'} variant="body1" sx={{ color: 'secondary.main', '& a': { color: 'secondary.main' } }}>
-                    {index === 0 && ' ('}
-                    {index > 0 && (
-                      <a href={`https://admanager.google.com/${nwId}#delivery/CreativeDetail/creativeId=${creativeId}`} rel="noreferrer" target="_blank">
-                        {`${index}`}
-                      </a>
-                    )}
-                    {index === networktId.length - 1 ? ')' : index === 0 ? '' : ', '}
-                  </Typography>
-                ))}
+          <Typography component={'span'} variant="caption" sx={{ fontSize: 'inherit', '& a': { color: '#1976d2', textDecoration: 'none', fontWeight: 600 } }}>
+            <a href={`https://admanager.google.com/${networktId[0]}#delivery/CreativeDetail/creativeId=${creativeId}`} rel="noreferrer" target="_blank" style={{ color: '#1976d2', textDecoration: 'none', fontWeight: 600 }}>
+              {creativeId}
+            </a>
+            {networktId[1] &&
+              networktId.map((nwId, index) => (
+                <Typography key={nwId} component={'span'} variant="body1" sx={{ color: 'secondary.main', '& a': { color: 'secondary.main' } }}>
+                  {index === 0 && ' ('}
+                  {index > 0 && (
+                    <a href={`https://admanager.google.com/${nwId}#delivery/CreativeDetail/creativeId=${creativeId}`} rel="noreferrer" target="_blank">
+                      {`${index}`}
+                    </a>
+                  )}
+                  {index === networktId.length - 1 ? ')' : index === 0 ? '' : ', '}
+                </Typography>
+              ))}
           </Typography>
-        </Box>
+        </div>
       )}
 
       {queryId && (
-        <Box sx={{ p: inPopOver ? 1 : 0.5, borderRadius: 1, backgroundColor: inPopOver ? 'background.paper' : 'rgba(255,255,255,0.5)', border: inPopOver ? 'none' : '1px solid', borderColor: 'primary.light' }}>
-          <Typography variant="caption" component={'span'} sx={{ color: 'text.primary' }}>
-            <strong style={{ color: '#f99b0c' }}>Query-ID: </strong>
+        <div
+          className="prpb-chip"
+          style={{
+            padding: inPopOver ? '8px' : '3px 6px',
+            borderRadius: '4px',
+            backgroundColor: inPopOver ? undefined : '#ffffff',
+            border: inPopOver ? undefined : '1px solid rgba(67, 142, 217, 0.3)',
+            boxShadow: inPopOver ? undefined : '0 1px 2px rgba(0,0,0,0.06)',
+            fontSize: inPopOver ? undefined : '11px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '3px',
+            color: '#1e293b',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          <Typography variant="caption" component={'span'} sx={{ color: 'text.primary', fontSize: 'inherit' }}>
+            <strong style={{ color: '#d97706', fontWeight: 700 }}>Query-ID: </strong>
           </Typography>
-          <Typography component={'span'} variant="caption" sx={{ '& a': { color: 'primary.main', textDecoration: 'none', fontWeight: 600 } }}>
-              <a href={`https://admanager.google.com/${networktId[0]}#troubleshooting/screenshot/query_id=${queryId}`} rel="noreferrer" target="_blank">
-                {truncate ? `${queryId.substring(0, 4)}...${queryId.substring(queryId.length - 4)}` : queryId}
-              </a>
-              {networktId[1] &&
-                networktId.map((nwId, index) => (
-                  <Typography key={nwId} component={'span'} variant="body1" sx={{ color: 'secondary.main', '& a': { color: 'secondary.main' } }}>
-                    {index === 0 && ' ('}
-                    {index > 0 && (
-                      <a href={`https://admanager.google.com/${nwId}#troubleshooting/screenshot/query_id=${queryId}`} rel="noreferrer" target="_blank">
-                        {`${index}`}
-                      </a>
-                    )}
-                    {index === networktId.length - 1 ? ')' : index === 0 ? '' : ', '}
-                  </Typography>
-                ))}
+          <Typography component={'span'} variant="caption" sx={{ fontSize: 'inherit', '& a': { color: '#1976d2', textDecoration: 'none', fontWeight: 600 } }}>
+            <a href={`https://admanager.google.com/${networktId[0]}#troubleshooting/screenshot/query_id=${queryId}`} rel="noreferrer" target="_blank" style={{ color: '#1976d2', textDecoration: 'none', fontWeight: 600 }}>
+              {truncate ? `${queryId.substring(0, 4)}...${queryId.substring(queryId.length - 4)}` : queryId}
+            </a>
+            {networktId[1] &&
+              networktId.map((nwId, index) => (
+                <Typography key={nwId} component={'span'} variant="body1" sx={{ color: 'secondary.main', '& a': { color: 'secondary.main' } }}>
+                  {index === 0 && ' ('}
+                  {index > 0 && (
+                    <a href={`https://admanager.google.com/${nwId}#troubleshooting/screenshot/query_id=${queryId}`} rel="noreferrer" target="_blank">
+                      {`${index}`}
+                    </a>
+                  )}
+                  {index === networktId.length - 1 ? ')' : index === 0 ? '' : ', '}
+                </Typography>
+              ))}
           </Typography>
-        </Box>
+        </div>
       )}
 
       {slotAdUnitPath && (
-        <Box sx={{ p: inPopOver ? 1 : 0.5, borderRadius: 1, backgroundColor: inPopOver ? 'background.paper' : 'rgba(255,255,255,0.5)', border: inPopOver ? 'none' : '1px solid', borderColor: 'primary.light', maxWidth: '100%', overflow: 'hidden' }}>
-          <Typography variant="caption" component={'span'} sx={{ color: 'text.primary' }}>
-            <strong style={{ color: '#f99b0c' }}>AdUnit Path: </strong>
+        <div
+          className="prpb-chip"
+          style={{
+            padding: inPopOver ? '8px' : '3px 6px',
+            borderRadius: '4px',
+            backgroundColor: inPopOver ? undefined : '#ffffff',
+            border: inPopOver ? undefined : '1px solid rgba(67, 142, 217, 0.3)',
+            boxShadow: inPopOver ? undefined : '0 1px 2px rgba(0,0,0,0.06)',
+            fontSize: inPopOver ? undefined : '11px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '3px',
+            color: '#1e293b',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          <Typography variant="caption" component={'span'} sx={{ color: 'text.primary', fontSize: 'inherit' }}>
+            <strong style={{ color: '#d97706', fontWeight: 700 }}>AdUnit Path: </strong>
           </Typography>
-          <Typography variant="caption" component={'span'} sx={{ color: 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block', verticalAlign: 'bottom', maxWidth: 'calc(100% - 80px)' }}>
+          <Typography variant="caption" component={'span'} sx={{ color: 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block', verticalAlign: 'bottom', maxWidth: 'calc(100% - 80px)', fontSize: 'inherit' }}>
             {slotAdUnitPath}
           </Typography>
-        </Box>
+        </div>
       )}
 
       {slotElementId && (
-        <Box sx={{ p: inPopOver ? 1 : 0.5, borderRadius: 1, backgroundColor: inPopOver ? 'background.paper' : 'rgba(255,255,255,0.5)', border: inPopOver ? 'none' : '1px solid', borderColor: 'primary.light', maxWidth: '100%', overflow: 'hidden' }}>
-          <Typography variant="caption" component={'span'} sx={{ color: 'text.primary' }}>
-            <strong style={{ color: '#f99b0c' }}>Element-ID: </strong>
+        <div
+          className="prpb-chip"
+          style={{
+            padding: inPopOver ? '8px' : '3px 6px',
+            borderRadius: '4px',
+            backgroundColor: inPopOver ? undefined : '#ffffff',
+            border: inPopOver ? undefined : '1px solid rgba(67, 142, 217, 0.3)',
+            boxShadow: inPopOver ? undefined : '0 1px 2px rgba(0,0,0,0.06)',
+            fontSize: inPopOver ? undefined : '11px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '3px',
+            color: '#1e293b',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          <Typography variant="caption" component={'span'} sx={{ color: 'text.primary', fontSize: 'inherit' }}>
+            <strong style={{ color: '#d97706', fontWeight: 700 }}>Element-ID: </strong>
           </Typography>
-          <Typography variant="caption" component={'span'} sx={{ color: 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block', verticalAlign: 'bottom', maxWidth: 'calc(100% - 80px)' }}>
+          <Typography variant="caption" component={'span'} sx={{ color: 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block', verticalAlign: 'bottom', maxWidth: 'calc(100% - 80px)', fontSize: 'inherit' }}>
             {slotElementId}
           </Typography>
-        </Box>
+        </div>
       )}
 
       {inPopOver && (

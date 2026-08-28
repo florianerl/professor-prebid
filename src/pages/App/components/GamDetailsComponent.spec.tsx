@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import GamDetailsComponent from './GamDetailsComponent';
 
@@ -103,8 +103,10 @@ describe('GamDetailsComponent', () => {
     expect(screen.getByText('test-value')).toBeDefined();
 
     if (registeredListeners['slotRenderEnded']) {
-      registeredListeners['slotRenderEnded']({
-        slot: { getSlotElementId: () => 'div-gpt-ad-1234567-0' },
+      act(() => {
+        registeredListeners['slotRenderEnded']({
+          slot: { getSlotElementId: () => 'div-gpt-ad-1234567-0' },
+        });
       });
     }
   });

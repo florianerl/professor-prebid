@@ -1,65 +1,172 @@
 import React, { useEffect, useRef, useState } from 'react';
 import AdOverlayComponent, { AdOverlayComponentProps } from './AdOverlayComponent';
 import { createPortal } from 'react-dom';
+import { findAdContainer, isContainerVisible } from '../InjectedApp';
 
-export const getMaxZIndex = () => Math.max(...Array.from(document.querySelectorAll('*'), (el) => parseFloat(window.getComputedStyle(el).zIndex)).filter((zIndex) => !Number.isNaN(zIndex)), 0);
+export const getMaxZIndex = () => 999999;
 
 const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, mask, consoleState, pbjsNameSpace }) => {
   const { elementId, winningCPM, winningBidder, currency, timeToRespond } = mask;
   const element = useRef<HTMLDivElement>(document.createElement('div'));
   const [shadowRoot, setShadowRoot] = useState<ShadowRoot | null>(null);
-  
+  const [attachVersion, setAttachVersion] = useState<number>(0);
+
   useEffect(() => {
     if (!element.current.shadowRoot) {
       setShadowRoot(element.current.attachShadow({ mode: 'open' }));
+    } else {
+      setShadowRoot(element.current.shadowRoot);
     }
   }, []);
 
   const closePortal = () => {
-    document.getElementById(`prpb-mask--container-${mask.elementId}`).style.display = 'none';
+    const el = document.getElementById(`prpb-mask--container-${mask.elementId}`);
+    if (el) {
+      el.style.display = 'none';
+    }
   };
 
   useEffect(() => {
-    const slotMaskElement = document.getElementById(`prpb-mask--container-${mask.elementId}`);
-    if (consoleState) {
-      if (!slotMaskElement) {
+    if (!consoleState) {
+      if (element.current.parentNode) {
+        element.current.parentNode.removeChild(element.current);
+      }
+      return;
+    }
+
+    const expectedId = `prpb-mask--container-${mask.elementId}`;
+    element.current.id = expectedId;
+
+    const existingElements = document.querySelectorAll(`[id="${expectedId}"]`);
+    existingElements.forEach((el) => {
+      if (el !== element.current && el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
+
+    const getValidTarget = (): HTMLElement | null => {
+      let target = container;
+      if (target && target.tagName === 'IFRAME') {
+        target = target.parentElement;
+      }
+      if (!target || !target.isConnected) {
+        target = findAdContainer(mask.elementId);
+      }
+      return target;
+    };
+
+    const attachAndSync = () => {
+      const activeTarget = getValidTarget();
+      if (!activeTarget || !isContainerVisible(activeTarget)) {
+        return;
+      }
+
+      if (element.current.parentNode !== activeTarget) {
+        if (element.current.shadowRoot) {
+          const staleEmotionStyles = element.current.shadowRoot.querySelectorAll('style[data-emotion]');
+          staleEmotionStyles.forEach((s) => s.remove());
+        }
+
         element.current.style.zIndex = `${getMaxZIndex() + 1}`;
         element.current.style.position = 'absolute';
         element.current.style.wordBreak = 'break-all';
-        element.current.style.pointerEvents = 'none'; // Allow clicks to pass through
-        element.current.id = `prpb-mask--container-${mask.elementId}`;
+        element.current.style.pointerEvents = 'none';
         element.current.style.top = '0';
         element.current.style.left = '0';
-        if (container.style.position === '') {
-          container.style.position = 'relative';
+        element.current.style.display = 'block';
+        element.current.style.minHeight = 'fit-content';
+        element.current.style.minWidth = '120px';
+        if (window.getComputedStyle(activeTarget).position === 'static') {
+          activeTarget.style.position = 'relative';
         }
-        container?.append(element.current);
+        activeTarget.append(element.current);
+        setAttachVersion((v) => v + 1);
       }
-      
-      const targetElement = slotMaskElement || element.current;
-      if (targetElement) {
-        targetElement.style.width = `${container?.offsetWidth || container?.clientWidth}px`;
-        targetElement.style.height = `${container?.offsetHeight || container?.clientHeight}px`;
+
+      const width = activeTarget.offsetWidth || activeTarget.clientWidth;
+      const height = activeTarget.offsetHeight || activeTarget.clientHeight;
+      if (width > 0) element.current.style.width = `${width}px`;
+      if (height > 0) element.current.style.height = `${height}px`;
+    };
+
+    attachAndSync();
+
+    // 1. Observe target mutations (childList & attributes)
+    const target = getValidTarget();
+    let observer: MutationObserver | null = null;
+    let parentObserver: MutationObserver | null = null;
+
+    if (target && typeof MutationObserver !== 'undefined') {
+      observer = new MutationObserver(() => {
+        attachAndSync();
+      });
+      observer.observe(target, { childList: true, attributes: true, subtree: false });
+
+      if (target.parentElement) {
+        parentObserver = new MutationObserver(() => {
+          attachAndSync();
+        });
+        parentObserver.observe(target.parentElement, { childList: true, subtree: false });
       }
-    } else {
-      slotMaskElement?.parentNode?.removeChild(slotMaskElement);
     }
+
+    // 2. Observe GAM slot events
+    let gamHandler: ((event: any) => void) | null = null;
+    const timeouts: number[] = [];
+    if (window.parent.googletag && typeof window.parent.googletag?.pubads === 'function') {
+      try {
+        const pubads = window.parent.googletag.pubads();
+        gamHandler = (event: any) => {
+          const slotElementId = event?.slot?.getSlotElementId ? event.slot.getSlotElementId() : null;
+          const slotAdUnitPath = event?.slot?.getAdUnitPath ? event.slot.getAdUnitPath() : null;
+          if (slotElementId === mask.elementId || slotAdUnitPath === mask.elementId || mask.elementId.includes(slotElementId) || (slotElementId && slotElementId.includes(mask.elementId))) {
+            timeouts.push(window.setTimeout(attachAndSync, 50));
+            timeouts.push(window.setTimeout(attachAndSync, 300));
+          }
+        };
+        pubads.addEventListener('slotRenderEnded', gamHandler);
+        pubads.addEventListener('slotResponseReceived', gamHandler);
+      } catch (e) {}
+    }
+
+    // 3. Periodic safeguard sync
+    const interval = setInterval(attachAndSync, 1000);
+
+    return () => {
+      timeouts.forEach((t) => clearTimeout(t));
+      if (observer) observer.disconnect();
+      if (parentObserver) parentObserver.disconnect();
+      clearInterval(interval);
+      if (gamHandler && window.parent.googletag && typeof window.parent.googletag?.pubads === 'function') {
+        try {
+          const pubads = window.parent.googletag.pubads();
+          pubads.removeEventListener('slotRenderEnded', gamHandler);
+          pubads.removeEventListener('slotResponseReceived', gamHandler);
+        } catch (e) {}
+      }
+      if (element.current.parentNode) {
+        element.current.parentNode.removeChild(element.current);
+      }
+    };
   }, [mask, consoleState, container]);
 
-  return shadowRoot ? createPortal(
-    <AdOverlayComponent
-      key={`AdMask-${elementId}`}
-      elementId={elementId}
-      winningCPM={winningCPM}
-      winningBidder={winningBidder}
-      currency={currency}
-      timeToRespond={timeToRespond}
-      closePortal={closePortal}
-      shadowRoot={shadowRoot}
-      pbjsNameSpace={pbjsNameSpace}
-    />,
-    shadowRoot
-  ) : null;
+  return shadowRoot
+    ? createPortal(
+        <AdOverlayComponent
+          key={`AdMask-${elementId}-${attachVersion}`}
+          elementId={elementId}
+          winningCPM={winningCPM}
+          winningBidder={winningBidder}
+          currency={currency}
+          timeToRespond={timeToRespond}
+          closePortal={closePortal}
+          shadowRoot={shadowRoot}
+          pbjsNameSpace={pbjsNameSpace}
+          attachVersion={attachVersion}
+        />,
+        shadowRoot
+      )
+    : null;
 };
 
 interface AdOverlayPortalComponentProps {

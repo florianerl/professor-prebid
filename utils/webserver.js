@@ -1,5 +1,4 @@
 // Do this as the first thing so that any code reading it knows the right env.
-import devcert from 'devcert';
 import WebpackDevServer from 'webpack-dev-server';
 import webpack from 'webpack';
 import config from '../webpack.config.js';
@@ -10,7 +9,6 @@ import { dirname } from 'path';
 process.env.BABEL_ENV = 'development';
 process.env.NODE_ENV = 'development';
 process.env.ASSET_PATH = '/';
-const httpsOptions = await devcert.certificateFor('localhost');
 var options = config.chromeExtensionBoilerplate || {};
 var excludeEntriesToHotReload = options.notHotReload || [];
 const __filename = fileURLToPath(import.meta.url);
@@ -27,7 +25,7 @@ var compiler = webpack(config);
 
 var server = new WebpackDevServer(
   {
-    https: httpsOptions,
+    https: true,
     hot: true,
     liveReload: false,
     client: {

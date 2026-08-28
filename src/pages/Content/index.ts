@@ -52,7 +52,11 @@ type ChromeMessage = { type: typeof CONSOLE_TOGGLE; consoleState: boolean } | { 
 const processChromeRuntimeMessages = (request: ChromeMessage) => {
   switch (request.type) {
     case CONSOLE_TOGGLE:
+      document.dispatchEvent(new CustomEvent(CONSOLE_TOGGLE, { detail: request.consoleState }));
       EventBus.emit(request.type, { detail: request.consoleState });
+      if (request.consoleState) {
+        updateOverlays(NamespaceStore.get() || 'pbjs');
+      }
       break;
     case PBJS_NAMESPACE_CHANGE:
       NamespaceStore.set(request.pbjsNamespace);

@@ -17,14 +17,23 @@ import MinimizeIcon from '@mui/icons-material/Minimize';
 import MaximizeIcon from '@mui/icons-material/Maximize';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 
-const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, timeToRespond, closePortal, shadowRoot, pbjsNameSpace }: AdOverlayComponentProps): JSX.Element => {
+const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, timeToRespond, closePortal, shadowRoot, contentRef, pbjsNameSpace, attachVersion }: AdOverlayComponentProps): JSX.Element => {
   const gridRef = React.useRef<HTMLDivElement>(null);
   const boxRef = React.useRef<HTMLDivElement>(null);
   const [truncate, setTruncate] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<boolean>(true);
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const [slot, setSlot] = React.useState<googletag.Slot>(null);
-  const cache = React.useMemo(() => createCache({ key: 'css', container: shadowRoot || document.head, prepend: true }), [shadowRoot]);
+
+  const containerNode = shadowRoot || contentRef?.contentWindow?.document?.head || document.head;
+  const cache = React.useMemo(() => {
+    return createCache({
+      key: `prpb-css${attachVersion ? `-${attachVersion}` : ''}`,
+      container: containerNode,
+      prepend: true,
+    });
+  }, [containerNode, attachVersion]);
+
   const openInPopOver = () => {
     let bodyContainer = window.document.body;
     try {
@@ -34,6 +43,7 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
     } catch (e) {}
     setAnchorEl(bodyContainer);
   };
+
   useEffect(() => {
     if (window.parent.googletag && typeof window.parent.googletag?.pubads === 'function') {
       const pubads = googletag.pubads();
@@ -44,104 +54,123 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
       }
     }
   }, [elementId]);
+
   useEffect(() => {
     if (!truncate) {
       setTruncate(gridRef.current?.offsetHeight > boxRef.current?.offsetHeight || false);
     }
   }, [gridRef.current?.offsetHeight, boxRef.current?.offsetHeight, truncate]);
+
   return (
-    <ThemeProvider theme={theme}>
-      <PopOverComponent elementId={elementId} winningCPM={winningCPM} winningBidder={winningBidder} currency={currency} timeToRespond={timeToRespond} closePortal={closePortal} anchorEl={anchorEl} setAnchorEl={setAnchorEl} pbjsNameSpace={pbjsNameSpace} />
-      <CacheProvider value={cache}>
+    <CacheProvider value={cache}>
+      <ThemeProvider theme={theme}>
+        <PopOverComponent elementId={elementId} winningCPM={winningCPM} winningBidder={winningBidder} currency={currency} timeToRespond={timeToRespond} closePortal={closePortal} anchorEl={anchorEl} setAnchorEl={setAnchorEl} pbjsNameSpace={pbjsNameSpace} />
+        <style>{`
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          }
+          * {
+            box-sizing: border-box;
+          }
+        `}</style>
         <Box
           ref={boxRef}
           sx={{
             height: expanded ? '100%' : 'auto',
+            minHeight: expanded ? 'fit-content' : 'auto',
             width: '100%',
-            maxWidth: '100%',
-            backgroundColor: (theme) => alpha(theme.palette.primary.light, expanded ? 0.7 : 0.95),
+            backgroundColor: 'rgba(238, 246, 255, 0.96)',
+            backdropFilter: 'blur(4px)',
             color: 'text.primary',
             padding: 0.75,
             boxSizing: 'border-box',
             border: '1px solid',
-            borderBottom: expanded ? '1px solid' : 'none',
-            borderColor: (theme) => alpha(theme.palette.primary.main, 0.3),
+            borderColor: 'rgba(67, 142, 217, 0.5)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
             display: 'flex',
             flexDirection: 'column',
-            overflow: 'hidden',
+            overflow: 'auto',
             position: 'absolute',
             top: 0,
             left: 0,
             zIndex: 999999,
             pointerEvents: 'auto',
-            transition: 'background-color 0.2s',
           }}
         >
-          <Grid container alignItems="flex-start" ref={gridRef} sx={{ flexWrap: 'nowrap' }}>
-            <Grid container justifyContent="space-between" alignItems="center" sx={{ width: '100%', flexWrap: 'nowrap' }}>
-              <Grid sx={{ display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main', whiteSpace: 'nowrap' }}>
+          <Grid container alignItems="center" ref={gridRef} sx={{ flexWrap: 'nowrap', justifyContent: 'space-between', mb: 0.5 }}>
+            <Grid sx={{ display: 'flex', alignItems: 'center', overflow: 'hidden', maxWidth: 'calc(100% - 95px)' }}>
+              <Box sx={{ px: 0.75, py: 0.2, backgroundColor: 'primary.main', borderRadius: '4px', maxWidth: '100%', overflow: 'hidden' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', fontSize: 10 }}>
                   {elementId}
                 </Typography>
-              </Grid>
-              <Grid
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
-                  alignItems: 'center',
-                  color: 'text.secondary',
-                  flexShrink: 0,
-                }}
+              </Box>
+            </Grid>
+            <Grid sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+              <IconButton
+                sx={{ p: 0.25, width: 20, height: 20, borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.85)', border: '1px solid rgba(67, 142, 217, 0.3)', color: 'primary.main', '&:hover': { backgroundColor: '#ffffff' } }}
+                onClick={() => setExpanded(!expanded)}
+                title={expanded ? 'Minimize' : 'Maximize'}
               >
-                <IconButton sx={{ p: 0.25 }} onClick={() => setExpanded(!expanded)}>
-                  {expanded ? <MinimizeIcon sx={{ fontSize: 16 }} /> : <MaximizeIcon sx={{ fontSize: 16 }} />}
-                </IconButton>
+                {expanded ? <MinimizeIcon sx={{ fontSize: 13 }} /> : <MaximizeIcon sx={{ fontSize: 13 }} />}
+              </IconButton>
 
-                <IconButton sx={{ p: 0.25 }} onClick={openInPopOver}>
-                  <OpenInFullIcon sx={{ fontSize: 16 }} />
-                </IconButton>
+              <IconButton
+                sx={{ p: 0.25, width: 20, height: 20, borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.85)', border: '1px solid rgba(67, 142, 217, 0.3)', color: 'primary.main', '&:hover': { backgroundColor: '#ffffff' } }}
+                onClick={openInPopOver}
+                title="Open in Popover"
+              >
+                <OpenInFullIcon sx={{ fontSize: 12 }} />
+              </IconButton>
 
-                {window.parent.googletag && typeof window.parent.googletag?.pubads === 'function' && (
-                  <IconButton
-                    sx={{ p: 0.25 }}
-                    onClick={() => {
-                      window.parent.googletag.pubads().refresh([slot]);
-                    }}
-                  >
-                    <Refresh sx={{ fontSize: 16 }} />
-                  </IconButton>
-                )}
-
-                <IconButton sx={{ p: 0.25 }} onClick={closePortal}>
-                  <Close sx={{ fontSize: 16 }} />
+              {window.parent.googletag && typeof window.parent.googletag?.pubads === 'function' && (
+                <IconButton
+                  sx={{ p: 0.25, width: 20, height: 20, borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.85)', border: '1px solid rgba(67, 142, 217, 0.3)', color: 'primary.main', '&:hover': { backgroundColor: '#ffffff' } }}
+                  onClick={() => {
+                    window.parent.googletag.pubads().refresh([slot]);
+                  }}
+                  title="Refresh Slot"
+                >
+                  <Refresh sx={{ fontSize: 13 }} />
                 </IconButton>
-              </Grid>
+              )}
+
+              <IconButton
+                sx={{ p: 0.25, width: 20, height: 20, borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.85)', border: '1px solid rgba(67, 142, 217, 0.3)', color: 'primary.main', '&:hover': { backgroundColor: '#ffffff', color: 'error.main' } }}
+                onClick={closePortal}
+                title="Close"
+              >
+                <Close sx={{ fontSize: 13 }} />
+              </IconButton>
             </Grid>
           </Grid>
 
           {expanded && (currency || winningBidder || winningCPM || timeToRespond || elementId) && (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1, width: '100%' }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5, width: '100%' }}>
               {winningCPM && (
-                <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.5)', border: '1px solid', borderColor: 'primary.light' }}>
-                  <Typography variant="caption" sx={{ color: 'text.primary' }}>
-                    <strong style={{ color: '#f99b0c' }}>CPM: </strong>
+                <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: '#ffffff', border: '1px solid', borderColor: 'rgba(67, 142, 217, 0.3)', boxShadow: '0 1px 2px rgba(0,0,0,0.06)' }}>
+                  <Typography variant="caption" sx={{ color: 'text.primary', fontSize: 11 }}>
+                    <strong style={{ color: '#d97706' }}>CPM: </strong>
                     {winningCPM} {currency}
                   </Typography>
                 </Box>
               )}
               {winningBidder && (
-                <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.5)', border: '1px solid', borderColor: 'primary.light' }}>
-                  <Typography variant="caption" sx={{ color: 'text.primary' }}>
-                    <strong style={{ color: '#f99b0c' }}>Bidder: </strong>
+                <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: '#ffffff', border: '1px solid', borderColor: 'rgba(67, 142, 217, 0.3)', boxShadow: '0 1px 2px rgba(0,0,0,0.06)' }}>
+                  <Typography variant="caption" sx={{ color: 'text.primary', fontSize: 11 }}>
+                    <strong style={{ color: '#d97706' }}>Bidder: </strong>
                     {winningBidder}
                   </Typography>
                 </Box>
               )}
               {timeToRespond && (
-                <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.5)', border: '1px solid', borderColor: 'primary.light' }}>
-                  <Typography variant="caption" sx={{ color: 'text.primary' }}>
-                    <strong style={{ color: '#f99b0c' }}>TTR: </strong>
+                <Box sx={{ p: 0.5, borderRadius: 1, backgroundColor: '#ffffff', border: '1px solid', borderColor: 'rgba(67, 142, 217, 0.3)', boxShadow: '0 1px 2px rgba(0,0,0,0.06)' }}>
+                  <Typography variant="caption" sx={{ color: 'text.primary', fontSize: 11 }}>
+                    <strong style={{ color: '#d97706' }}>TTR: </strong>
                     {timeToRespond}ms
                   </Typography>
                 </Box>
@@ -150,8 +179,8 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
             </Box>
           )}
         </Box>
-      </CacheProvider>
-    </ThemeProvider>
+      </ThemeProvider>
+    </CacheProvider>
   );
 };
 
@@ -162,8 +191,10 @@ export interface AdOverlayComponentProps {
   currency: string;
   timeToRespond: number;
   closePortal?: () => void;
+  contentRef?: any;
   shadowRoot?: ShadowRoot | null;
   pbjsNameSpace?: string;
+  attachVersion?: number;
 }
 
 export default AdOverlayComponent;

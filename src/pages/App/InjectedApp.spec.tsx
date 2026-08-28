@@ -186,6 +186,36 @@ describe('InjectedApp Component', () => {
     expect(screen.getByText(/Bidder: appnexus/)).toBeTruthy();
   });
 
+  it('resolves parent container when matched element is an iframe', () => {
+    const parentDiv = document.createElement('div');
+    parentDiv.id = 'gpt-slot-wrapper';
+    const iframe = document.createElement('iframe');
+    iframe.id = 'google_ads_iframe_/1234/slot_iframe_0';
+    parentDiv.appendChild(iframe);
+    document.body.appendChild(parentDiv);
+
+    (window as any).pbjs = {
+      getEvents: () => [
+        {
+          eventType: 'auctionEnd',
+          args: { adUnitCodes: ['slot_iframe'] },
+        },
+      ],
+    };
+
+    render(<InjectedApp />);
+
+    act(() => {
+      document.dispatchEvent(new CustomEvent(CONSOLE_TOGGLE, { detail: true }));
+    });
+
+    act(() => {
+      document.dispatchEvent(new CustomEvent(SAVE_MASKS, { detail: 'pbjs' }));
+    });
+
+    expect(screen.getByTestId('overlay-portal-slot_iframe')).toBeTruthy();
+  });
+
   it('sorts multiple bidWon events by responseTimestamp descending to pick the winning bid', () => {
     const elem = document.createElement('div');
     elem.id = 'slot_multi';

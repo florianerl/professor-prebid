@@ -4,7 +4,7 @@ import { getMaxZIndex } from './AdOverlayPortal';
 import { CacheProvider } from '@emotion/react';
 import { useState, useEffect } from 'react';
 import Grid from '@mui/material/Grid';
-import Popover from '@mui/material/Popover';
+import Dialog from '@mui/material/Dialog';
 import Typography from '@mui/material/Typography';
 import createCache from '@emotion/cache';
 import Box from '@mui/material/Box';
@@ -189,29 +189,29 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
   }, [elementId]);
 
   return (
-    <Popover
-      anchorEl={anchorEl}
-      anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+    <Dialog
       open={open}
       onClose={() => setAnchorEl(null)}
+      maxWidth="lg"
+      fullWidth
       sx={{ 
-        zIndex: getMaxZIndex() + 1, 
-        '& .MuiPopover-paper': {
+        zIndex: 9999999, 
+        '& .MuiDialog-paper': {
           width: '90vw',
           maxWidth: '1200px',
           backgroundColor: '#ecf3f5', // primary.info
           borderRadius: 3,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
           border: '1px solid',
-          borderColor: 'primary.light'
+          borderColor: 'primary.light',
+          m: { xs: 1, sm: 2 }
         }
       }}
-      transformOrigin={{ vertical: 'center', horizontal: 'center' }}
       children={
         <CacheProvider
           value={cacheTopPage}
           children={
-            <Box sx={{ p: 2, backgroundColor: 'transparent', color: 'text.primary', display: 'flex', flexDirection: 'column', gap: 1.5, maxHeight: '80vh', overflowY: 'auto' }}>
+            <Box sx={{ p: 2, backgroundColor: 'transparent', color: 'text.primary', display: 'flex', flexDirection: 'column', gap: 1.5, maxHeight: '85vh', overflowY: 'auto' }}>
               
               {/* Header */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>

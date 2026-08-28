@@ -33,20 +33,8 @@ describe('AdOverlayPortal', () => {
   });
 
   describe('getMaxZIndex', () => {
-    it('returns 0 when no elements have z-index', () => {
-      expect(getMaxZIndex()).toBe(0);
-    });
-
-    it('returns the maximum z-index', () => {
-      const div1 = document.createElement('div');
-      div1.style.zIndex = '5';
-      document.body.appendChild(div1);
-
-      const div2 = document.createElement('div');
-      div2.style.zIndex = '10';
-      document.body.appendChild(div2);
-
-      expect(getMaxZIndex()).toBe(10);
+    it('returns maximum z-index value', () => {
+      expect(getMaxZIndex()).toBe(999999);
     });
   });
 
@@ -81,8 +69,10 @@ describe('AdOverlayPortal', () => {
 
       render(<AdOverlayPortal container={container} mask={mockMask} consoleState={true} pbjsNameSpace="pbjs" />);
 
-      expect(div.style.width).toBe('500px');
-      expect(div.style.height).toBe('250px');
+      const managedDiv = document.getElementById(`prpb-mask--container-${mockMask.elementId}`);
+      expect(managedDiv).not.toBeNull();
+      expect(managedDiv?.style.width).toBe('500px');
+      expect(managedDiv?.style.height).toBe('250px');
     });
 
     it('hides the mask container when closePortal is triggered', () => {
@@ -98,6 +88,45 @@ describe('AdOverlayPortal', () => {
         });
         expect(maskElement?.style.display).toBe('none');
       }
+    });
+
+    it('attaches to parentElement when container prop is an IFRAME', () => {
+      const iframe = document.createElement('iframe');
+      container.appendChild(iframe);
+
+      render(<AdOverlayPortal container={iframe} mask={mockMask} consoleState={true} pbjsNameSpace="pbjs" />);
+
+      const maskElement = document.getElementById(`prpb-mask--container-${mockMask.elementId}`);
+      expect(maskElement).not.toBeNull();
+      // Mask should be appended to the container (parent of iframe), NOT inside the iframe
+      expect(maskElement?.parentElement).toBe(container);
+    });
+
+    it('cleans stale emotion styles and increments attachVersion when re-attached after slot refresh', () => {
+      container.id = mockMask.elementId;
+      const { rerender } = render(<AdOverlayPortal container={container} mask={mockMask} consoleState={true} pbjsNameSpace="pbjs" />);
+
+      const maskElement = document.getElementById(`prpb-mask--container-${mockMask.elementId}`);
+      expect(maskElement).not.toBeNull();
+
+      // Simulate stale emotion style inside shadowRoot
+      const staleStyle = document.createElement('style');
+      staleStyle.setAttribute('data-emotion', 'prpb-css');
+      maskElement?.shadowRoot?.appendChild(staleStyle);
+      expect(maskElement?.shadowRoot?.querySelectorAll('style[data-emotion]').length).toBe(1);
+
+      // Simulate slot refresh where slot innerHTML is cleared (mask detached)
+      container.innerHTML = '';
+      expect(maskElement?.parentNode).toBeNull();
+
+      // Re-trigger render/sync when container is refreshed with new mask event
+      act(() => {
+        rerender(<AdOverlayPortal container={container} mask={{ ...mockMask, timeToRespond: 130 }} consoleState={true} pbjsNameSpace="pbjs" />);
+      });
+
+      // Mask should be re-attached, stale style cleaned, and component re-rendered
+      expect(container.querySelector(`[id="prpb-mask--container-${mockMask.elementId}"]`)).not.toBeNull();
+      expect(maskElement?.shadowRoot?.querySelectorAll('style[data-emotion]').length).toBe(0);
     });
   });
 });

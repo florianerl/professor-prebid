@@ -29,11 +29,6 @@ describe('AdOverlayComponent', () => {
   it('renders correctly with default props', () => {
     const { container } = render(<AdOverlayComponent elementId="div-gpt-ad-1234567-0" winningBidder="rubicon" winningCPM={1.5} currency="USD" timeToRespond={250} closePortal={vi.fn()} />);
     expect(screen.getAllByText('div-gpt-ad-1234567-0')).toBeDefined();
-    
-    // Expand the component
-    const buttons = container.querySelectorAll('button');
-    fireEvent.click(buttons[0]);
-    
     expect(screen.getByText('rubicon')).toBeDefined();
     expect(screen.getByText('1.5 USD')).toBeDefined();
     expect(screen.getByText('250ms')).toBeDefined();
@@ -41,16 +36,15 @@ describe('AdOverlayComponent', () => {
 
   it('toggles expand/collapse when minimize/maximize icon is clicked', () => {
     const { container } = render(<AdOverlayComponent elementId="div-gpt-ad-1234567-0" winningBidder="rubicon" winningCPM={1.5} currency="USD" timeToRespond={250} closePortal={vi.fn()} />);
-    
-    expect(screen.queryByText('rubicon')).toBeNull();
-
-    const buttons = container.querySelectorAll('button');
-    fireEvent.click(buttons[0]); // expand
-
     expect(screen.getByText('rubicon')).toBeDefined();
 
+    const buttons = container.querySelectorAll('button');
     fireEvent.click(buttons[0]); // collapse
+
     expect(screen.queryByText('rubicon')).toBeNull();
+
+    fireEvent.click(buttons[0]); // expand
+    expect(screen.getByText('rubicon')).toBeDefined();
   });
 
   it('calls closePortal when close button is clicked', () => {

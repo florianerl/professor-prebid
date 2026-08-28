@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent} from '@testing-library/react';
 import { describe, it, expect, vi} from 'vitest';
 import AdUnitsComponent from './AdUnitsComponent';
-import { HeaderGridItem} from './';
+import { HeaderGridItem } from './AdUnitsGridComponent';
 import AppStateContext from '../../contexts/appStateContext';
 
 import * as utils from '../../utils';

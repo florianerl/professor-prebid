@@ -36,9 +36,10 @@ const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, m
         container?.append(element.current);
       }
       
-      if (element.current) {
-        element.current.style.width = `${container?.offsetWidth || container?.clientWidth}px`;
-        element.current.style.height = `${container?.offsetHeight || container?.clientHeight}px`;
+      const targetElement = slotMaskElement || element.current;
+      if (targetElement) {
+        targetElement.style.width = `${container?.offsetWidth || container?.clientWidth}px`;
+        targetElement.style.height = `${container?.offsetHeight || container?.clientHeight}px`;
       }
     } else {
       slotMaskElement?.parentNode?.removeChild(slotMaskElement);

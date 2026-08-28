@@ -51,16 +51,18 @@ describe('AdOverlayPortal', () => {
   });
 
   describe('Component rendering', () => {
-    it('renders iframe and appends container mask when consoleState is true', () => {
+    it('renders and appends container mask with shadow root when consoleState is true', () => {
       render(<AdOverlayPortal container={container} mask={mockMask} consoleState={true} pbjsNameSpace="pbjs" />);
 
       const maskElement = document.getElementById(`prpb-mask--container-${mockMask.elementId}`);
       expect(maskElement).not.toBeNull();
       expect(maskElement?.style.position).toBe('absolute');
 
-      // Iframe should be inside the portal
-      const iframe = document.querySelector('iframe');
-      expect(iframe).not.toBeNull();
+      // ShadowRoot should be created
+      expect(maskElement?.shadowRoot).not.toBeNull();
+      
+      const component = maskElement?.shadowRoot?.querySelector('[data-testid="mock-ad-overlay-component"]');
+      expect(component).not.toBeNull();
     });
 
     it('does not append mask when consoleState is false', () => {
@@ -89,7 +91,7 @@ describe('AdOverlayPortal', () => {
       const maskElement = document.getElementById(`prpb-mask--container-${mockMask.elementId}`);
       expect(maskElement).not.toBeNull();
 
-      const closeBtn = screen.queryByTestId('close-portal-btn');
+      const closeBtn = maskElement?.shadowRoot?.querySelector('[data-testid="close-portal-btn"]') as HTMLButtonElement;
       if (closeBtn) {
         act(() => {
           closeBtn.click();

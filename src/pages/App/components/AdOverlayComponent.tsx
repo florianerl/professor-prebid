@@ -21,7 +21,7 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
   const gridRef = React.useRef<HTMLDivElement>(null);
   const boxRef = React.useRef<HTMLDivElement>(null);
   const [truncate, setTruncate] = useState<boolean>(false);
-  const [expanded, setExpanded] = useState<boolean>(false);
+  const [expanded, setExpanded] = useState<boolean>(true);
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const [slot, setSlot] = React.useState<googletag.Slot>(null);
   const cache = React.useMemo(() => createCache({ key: 'css', container: shadowRoot || document.head, prepend: true }), [shadowRoot]);
@@ -59,7 +59,7 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
             height: expanded ? '100%' : 'auto',
             width: '100%',
             maxWidth: '100%',
-            backgroundColor: (theme) => alpha(theme.palette.primary.light, expanded ? 0.9 : 0.95),
+            backgroundColor: (theme) => alpha(theme.palette.primary.light, expanded ? 0.7 : 0.95),
             color: 'text.primary',
             padding: 0.75,
             boxSizing: 'border-box',

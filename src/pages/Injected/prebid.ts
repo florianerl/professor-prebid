@@ -13,17 +13,23 @@ export class Prebid {
   updateRateInterval: number = 2500;
   sendToContentScriptPending: boolean = false;
   events: any[] = [];
-  eventsApi: boolean = typeof this.globalPbjs?.getEvents === 'function' || false;
+  eventsApi: boolean = false;
+  listenersAdded: boolean = false;
+  hasQueuedListenerHook: boolean = false;
 
   constructor(namespace: string, iframeId: string | null) {
     this.namespace = namespace;
     this.frameId = iframeId;
     this.globalPbjs = window[namespace as keyof Window];
+    this.eventsApi = typeof this.globalPbjs?.getEvents === 'function' || false;
     this.addEventListeners();
     this.throttle(this.sendDetailsToBackground);
   }
 
   addEventListeners = (): void => {
+    this.globalPbjs = window[this.namespace as keyof Window] || this.globalPbjs;
+    this.eventsApi = typeof this.globalPbjs?.getEvents === 'function' || false;
+
     const pushEvent = (eventType: string, args: any) => {
       if (this.events.length >= 500) {
         this.events.shift();
@@ -31,7 +37,20 @@ export class Prebid {
       this.events.push({ eventType, args });
     };
 
-    if (typeof this.globalPbjs.onEvent !== 'function') return;
+    if (typeof this.globalPbjs?.onEvent !== 'function') {
+      if (!this.hasQueuedListenerHook && this.globalPbjs?.que && Array.isArray(this.globalPbjs.que)) {
+        this.hasQueuedListenerHook = true;
+        this.globalPbjs.que.push(() => {
+          this.addEventListeners();
+          this.throttle(this.sendDetailsToBackground);
+        });
+      }
+      return;
+    }
+
+    if (this.listenersAdded) return;
+    this.listenersAdded = true;
+
     this.globalPbjs.onEvent('auctionInit', (auctionInitData) => {
       if (!this.eventsApi) {
         pushEvent('auctionInit', auctionInitData);
@@ -144,18 +163,18 @@ export class Prebid {
       })
       .join()}]`;
 
-    if (string === '[]') return null;
     const blob = new Blob([string], { type: 'application/json' });
     const objectURL = URL.createObjectURL(blob);
     return objectURL;
   };
 
   sendDetailsToBackground = (): void => {
-    this.globalPbjs.que.push(async () => {
+    const run = () => {
+      this.globalPbjs = window[this.namespace as keyof Window] || this.globalPbjs;
       const eventsUrl = this.getEventsObjUrl();
       if (!eventsUrl) return;
-      const config = this.globalPbjs.getConfig();
-      const eids = this.globalPbjs.getUserIdsAsEids ? this.globalPbjs.getUserIdsAsEids() : [];
+      const config = typeof this.globalPbjs?.getConfig === 'function' ? this.globalPbjs.getConfig() : {};
+      const eids = typeof this.globalPbjs?.getUserIdsAsEids === 'function' ? this.globalPbjs.getUserIdsAsEids() : [];
       const timeout = window.PREBID_TIMEOUT || null;
       const prebidDetail: IPrebidDetails = {
         config,
@@ -165,14 +184,20 @@ export class Prebid {
         eventsUrl,
         namespace: this.namespace,
         frameId: this.frameId,
-        installedModules: this.globalPbjs.installedModules,
+        installedModules: this.globalPbjs?.installedModules || [],
         timeout,
-        version: this.globalPbjs.version,
-        bidderSettings: this.globalPbjs.bidderSettings,
+        version: this.globalPbjs?.version || '',
+        bidderSettings: this.globalPbjs?.bidderSettings,
       };
       EventBus.emit(EVENTS.SEND_PREBID_DETAILS_TO_BACKGROUND, prebidDetail);
       this.sendToContentScriptPending = false;
-    });
+    };
+
+    if (this.globalPbjs?.que && typeof this.globalPbjs.que.push === 'function') {
+      this.globalPbjs.que.push(run);
+    } else {
+      run();
+    }
   };
 
   throttle = (fn: () => void) => {
@@ -208,12 +233,11 @@ export class Prebid {
 }
 
 export const addEventListenersForPrebid = (frameId: string) => {
-  const allreadyInjectedPrebid: string[] = [];
+  const instances: Map<string, Prebid> = new Map();
 
   const inject = (global: string) => {
-    if (!allreadyInjectedPrebid.includes(global)) {
-      new Prebid(global, frameId);
-      allreadyInjectedPrebid.push(global);
+    if (!instances.has(global)) {
+      instances.set(global, new Prebid(global, frameId));
     }
   };
 
@@ -223,33 +247,59 @@ export const addEventListenersForPrebid = (frameId: string) => {
     }
   };
 
+  const observeGlobals = (arr: string[]): string[] => {
+    if (!Array.isArray(arr)) return arr;
+    return new Proxy(arr, {
+      set(target, prop, value, receiver) {
+        const res = Reflect.set(target, prop, value, receiver);
+        if (typeof value === 'string' && value) {
+          inject(value);
+        }
+        return res;
+      },
+    });
+  };
+
   // Check immediately
   if (window._pbjsGlobals) {
     checkGlobals(window._pbjsGlobals);
   }
+  if ((window as any).pbjs) {
+    inject('pbjs');
+  }
 
   // Intercept future assignments
-  let _pbjsGlobals: string[] = window._pbjsGlobals || [];
+  let _pbjsGlobals: string[] = observeGlobals(window._pbjsGlobals || []);
   try {
     Object.defineProperty(window, '_pbjsGlobals', {
       get: () => _pbjsGlobals,
       set: (val: string[]) => {
-        _pbjsGlobals = val;
+        _pbjsGlobals = Array.isArray(val) ? observeGlobals(val) : val;
         checkGlobals(val);
       },
       configurable: true,
       enumerable: true,
     });
   } catch (e) {
-    // Fallback if defineProperty fails (e.g. non-configurable already)
-    const interval = setInterval(() => {
-      if (window._pbjsGlobals) {
-        checkGlobals(window._pbjsGlobals);
-        clearInterval(interval);
-      }
-    }, 1000);
-    setTimeout(() => clearInterval(interval), 10000);
+    // Fallback if defineProperty fails
   }
+
+  // Continuous polling check for delayed / consent-gated Prebid loading
+  const pollInterval = setInterval(() => {
+    if (window._pbjsGlobals) {
+      checkGlobals(window._pbjsGlobals);
+    }
+    if ((window as any).pbjs) {
+      inject('pbjs');
+    }
+    instances.forEach((inst, ns) => {
+      if (!inst.listenersAdded && typeof (window as any)[ns]?.onEvent === 'function') {
+        inst.addEventListeners();
+        inst.throttle(inst.sendDetailsToBackground);
+      }
+    });
+  }, 1000);
+  setTimeout(() => clearInterval(pollInterval), 30000);
 };
 
 export interface IPrebidBidParams {

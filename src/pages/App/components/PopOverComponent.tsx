@@ -20,6 +20,8 @@ import HelpIcon from '@mui/icons-material/Help';
 import CrisisAlertIcon from '@mui/icons-material/CrisisAlert';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { ThemeProvider } from '@mui/material';
+import { theme } from '../../../theme/theme';
 
 
 const ExpandableItem = ({ avatar, children, title, json }: { avatar: JSX.Element; title: string; children?: JSX.Element; json?: object }): JSX.Element => {
@@ -119,14 +121,16 @@ const InfoCard = ({ title, value, linkUrl = null }: any): JSX.Element => {
 
 const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, timeToRespond, anchorEl, setAnchorEl, pbjsNameSpace }: PopOverComponentProps): JSX.Element => {
   let headContainer = window.document.head;
+  let bodyContainer = window.document.body;
   try {
     if (window.top && window.top.document) {
       headContainer = window.top.document.head;
+      bodyContainer = window.top.document.body;
     }
   } catch (e) {
     // Ignore cross-origin error, fallback to window.document
   }
-  const cacheTopPage = React.useMemo(() => createCache({ key: 'css', container: headContainer, prepend: true }), [headContainer]);
+  const cacheTopPage = React.useMemo(() => createCache({ key: 'prpb-popover', container: headContainer, prepend: true }), [headContainer]);
   const pbjs: PrebidJS = window[pbjsNameSpace as keyof Window];
   const open = Boolean(anchorEl);
 
@@ -189,93 +193,132 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
   }, [elementId]);
 
   return (
-    <Dialog
-      open={open}
-      onClose={() => setAnchorEl(null)}
-      maxWidth="lg"
-      fullWidth
-      sx={{ 
-        zIndex: 9999999, 
-        '& .MuiDialog-paper': {
-          width: '90vw',
-          maxWidth: '1200px',
-          backgroundColor: '#ecf3f5', // primary.info
-          borderRadius: 3,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-          border: '1px solid',
-          borderColor: 'primary.light',
-          m: { xs: 1, sm: 2 }
-        }
-      }}
-      children={
-        <CacheProvider
-          value={cacheTopPage}
-          children={
-            <Box sx={{ p: 2, backgroundColor: 'transparent', color: 'text.primary', display: 'flex', flexDirection: 'column', gap: 1.5, maxHeight: '85vh', overflowY: 'auto' }}>
-              
-              {/* Header */}
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Box sx={{ backgroundColor: 'primary.main', color: '#fff', px: 2, py: 0.5, borderRadius: 10 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                    {elementId}
-                  </Typography>
-                </Box>
-                <IconButton size="small" sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }} onClick={() => setAnchorEl(null)}>
-                  <Close />
-                </IconButton>
+    <CacheProvider value={cacheTopPage}>
+      <ThemeProvider theme={theme}>
+        <Dialog
+          open={open}
+          container={bodyContainer}
+          onClose={() => setAnchorEl(null)}
+          maxWidth="lg"
+          fullWidth
+          sx={{
+            zIndex: 99999999,
+            position: 'fixed !important',
+            inset: '0 !important',
+            '& .MuiBackdrop-root': {
+              position: 'fixed !important',
+              inset: '0 !important',
+              backgroundColor: 'rgba(0, 0, 0, 0.5) !important',
+            },
+            '& .MuiDialog-container': {
+              position: 'fixed !important',
+              inset: '0 !important',
+              display: 'flex !important',
+              alignItems: 'center !important',
+              justifyContent: 'center !important',
+              width: '100% !important',
+              height: '100% !important',
+            },
+            '& .MuiDialog-paper': {
+              position: 'relative !important',
+              width: '90vw',
+              maxWidth: '1200px',
+              backgroundColor: '#ecf3f5', // primary.info
+              borderRadius: 3,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+              border: '1px solid',
+              borderColor: 'primary.light',
+              m: { xs: 1, sm: 2 },
+            },
+          }}
+        >
+          <style>{`
+            .MuiDialog-root {
+              position: fixed !important;
+              inset: 0 !important;
+              z-index: 99999999 !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+            }
+            .MuiBackdrop-root {
+              position: fixed !important;
+              inset: 0 !important;
+              background-color: rgba(0, 0, 0, 0.5) !important;
+            }
+            .MuiDialog-container {
+              position: fixed !important;
+              inset: 0 !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+              width: 100% !important;
+              height: 100% !important;
+            }
+          `}</style>
+          <Box sx={{ p: 2, backgroundColor: 'transparent', color: 'text.primary', display: 'flex', flexDirection: 'column', gap: 1.5, maxHeight: '85vh', overflowY: 'auto' }}>
+            {/* Header */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ backgroundColor: 'primary.main', color: '#fff', px: 2, py: 0.5, borderRadius: 10 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                  {elementId}
+                </Typography>
               </Box>
-
-              {/* Top Metrics Dashboard */}
-              <Grid container spacing={1.5}>
-                <MetricCard title="CPM" value={winningCPM ? `${winningCPM} ${currency}` : '-'} highlightColor="#438ED9" />
-                <MetricCard title="Bidder" value={winningBidder || '-'} highlightColor="#438ED9" />
-                <MetricCard title="TTR" value={timeToRespond ? `${timeToRespond}ms` : '-'} highlightColor="#f99b0c" />
-              </Grid>
-
-              <Grid container spacing={1.5}>
-                {lineItemId && <InfoCard title="LineItem-ID" value={lineItemId} linkUrl={networktId ? `https://admanager.google.com/${networktId[0]}#delivery/LineItemDetail/lineItemId=${lineItemId}` : null} />}
-                {creativeId && <InfoCard title="Creative-ID" value={creativeId} linkUrl={networktId ? `https://admanager.google.com/${networktId[0]}#delivery/CreativeDetail/creativeId=${creativeId}` : null} />}
-                {queryId && <InfoCard title="Query-ID" value={queryId} linkUrl={networktId ? `https://admanager.google.com/${networktId[0]}#troubleshooting/screenshot/query_id=${queryId}` : null} />}
-                {slotAdUnitPath && <InfoCard title="AdUnit Path" value={slotAdUnitPath} />}
-                {pbjs?.version && <InfoCard title="Prebid Version" value={pbjs.version} />}
-              </Grid>
-
-              {/* JSON Trees */}
-              <Box sx={{ mt: 1 }}>
-                <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1, textTransform: 'uppercase', fontSize: 10, letterSpacing: 1 }}>Details</Typography>
-                <Box sx={{ columnCount: { xs: 1, sm: 2, md: 3, lg: 3 }, columnGap: '16px', width: '100%' }}>
-                  {adUnit && <ExpandableItem title="AdUnit Info" avatar={<SettingsOutlinedIcon />} json={adUnit} />}
-                  {winningBid && <ExpandableItem title="Winning Bid" avatar={<GavelIcon />} json={winningBid} />}
-                  {bidsSorted && bidsSorted.length > 0 && <ExpandableItem title="All Bids" avatar={<AttachMoneyIcon />} json={bidsSorted} />}
-                  {winningBid && (
-                    <ExpandableItem
-                      title="Creative Preview"
-                      avatar={<PreviewIcon />}
-                      json={winningBid.native}
-                      children={winningBid.ad && <Box sx={{ backgroundColor: '#fff', p: 1, borderRadius: 1 }} dangerouslySetInnerHTML={{ __html: winningBid.ad }} />}
-                    />
-                  )}
-                  {slotTargeting && (
-                    <ExpandableItem title="Adserver Targeting" avatar={<CrisisAlertIcon />}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                        {slotTargeting.map((st) => (
-                          <Box key={st.key} sx={{ display: 'flex', backgroundColor: 'primary.info', p: 0.75, borderRadius: 1 }}>
-                            <Typography variant="body2" sx={{ color: 'text.secondary', width: '30%', fontWeight: 'bold' }}>{st.key}</Typography>
-                            <Typography variant="body2" sx={{ color: 'text.primary', width: '70%', wordBreak: 'break-all' }}>{st.value.join(', ')}</Typography>
-                          </Box>
-                        ))}
-                      </Box>
-                    </ExpandableItem>
-                  )}
-                  {slotResponseInfo && <ExpandableItem title="Response Info" avatar={<HelpIcon />} json={slotResponseInfo} />}
-                </Box>
-              </Box>
-
+              <IconButton size="small" sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }} onClick={() => setAnchorEl(null)}>
+                <Close />
+              </IconButton>
             </Box>
-          }
-        />
-      }
-    />
+
+            {/* Top Metrics Dashboard */}
+            <Grid container spacing={1.5}>
+              <MetricCard title="CPM" value={winningCPM ? `${winningCPM} ${currency}` : '-'} highlightColor="#438ED9" />
+              <MetricCard title="Bidder" value={winningBidder || '-'} highlightColor="#438ED9" />
+              <MetricCard title="TTR" value={timeToRespond ? `${timeToRespond}ms` : '-'} highlightColor="#f99b0c" />
+            </Grid>
+
+            <Grid container spacing={1.5}>
+              {lineItemId && <InfoCard title="LineItem-ID" value={lineItemId} linkUrl={networktId ? `https://admanager.google.com/${networktId[0]}#delivery/LineItemDetail/lineItemId=${lineItemId}` : null} />}
+              {creativeId && <InfoCard title="Creative-ID" value={creativeId} linkUrl={networktId ? `https://admanager.google.com/${networktId[0]}#delivery/CreativeDetail/creativeId=${creativeId}` : null} />}
+              {queryId && <InfoCard title="Query-ID" value={queryId} linkUrl={networktId ? `https://admanager.google.com/${networktId[0]}#troubleshooting/screenshot/query_id=${queryId}` : null} />}
+              {slotAdUnitPath && <InfoCard title="AdUnit Path" value={slotAdUnitPath} />}
+              {pbjs?.version && <InfoCard title="Prebid Version" value={pbjs.version} />}
+            </Grid>
+
+            {/* JSON Trees */}
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1, textTransform: 'uppercase', fontSize: 10, letterSpacing: 1 }}>Details</Typography>
+              <Box sx={{ columnCount: { xs: 1, sm: 2, md: 3, lg: 3 }, columnGap: '16px', width: '100%' }}>
+                {adUnit && <ExpandableItem title="AdUnit Info" avatar={<SettingsOutlinedIcon />} json={adUnit} />}
+                {winningBid && <ExpandableItem title="Winning Bid" avatar={<GavelIcon />} json={winningBid} />}
+                {bidsSorted && bidsSorted.length > 0 && <ExpandableItem title="All Bids" avatar={<AttachMoneyIcon />} json={bidsSorted} />}
+                {winningBid && (
+                  <ExpandableItem
+                    title="Creative Preview"
+                    avatar={<PreviewIcon />}
+                    json={winningBid.native}
+                    children={winningBid.ad && <Box sx={{ backgroundColor: '#fff', p: 1, borderRadius: 1 }} dangerouslySetInnerHTML={{ __html: winningBid.ad }} />}
+                  />
+                )}
+                {slotTargeting && (
+                  <ExpandableItem title="Adserver Targeting" avatar={<CrisisAlertIcon />}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      {slotTargeting.map((st) => (
+                        <Box key={st.key} sx={{ display: 'flex', backgroundColor: 'primary.info', p: 0.75, borderRadius: 1 }}>
+                          <Typography variant="body2" sx={{ color: 'text.secondary', width: '30%', fontWeight: 'bold' }}>{st.key}</Typography>
+                          <Typography variant="body2" sx={{ color: 'text.primary', width: '70%', wordBreak: 'break-all' }}>{st.value.join(', ')}</Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  </ExpandableItem>
+                )}
+                {slotResponseInfo && <ExpandableItem title="Response Info" avatar={<HelpIcon />} json={slotResponseInfo} />}
+              </Box>
+            </Box>
+
+          </Box>
+        </Dialog>
+      </ThemeProvider>
+    </CacheProvider>
   );
 };
 

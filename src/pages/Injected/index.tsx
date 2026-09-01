@@ -17,6 +17,14 @@ const injectApp = () => {
   if (document.body) {
     const root = document.createElement('div');
     root.id = 'professor_prebid-root';
+    root.style.position = 'fixed';
+    root.style.top = '0';
+    root.style.left = '0';
+    root.style.width = '0';
+    root.style.height = '0';
+    root.style.overflow = 'visible';
+    root.style.pointerEvents = 'none';
+    root.style.zIndex = '9999999';
     document.body.appendChild(root);
     const container = document.getElementById(root.id);
     if (container) {

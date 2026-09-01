@@ -168,10 +168,10 @@ describe('Prebid Injected Script', () => {
   });
 
   describe('getEventsObjUrl', () => {
-    it('returns null when events array is empty', () => {
+    it('returns a valid object url even when events array is empty', () => {
       const instance = new Prebid('pbjs', 'frame1');
       instance.events = [];
-      expect(instance.getEventsObjUrl()).toBeNull();
+      expect(instance.getEventsObjUrl()).toBe('blob:http://example.com/mock-blob-url');
     });
 
     it('prunes doc property on adRenderSucceeded event', () => {
@@ -310,11 +310,17 @@ describe('Prebid Injected Script', () => {
       );
     });
 
-    it('returns early if getEventsObjUrl returns null', () => {
+    it('emits prebid details even when events array is empty', () => {
       const instance = new Prebid('pbjs', 'frame1');
       instance.events = [];
       instance.sendDetailsToBackground();
-      expect(EventBus.emit).not.toHaveBeenCalled();
+      expect(EventBus.emit).toHaveBeenCalledWith(
+        EVENTS.SEND_PREBID_DETAILS_TO_BACKGROUND,
+        expect.objectContaining({
+          namespace: 'pbjs',
+          frameId: 'frame1',
+        })
+      );
     });
   });
 
@@ -367,6 +373,29 @@ describe('Prebid Injected Script', () => {
 
       (window as any)._pbjsGlobals = ['pbjs2'];
       expect((window as any)._pbjsGlobals).toEqual(['pbjs2']);
+    });
+
+    it('detects prebid when window._pbjsGlobals.push is used', () => {
+      (window as any)._pbjsGlobals = [];
+      addEventListenersForPrebid('frame-top');
+      (window as any)._pbjsGlobals.push('customPbjs');
+      expect((window as any)._pbjsGlobals).toContain('customPbjs');
+    });
+
+    it('queues listener attachment when onEvent is not yet available', () => {
+      const que: Function[] = [];
+      const stubPbjs: any = { que };
+      (window as any).stubPbjs = stubPbjs;
+      const instance = new Prebid('stubPbjs', 'frame1');
+      expect(instance.listenersAdded).toBe(false);
+      expect(que.length).toBeGreaterThanOrEqual(1);
+
+      // Now simulate Prebid finishing loading
+      stubPbjs.onEvent = vi.fn();
+      stubPbjs.getConfig = vi.fn().mockReturnValue({});
+      que[0]();
+      expect(instance.listenersAdded).toBe(true);
+      expect(stubPbjs.onEvent).toHaveBeenCalledWith('auctionInit', expect.any(Function));
     });
 
     it('uses polling fallback when Object.defineProperty throws an error', () => {

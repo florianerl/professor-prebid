@@ -119,7 +119,7 @@ const InfoCard = ({ title, value, linkUrl = null }: any): JSX.Element => {
   );
 };
 
-const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, timeToRespond, anchorEl, setAnchorEl, pbjsNameSpace }: PopOverComponentProps): JSX.Element => {
+const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, timeToRespond, anchorEl, setAnchorEl, open: propOpen, onClose, pbjsNameSpace }: PopOverComponentProps): JSX.Element => {
   let headContainer = window.document.head;
   let bodyContainer = window.document.body;
   try {
@@ -132,7 +132,12 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
   }
   const cacheTopPage = React.useMemo(() => createCache({ key: 'prpb-popover', container: headContainer, prepend: true }), [headContainer]);
   const pbjs: PrebidJS = window[pbjsNameSpace as keyof Window];
-  const open = Boolean(anchorEl);
+  const isEffectiveOpen = typeof propOpen === 'boolean' ? propOpen : Boolean(anchorEl);
+
+  const handleClose = () => {
+    if (onClose) onClose();
+    if (setAnchorEl) setAnchorEl(null);
+  };
 
   const [adUnit, setAdunit] = useState<AdUnit | AdUnitDefinition | null>(null);
   const [bidsSorted, setBidsSorted] = useState<Bid[] | null>(null);
@@ -159,28 +164,37 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
   const [slotResponseInfo, setSlotResponseInfo] = useState<googletag.ResponseInformation>(null);
 
   useEffect(() => {
+    if (!isEffectiveOpen) return;
     if (window.parent.googletag && typeof window.parent.googletag?.pubads === 'function') {
-      const pubads = googletag.pubads();
-      const slots = pubads.getSlots();
-      const slot = slots.find((slot) => slot.getSlotElementId() === elementId) || slots.find((slot) => slot.getAdUnitPath() === elementId);
+      const pubads = window.parent.googletag.pubads();
+      const syncSlotData = () => {
+        const slots = pubads.getSlots ? pubads.getSlots() : [];
+        const slot = slots.find((s: any) => s.getSlotElementId() === elementId) || slots.find((s: any) => s.getAdUnitPath() === elementId);
+        if (slot) {
+          setSlotElementId(slot.getSlotElementId());
+          setSlotAdUnitPath(slot.getAdUnitPath());
+          setNetworkId(slot.getAdUnitPath()?.split('/')[1]?.split(','));
+          setSlotTargeting(slot.getTargetingKeys().map((key: string, id: number) => ({ key, value: slot.getTargeting(key), id })));
+          const responseInfo = slot.getResponseInformation();
+          setSlotResponseInfo(responseInfo);
+          const queryIdAttr = document.getElementById(slot.getSlotElementId())?.getAttribute('data-google-query-id');
+          setQueryId(queryIdAttr || null);
 
-      setSlotElementId(slot?.getSlotElementId());
-      setSlotAdUnitPath(slot?.getAdUnitPath());
-      setNetworkId(slot?.getAdUnitPath()?.split('/')[1]?.split(','));
-      setSlotTargeting(slot?.getTargetingKeys().map((key, id) => ({ key, value: slot.getTargeting(key), id })));
-      const responseInfo = slot?.getResponseInformation();
-      setSlotResponseInfo(responseInfo);
-      setQueryId(document.getElementById(slot?.getSlotElementId())?.getAttribute('data-google-query-id') || null);
+          if (responseInfo) {
+            const { creativeId, lineItemId, sourceAgnosticCreativeId, sourceAgnosticLineItemId } = responseInfo as any;
+            setCreativeId(creativeId || sourceAgnosticCreativeId);
+            setLineItemId(lineItemId || sourceAgnosticLineItemId);
+          }
+        }
+      };
 
-      if (responseInfo) {
-        const { creativeId, lineItemId, sourceAgnosticCreativeId, sourceAgnosticLineItemId } = responseInfo as any;
-        setCreativeId(creativeId || sourceAgnosticCreativeId);
-        setLineItemId(lineItemId || sourceAgnosticLineItemId);
-      }
+      syncSlotData();
 
       const eventHandler = (event: googletag.events.SlotRenderEndedEvent | googletag.events.SlotResponseReceived) => {
-        if (slot?.getSlotElementId() === event.slot.getSlotElementId()) {
-          setSlotResponseInfo(slot.getResponseInformation());
+        const slotElId = event.slot?.getSlotElementId ? event.slot.getSlotElementId() : null;
+        const slotPath = event.slot?.getAdUnitPath ? event.slot.getAdUnitPath() : null;
+        if (slotElId === elementId || slotPath === elementId || (slotElId && elementId.includes(slotElId)) || (slotPath && elementId.includes(slotPath))) {
+          syncSlotData();
         }
       };
       pubads.addEventListener('slotResponseReceived', eventHandler);
@@ -190,15 +204,15 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
         pubads.removeEventListener('slotRenderEnded', eventHandler);
       };
     }
-  }, [elementId]);
+  }, [elementId, isEffectiveOpen]);
 
   return (
     <CacheProvider value={cacheTopPage}>
       <ThemeProvider theme={theme}>
         <Dialog
-          open={open}
+          open={isEffectiveOpen}
           container={bodyContainer}
-          onClose={() => setAnchorEl(null)}
+          onClose={handleClose}
           maxWidth="lg"
           fullWidth
           sx={{
@@ -264,7 +278,7 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
                   {elementId}
                 </Typography>
               </Box>
-              <IconButton size="small" sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }} onClick={() => setAnchorEl(null)}>
+              <IconButton data-testid="popover-close-btn" aria-label="close" size="small" sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }} onClick={handleClose}>
                 <Close />
               </IconButton>
             </Box>
@@ -324,13 +338,15 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
 
 interface PopOverComponentProps {
   elementId: string;
-  winningBidder: string;
-  winningCPM: number;
-  currency: string;
-  timeToRespond: number;
+  winningBidder?: string;
+  winningCPM?: number;
+  currency?: string;
+  timeToRespond?: number;
   closePortal?: () => void;
-  anchorEl: HTMLElement;
-  setAnchorEl: (element: HTMLElement | null) => void;
+  anchorEl?: HTMLElement | null;
+  setAnchorEl?: (element: HTMLElement | null) => void;
+  open?: boolean;
+  onClose?: () => void;
   pbjsNameSpace: string;
 }
 

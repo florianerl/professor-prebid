@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { EVENTS, CONSOLE_TOGGLE, SAVE_MASKS } from '../Shared/constants';
 import { EventBus } from '../Shared/utils';
 import AdOverlayPortal from './components/AdOverlayPortal';
+import PopOverComponent from './components/PopOverComponent';
 import { AdOverlayComponentProps } from './components/AdOverlayComponent';
 import { IPrebidAuctionEndEventData, IPrebidBidWonEventData } from '../Injected/prebid';
 
@@ -77,6 +78,7 @@ const InjectedApp = (): JSX.Element => {
   const [consoleState, setConsoleState] = useState(false);
   const [masks, setMasks] = useState<AdOverlayComponentProps[]>([]);
   const [pbjsNameSpace, setPbjsNameSpace] = useState<string>();
+  const [activeModalUnit, setActiveModalUnit] = useState<AdOverlayComponentProps | null>(null);
 
   const consoleStateRef = useRef(consoleState);
   const lastGetEventsRef = useRef<number>(0);
@@ -165,6 +167,11 @@ const InjectedApp = (): JSX.Element => {
         };
       });
     setMasks(masks);
+    setActiveModalUnit((current) => {
+      if (!current) return null;
+      const updated = masks.find((m) => m.elementId === current.elementId);
+      return updated ? { ...current, ...updated } : current;
+    });
   };
 
   const handleNewMasks = (event: Event) => {
@@ -228,8 +235,29 @@ const InjectedApp = (): JSX.Element => {
     <React.Fragment>
       {masks.map((mask) => {
         const container = findAdContainer(mask.elementId);
-        return <AdOverlayPortal key={mask.elementId} mask={mask} consoleState={consoleState} container={container} pbjsNameSpace={pbjsNameSpace} />;
+        return (
+          <AdOverlayPortal
+            key={mask.elementId}
+            mask={mask}
+            consoleState={consoleState}
+            container={container}
+            pbjsNameSpace={pbjsNameSpace}
+            onOpenPopover={() => setActiveModalUnit(mask)}
+          />
+        );
       })}
+      {activeModalUnit && (
+        <PopOverComponent
+          elementId={activeModalUnit.elementId}
+          winningCPM={activeModalUnit.winningCPM}
+          winningBidder={activeModalUnit.winningBidder}
+          currency={activeModalUnit.currency}
+          timeToRespond={activeModalUnit.timeToRespond}
+          open={true}
+          onClose={() => setActiveModalUnit(null)}
+          pbjsNameSpace={pbjsNameSpace}
+        />
+      )}
     </React.Fragment>
   );
 };

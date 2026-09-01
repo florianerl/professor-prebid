@@ -5,7 +5,7 @@ import { findAdContainer, isContainerVisible } from '../InjectedApp';
 
 export const getMaxZIndex = () => 999999;
 
-const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, mask, consoleState, pbjsNameSpace }) => {
+const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, mask, consoleState, pbjsNameSpace, onOpenPopover }) => {
   const { elementId, winningCPM, winningBidder, currency, timeToRespond } = mask;
   const element = useRef<HTMLDivElement>(document.createElement('div'));
   const [shadowRoot, setShadowRoot] = useState<ShadowRoot | null>(null);
@@ -17,6 +17,11 @@ const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, m
     } else {
       setShadowRoot(element.current.shadowRoot);
     }
+    return () => {
+      if (element.current.parentNode) {
+        element.current.parentNode.removeChild(element.current);
+      }
+    };
   }, []);
 
   const closePortal = () => {
@@ -150,9 +155,6 @@ const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, m
           pubads.removeEventListener('slotResponseReceived', gamHandler);
         } catch (e) {}
       }
-      if (element.current.parentNode) {
-        element.current.parentNode.removeChild(element.current);
-      }
     };
   }, [mask, consoleState, container]);
 
@@ -169,6 +171,7 @@ const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, m
           shadowRoot={shadowRoot}
           pbjsNameSpace={pbjsNameSpace}
           attachVersion={attachVersion}
+          onOpenPopover={onOpenPopover}
         />,
         shadowRoot
       )
@@ -180,6 +183,7 @@ interface AdOverlayPortalComponentProps {
   consoleState: boolean;
   container: HTMLElement;
   pbjsNameSpace: string;
+  onOpenPopover?: () => void;
 }
 
 export default AdOverlayPortal;

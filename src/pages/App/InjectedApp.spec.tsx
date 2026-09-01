@@ -6,11 +6,22 @@ import { EVENTS, CONSOLE_TOGGLE, SAVE_MASKS } from '../Shared/constants';
 import { EventBus } from '../Shared/utils';
 
 vi.mock('./components/AdOverlayPortal', () => ({
-  default: ({ mask, consoleState, container, pbjsNameSpace }: any) => (
+  default: ({ mask, consoleState, container, pbjsNameSpace, onOpenPopover }: any) => (
     <div data-testid={`overlay-portal-${mask.elementId}`} data-console-state={consoleState} data-pbjs-namespace={pbjsNameSpace}>
       AdOverlayPortal: {mask.elementId} | CPM: {mask.winningCPM ?? 'none'} | Bidder: {mask.winningBidder ?? 'none'}
+      <button data-testid={`open-popover-${mask.elementId}`} onClick={onOpenPopover}>Open</button>
     </div>
   ),
+}));
+
+vi.mock('./components/PopOverComponent', () => ({
+  default: ({ elementId, winningCPM, open, onClose }: any) =>
+    open ? (
+      <div data-testid="injected-popover-dialog" data-element-id={elementId} data-cpm={winningCPM}>
+        Popover: {elementId} | CPM: {winningCPM}
+        <button data-testid="close-popover-btn" onClick={onClose}>Close</button>
+      </div>
+    ) : null,
 }));
 
 // Mock EventBus
@@ -348,5 +359,65 @@ describe('InjectedApp Component', () => {
     });
 
     unmount();
+  });
+
+  it('persists the popover modal when ad refresh occurs and updates its data without closing', () => {
+    const elem = document.createElement('div');
+    elem.id = 'slot_refresh_modal';
+    document.body.appendChild(elem);
+
+    let currentCPM = 1.25;
+    const getEventsMock = vi.fn(() => [
+      {
+        eventType: 'auctionEnd',
+        args: { adUnitCodes: ['slot_refresh_modal'] },
+      },
+      {
+        eventType: 'bidWon',
+        args: { adUnitCode: 'slot_refresh_modal', cpm: currentCPM, bidder: 'rubicon', responseTimestamp: 100 },
+      },
+    ]);
+
+    (window as any).pbjs = {
+      getEvents: getEventsMock,
+    };
+
+    render(<InjectedApp />);
+
+    act(() => {
+      document.dispatchEvent(new CustomEvent(CONSOLE_TOGGLE, { detail: true }));
+    });
+
+    act(() => {
+      document.dispatchEvent(new CustomEvent(SAVE_MASKS, { detail: 'pbjs' }));
+    });
+
+    // 1. Open the popover modal
+    const openBtn = screen.getByTestId('open-popover-slot_refresh_modal');
+    act(() => {
+      openBtn.click();
+    });
+
+    // Modal is open
+    expect(screen.getByTestId('injected-popover-dialog')).not.toBeNull();
+    expect(screen.getByTestId('injected-popover-dialog').getAttribute('data-cpm')).toBe('1.25');
+
+    // 2. Simulate ad refresh: auction runs again with new higher CPM
+    currentCPM = 2.75;
+    act(() => {
+      vi.advanceTimersByTime(1100);
+      document.dispatchEvent(new CustomEvent(SAVE_MASKS, { detail: 'pbjs' }));
+    });
+
+    // Modal STILL open and updated its CPM!
+    expect(screen.getByTestId('injected-popover-dialog')).not.toBeNull();
+    expect(screen.getByTestId('injected-popover-dialog').getAttribute('data-cpm')).toBe('2.75');
+
+    // 3. Close the modal
+    const closeBtn = screen.getByTestId('close-popover-btn');
+    act(() => {
+      closeBtn.click();
+    });
+    expect(screen.queryByTestId('injected-popover-dialog')).toBeNull();
   });
 });

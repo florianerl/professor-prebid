@@ -17,7 +17,7 @@ import MinimizeIcon from '@mui/icons-material/Minimize';
 import MaximizeIcon from '@mui/icons-material/Maximize';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 
-const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, timeToRespond, closePortal, shadowRoot, contentRef, pbjsNameSpace, attachVersion }: AdOverlayComponentProps): JSX.Element => {
+const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, timeToRespond, closePortal, shadowRoot, contentRef, pbjsNameSpace, attachVersion, onOpenPopover }: AdOverlayComponentProps): JSX.Element => {
   const gridRef = React.useRef<HTMLDivElement>(null);
   const boxRef = React.useRef<HTMLDivElement>(null);
   const [truncate, setTruncate] = useState<boolean>(false);
@@ -28,11 +28,11 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
   const containerNode = shadowRoot || contentRef?.contentWindow?.document?.head || document.head;
   const cache = React.useMemo(() => {
     return createCache({
-      key: `prpb-css${attachVersion ? `-${attachVersion}` : ''}`,
+      key: 'prpb-overlay',
       container: containerNode,
       prepend: true,
     });
-  }, [containerNode, attachVersion]);
+  }, [containerNode]);
 
   const openInPopOver = () => {
     let bodyContainer = window.document.body;
@@ -42,6 +42,14 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
       }
     } catch (e) {}
     setAnchorEl(bodyContainer);
+  };
+
+  const handleOpenPopover = () => {
+    if (onOpenPopover) {
+      onOpenPopover();
+    } else {
+      openInPopOver();
+    }
   };
 
   useEffect(() => {
@@ -64,7 +72,7 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
   return (
     <CacheProvider value={cache}>
       <ThemeProvider theme={theme}>
-        <PopOverComponent elementId={elementId} winningCPM={winningCPM} winningBidder={winningBidder} currency={currency} timeToRespond={timeToRespond} closePortal={closePortal} anchorEl={anchorEl} setAnchorEl={setAnchorEl} pbjsNameSpace={pbjsNameSpace} />
+        {!onOpenPopover && <PopOverComponent elementId={elementId} winningCPM={winningCPM} winningBidder={winningBidder} currency={currency} timeToRespond={timeToRespond} closePortal={closePortal} anchorEl={anchorEl} setAnchorEl={setAnchorEl} pbjsNameSpace={pbjsNameSpace} />}
         <style>{`
           html, body {
             margin: 0;
@@ -121,7 +129,7 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
 
               <IconButton
                 sx={{ p: 0.25, width: 20, height: 20, borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.85)', border: '1px solid rgba(67, 142, 217, 0.3)', color: 'primary.main', '&:hover': { backgroundColor: '#ffffff' } }}
-                onClick={openInPopOver}
+                onClick={handleOpenPopover}
                 title="Open in Popover"
               >
                 <OpenInFullIcon sx={{ fontSize: 12 }} />
@@ -195,6 +203,7 @@ export interface AdOverlayComponentProps {
   shadowRoot?: ShadowRoot | null;
   pbjsNameSpace?: string;
   attachVersion?: number;
+  onOpenPopover?: () => void;
 }
 
 export default AdOverlayComponent;

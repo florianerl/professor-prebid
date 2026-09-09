@@ -16,9 +16,18 @@ config.plugins = (config.plugins || []).concat(
   })
 );
 webpack(config, (err, stats) => {
-  if (err || stats.hasErrors()) {
-    console.error(stats?.toString({ colors: true }));
+  if (err) {
+    console.error("Webpack Error:", err.stack || err);
+    if (err.details) {
+      console.error("Webpack Error Details:", err.details);
+    }
+    process.exit(1);
+  }
+  if (stats.hasErrors()) {
+    console.error(stats.toString({ colors: true }));
     process.exit(1);
   } else {
+    console.log(stats.toString({ colors: true }));
+    console.log(`\n✅ Build complete! Zip file created at: zip/${packageInfo.name}-${packageInfo.version}.zip\n`);
   }
 });

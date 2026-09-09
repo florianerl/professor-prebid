@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import AdOverlayComponent, { AdOverlayComponentProps } from './AdOverlayComponent';
 import { createPortal } from 'react-dom';
-import { findAdContainer, isContainerVisible } from '../InjectedApp';
+import { findAdContainer, isContainerVisible, getParentGamPubAds } from '../InjectedApp';
 
 export const getMaxZIndex = () => 999999;
 
@@ -124,9 +124,8 @@ const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, m
     // 2. Observe GAM slot events
     let gamHandler: ((event: any) => void) | null = null;
     const timeouts: number[] = [];
-    if (window.parent.googletag && typeof window.parent.googletag?.pubads === 'function') {
-      try {
-        const pubads = window.parent.googletag.pubads();
+    const pubads = getParentGamPubAds();
+    if (pubads) {
         gamHandler = (event: any) => {
           const slotElementId = event?.slot?.getSlotElementId ? event.slot.getSlotElementId() : null;
           const slotAdUnitPath = event?.slot?.getAdUnitPath ? event.slot.getAdUnitPath() : null;
@@ -137,7 +136,6 @@ const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, m
         };
         pubads.addEventListener('slotRenderEnded', gamHandler);
         pubads.addEventListener('slotResponseReceived', gamHandler);
-      } catch (e) {}
     }
 
     // 3. Periodic safeguard sync
@@ -148,12 +146,12 @@ const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, m
       if (observer) observer.disconnect();
       if (parentObserver) parentObserver.disconnect();
       clearInterval(interval);
-      if (gamHandler && window.parent.googletag && typeof window.parent.googletag?.pubads === 'function') {
-        try {
-          const pubads = window.parent.googletag.pubads();
+      if (gamHandler) {
+        const pubads = getParentGamPubAds();
+        if (pubads) {
           pubads.removeEventListener('slotRenderEnded', gamHandler);
           pubads.removeEventListener('slotResponseReceived', gamHandler);
-        } catch (e) {}
+        }
       }
     };
   }, [mask, consoleState, container]);

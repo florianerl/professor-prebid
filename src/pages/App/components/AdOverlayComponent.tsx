@@ -16,13 +16,14 @@ import Refresh from '@mui/icons-material/Refresh';
 import MinimizeIcon from '@mui/icons-material/Minimize';
 import MaximizeIcon from '@mui/icons-material/Maximize';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import { getParentGamPubAds } from '../InjectedApp';
 
 const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, timeToRespond, closePortal, shadowRoot, contentRef, pbjsNameSpace, attachVersion, onOpenPopover }: AdOverlayComponentProps): JSX.Element => {
   const gridRef = React.useRef<HTMLDivElement>(null);
   const boxRef = React.useRef<HTMLDivElement>(null);
   const [truncate, setTruncate] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<boolean>(true);
-  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+  const [isOpen, setIsOpen] = React.useState<boolean>(false);
   const [slot, setSlot] = React.useState<googletag.Slot>(null);
 
   const containerNode = shadowRoot || contentRef?.contentWindow?.document?.head || document.head;
@@ -41,7 +42,7 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
         bodyContainer = window.top.document.body;
       }
     } catch (e) {}
-    setAnchorEl(bodyContainer);
+    setIsOpen(true);
   };
 
   const handleOpenPopover = () => {
@@ -53,10 +54,10 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
   };
 
   useEffect(() => {
-    if (window.parent.googletag && typeof window.parent.googletag?.pubads === 'function') {
-      const pubads = googletag.pubads();
+    const pubads = getParentGamPubAds();
+    if (pubads) {
       const slots = pubads.getSlots();
-      const slot = slots.find((slot) => slot.getSlotElementId() === elementId);
+      const slot = slots.find((slot: any) => slot.getSlotElementId() === elementId);
       if (slot) {
         setSlot(slot);
       }
@@ -72,9 +73,9 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
   return (
     <CacheProvider value={cache}>
       <ThemeProvider theme={theme}>
-        {!onOpenPopover && <PopOverComponent elementId={elementId} winningCPM={winningCPM} winningBidder={winningBidder} currency={currency} timeToRespond={timeToRespond} closePortal={closePortal} anchorEl={anchorEl} setAnchorEl={setAnchorEl} pbjsNameSpace={pbjsNameSpace} />}
+        {!onOpenPopover && <PopOverComponent elementId={elementId} winningCPM={winningCPM} winningBidder={winningBidder} currency={currency} timeToRespond={timeToRespond} closePortal={closePortal} open={isOpen} onClose={() => setIsOpen(false)} pbjsNameSpace={pbjsNameSpace} />}
         <style>{`
-          html, body {
+          :host {
             margin: 0;
             padding: 0;
             width: 100%;
@@ -135,11 +136,11 @@ const AdOverlayComponent = ({ elementId, winningCPM, winningBidder, currency, ti
                 <OpenInFullIcon sx={{ fontSize: 12 }} />
               </IconButton>
 
-              {window.parent.googletag && typeof window.parent.googletag?.pubads === 'function' && (
+              {getParentGamPubAds() && (
                 <IconButton
                   sx={{ p: 0.25, width: 20, height: 20, borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.85)', border: '1px solid rgba(67, 142, 217, 0.3)', color: 'primary.main', '&:hover': { backgroundColor: '#ffffff' } }}
                   onClick={() => {
-                    window.parent.googletag.pubads().refresh([slot]);
+                    getParentGamPubAds()?.refresh([slot]);
                   }}
                   title="Refresh Slot"
                 >

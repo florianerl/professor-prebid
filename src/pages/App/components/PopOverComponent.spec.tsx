@@ -11,8 +11,8 @@ describe('PopOverComponent', () => {
     winningCPM: 2.5,
     currency: 'USD',
     timeToRespond: 300,
-    setAnchorEl: mockSetAnchorEl,
-    anchorEl: document.createElement('button'),
+    onClose: mockSetAnchorEl,
+    open: true,
     pbjsNameSpace: 'pbjs',
   };
 
@@ -98,8 +98,8 @@ describe('PopOverComponent', () => {
     fireEvent.click(adUnitSection);
   });
 
-  it('does not render content when anchorEl is null', () => {
-    render(<PopOverComponent {...defaultProps} anchorEl={null} />);
+  it('does not render content when isOpen is false', () => {
+    render(<PopOverComponent {...defaultProps} open={false} />);
     expect(screen.queryByText('div-gpt-ad-1234567-0')).toBeNull();
   });
 
@@ -109,6 +109,6 @@ describe('PopOverComponent', () => {
     const buttons = screen.getAllByRole('button');
     fireEvent.click(buttons[0]);
 
-    expect(mockSetAnchorEl).toHaveBeenCalledWith(null);
+    expect(mockSetAnchorEl).toHaveBeenCalled();
   });
 });

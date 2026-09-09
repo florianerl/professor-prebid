@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getParentGamPubAds } from '../InjectedApp';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/system/Box';
@@ -16,8 +17,8 @@ const GamDetailsComponent = ({ elementId, inPopOver, truncate }: IGamDetailCompo
   const [slotResponseInfo, setSlotResponseInfo] = useState<googletag.ResponseInformation>(null);
 
   useEffect(() => {
-    if (window.parent.googletag && typeof window.parent.googletag?.pubads === 'function') {
-      const pubads = googletag.pubads();
+    const pubads = getParentGamPubAds();
+    if (pubads) {
       const slots = pubads.getSlots();
       const slot = slots.find((slot) => slot.getSlotElementId() === elementId) || slots.find((slot) => slot.getAdUnitPath() === elementId);
       if (slot) {

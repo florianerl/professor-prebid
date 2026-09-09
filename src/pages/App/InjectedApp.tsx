@@ -12,6 +12,18 @@ declare global {
   }
 }
 
+export const getParentGamPubAds = () => {
+  try {
+    if (window.parent && window.parent.googletag && typeof window.parent.googletag.pubads === 'function') {
+      return window.parent.googletag.pubads();
+    }
+  } catch (e) {
+    // Cross-origin iframe blocked access to window.parent
+  }
+  return null;
+};
+
+
 export const findAdContainer = (adUnitCode: string): HTMLElement | null => {
   if (!adUnitCode) return null;
 
@@ -234,13 +246,12 @@ const InjectedApp = (): JSX.Element => {
   return (
     <React.Fragment>
       {masks.map((mask) => {
-        const container = findAdContainer(mask.elementId);
         return (
           <AdOverlayPortal
             key={mask.elementId}
             mask={mask}
             consoleState={consoleState}
-            container={container}
+            container={undefined as any}
             pbjsNameSpace={pbjsNameSpace}
             onOpenPopover={() => setActiveModalUnit(mask)}
           />

@@ -6,6 +6,7 @@ import ReplaceRule from './ReplaceRule';
 import RuleComponent from './RuleComponent';
 import DebuggingModuleComponent from './DebuggingModuleComponent';
 import AppStateContext from '../../../contexts/appStateContext';
+import { IPrebidDetails } from '../../../../Injected/prebid';
 import { STORE_RULES_TOGGLE } from '../../../constants';
 
 vi.mock('../../../../Shared/utils', async () => {
@@ -74,7 +75,7 @@ describe('DebuggingModule', () => {
       const mockRule: any = { when: { adUnitCode: 'slot-1' }, then: { cpm: 10 } };
       const handleRulesFormChange = vi.fn();
 
-      const { container } = render(<MatchRule groupIndex={0} rule={mockRule} ruleKey="adUnitCode" prebid={{ events: [] }} handleRulesFormChange={handleRulesFormChange} path={['intercept', '0', 'when', 'adUnitCode']} />);
+      const { container } = render(<MatchRule groupIndex={0} rule={mockRule} ruleKey="adUnitCode" prebid={{ events: [] } as IPrebidDetails} handleRulesFormChange={handleRulesFormChange} path={['intercept', '0', 'when', 'adUnitCode']} />);
 
       const addBtn = container.querySelector('[data-testid="AddIcon"]');
       if (addBtn) {
@@ -92,27 +93,22 @@ describe('DebuggingModule', () => {
       expect(screen.getByText('and')).toBeTruthy();
       expect(screen.getByLabelText('Replace-Rule Value')).toBeTruthy();
 
-      const valInput = screen.getByDisplayValue('10');
-      fireEvent.change(valInput, { target: { value: '15' } });
-      expect(handleRulesFormChange).toHaveBeenCalled();
+      const path = ['intercept', '0', 'then', 'cpm'];
 
-      const select = container.querySelector('select');
-      if (select) {
-        fireEvent.change(select, { target: { value: 'dealId' } });
-        expect(handleRulesFormChange).toHaveBeenCalled();
-      }
+      // cpm is a number target, so the typed value is stored as a number.
+      fireEvent.change(screen.getByDisplayValue('10'), { target: { value: '15' } });
+      expect(handleRulesFormChange).toHaveBeenLastCalledWith('update', 15, path);
 
-      const addBtn = container.querySelector('[data-testid="AddIcon"]');
-      if (addBtn) {
-        fireEvent.click(addBtn);
-        expect(handleRulesFormChange).toHaveBeenCalled();
-      }
+      // Switching the target moves the value from the old key to the new one.
+      fireEvent.change(container.querySelector('select')!, { target: { value: 'dealId' } });
+      expect(handleRulesFormChange).toHaveBeenLastCalledWith('update', '', ['intercept', '0', 'then', 'dealId'], path);
 
-      const deleteForeverBtn = container.querySelector('[data-testid="DeleteForeverIcon"]');
-      if (deleteForeverBtn) {
-        fireEvent.click(deleteForeverBtn);
-        expect(handleRulesFormChange).toHaveBeenCalled();
-      }
+      // Adding a target picks the first one the rule does not set yet (cpm and mediaType are taken).
+      fireEvent.click(screen.getByTestId('AddIcon'));
+      expect(handleRulesFormChange).toHaveBeenLastCalledWith('update', '', ['intercept', '0', 'then', 'bidderCode']);
+
+      fireEvent.click(screen.getByTestId('DeleteForeverIcon'));
+      expect(handleRulesFormChange).toHaveBeenLastCalledWith('update', null, path, path);
     });
 
     it('renders ReplaceRule with mediaType select', () => {
@@ -144,7 +140,7 @@ describe('DebuggingModule', () => {
       const handleRulesFormChange = vi.fn();
       const removeRule = vi.fn();
 
-      render(<RuleComponent rule={mockRuleGroup} ruleIndex={0} prebid={{ events: [] }} handleRulesFormChange={handleRulesFormChange} removeRule={removeRule} />);
+      render(<RuleComponent rule={mockRuleGroup} ruleIndex={0} prebid={{ events: [] } as IPrebidDetails} handleRulesFormChange={handleRulesFormChange} removeRule={removeRule} />);
 
       expect(screen.getByText('Rule #1')).toBeTruthy();
       expect(screen.getByText('WHEN (Match Request)')).toBeTruthy();
@@ -163,7 +159,7 @@ describe('DebuggingModule', () => {
       const handleRulesFormChange = vi.fn();
       const removeRule = vi.fn();
 
-      render(<RuleComponent rule={mockRuleGroup} ruleIndex={0} prebid={{ events: [] }} handleRulesFormChange={handleRulesFormChange} removeRule={removeRule} />);
+      render(<RuleComponent rule={mockRuleGroup} ruleIndex={0} prebid={{ events: [] } as IPrebidDetails} handleRulesFormChange={handleRulesFormChange} removeRule={removeRule} />);
 
       expect(screen.getByText('Rule #1')).toBeTruthy();
       expect(screen.getByDisplayValue('Test Title')).toBeTruthy();
@@ -203,13 +199,14 @@ describe('DebuggingModule', () => {
       expect(global.chrome.scripting.executeScript).toHaveBeenCalled();
     });
 
-    it('toggles Verbose Console Logs switch', async () => {
+    it('toggles Verbose Console Logs switch in the page world, where pbjs is visible', async () => {
       renderWithContext();
       const loggingSwitch = screen.getByLabelText(/Verbose Console Logs/i);
+      (global.chrome.scripting.executeScript as any).mockClear();
       await act(async () => {
         fireEvent.click(loggingSwitch);
       });
-      expect(global.chrome.scripting.executeScript).toHaveBeenCalled();
+      expect(global.chrome.scripting.executeScript).toHaveBeenCalledWith(expect.objectContaining({ world: 'MAIN', args: ['pbjs', true] }));
     });
 
     it('toggles Persist Rules in Local Storage switch', async () => {
@@ -319,7 +316,7 @@ describe('DebuggingModule', () => {
     });
 
     it('persists rules to localStorage when storeRules is enabled', async () => {
-      global.chrome.storage.local.get = vi.fn((key, cb) => cb({ [STORE_RULES_TOGGLE]: true }));
+      global.chrome.storage.local.get = vi.fn((key, cb) => cb({ [STORE_RULES_TOGGLE]: true })) as any;
 
       renderWithContext();
 
@@ -346,6 +343,69 @@ describe('DebuggingModule', () => {
       await waitFor(() => {
         expect(screen.getByText('Rule #1')).toBeTruthy();
       });
+    });
+
+    it('copies rules persisted in localStorage into sessionStorage, where Prebid reads them', async () => {
+      const savedConfig = { enabled: true, intercept: [{ when: { adUnitCode: 'slot-1' }, then: { cpm: 25 } }] };
+      const pageSession: Record<string, string> = {};
+      const pageLocal: Record<string, string> = { __pbjs_debugging__: JSON.stringify(savedConfig) };
+      (global as any).sessionStorage = { getItem: (k: string) => pageSession[k] ?? null, setItem: (k: string, v: string) => (pageSession[k] = v) };
+      (global as any).localStorage = { getItem: (k: string) => pageLocal[k] ?? null, setItem: (k: string, v: string) => (pageLocal[k] = v) };
+      global.chrome.scripting.executeScript = vi.fn(async (opts: any) => [{ result: opts.func(...opts.args) ?? null }]) as any;
+      global.chrome.storage.local.get = vi.fn((key, cb) => cb({ [STORE_RULES_TOGGLE]: true })) as any;
+
+      renderWithContext();
+
+      await waitFor(() => {
+        expect(screen.getByText('Rule #1')).toBeTruthy();
+      });
+      expect(JSON.parse(pageSession.__pbjs_debugging__)).toEqual(savedConfig);
+    });
+
+    it('ignores rules left in localStorage while "store rules" is off', async () => {
+      const savedConfig = { enabled: true, intercept: [{ when: { adUnitCode: 'slot-1' }, then: { cpm: 25 } }] };
+      const pageSession: Record<string, string> = {};
+      const pageLocal: Record<string, string> = { __pbjs_debugging__: JSON.stringify(savedConfig) };
+      (global as any).sessionStorage = { getItem: (k: string) => pageSession[k] ?? null, setItem: (k: string, v: string) => (pageSession[k] = v) };
+      (global as any).localStorage = { getItem: (k: string) => pageLocal[k] ?? null, setItem: (k: string, v: string) => (pageLocal[k] = v) };
+      global.chrome.scripting.executeScript = vi.fn(async (opts: any) => [{ result: opts.func(...opts.args) ?? null }]) as any;
+
+      renderWithContext();
+
+      await waitFor(() => expect(global.chrome.storage.local.get).toHaveBeenCalled());
+      await act(async () => {});
+      expect(pageSession.__pbjs_debugging__).toBeUndefined();
+      expect(screen.queryByText('Rule #1')).toBeNull();
+    });
+
+    it('removes the persisted rules when "store rules" is turned off', async () => {
+      const pageLocal: Record<string, string> = { __pbjs_debugging__: '{"enabled":true,"intercept":[]}' };
+      (global as any).localStorage = { getItem: (k: string) => pageLocal[k] ?? null, removeItem: (k: string) => delete pageLocal[k] };
+      global.chrome.storage.local.get = vi.fn((key, cb) => cb({ [STORE_RULES_TOGGLE]: true })) as any;
+      renderWithContext();
+      global.chrome.scripting.executeScript = vi.fn(async (opts: any) => [{ result: opts.func(...opts.args) ?? null }]) as any;
+
+      const persistSwitch = screen.getByLabelText(/Persist Rules in Local Storage/i);
+      await waitFor(() => expect((persistSwitch as HTMLInputElement).checked).toBe(true));
+      await act(async () => {
+        fireEvent.click(persistSwitch);
+      });
+
+      expect(pageLocal.__pbjs_debugging__).toBeUndefined();
+    });
+
+    it('does not rewrite sessionStorage when the rules already come from it', async () => {
+      const savedConfig = { enabled: true, intercept: [] as unknown[] };
+      const setItem = vi.fn();
+      (global as any).sessionStorage = { getItem: () => JSON.stringify(savedConfig), setItem };
+      global.chrome.scripting.executeScript = vi.fn(async (opts: any) => [{ result: opts.func(...opts.args) ?? null }]) as any;
+
+      renderWithContext();
+
+      await waitFor(() => {
+        expect(screen.getByText('MODULE ENABLED')).toBeTruthy();
+      });
+      expect(setItem).not.toHaveBeenCalled();
     });
   });
 });

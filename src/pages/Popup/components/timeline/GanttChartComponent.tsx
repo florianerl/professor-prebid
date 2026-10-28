@@ -72,7 +72,6 @@ const PRE_AUCTION_COLOR: { [variant in IPreAuctionRow['variant']]: string } = {
 };
 
 const BidJsonDialog = ({ open, onClose, rowData }: { open: boolean; onClose: () => void; rowData: IBidderRowData | null }) => {
-  const { topics } = useContext(AppStateContext);
   if (!rowData || rowData.isSectionHeader) return null;
 
   if (rowData.preAuctionRow) {
@@ -109,7 +108,6 @@ const BidJsonDialog = ({ open, onClose, rowData }: { open: boolean; onClose: () 
     bidResponse: rowData.bidResponseEvent?.args || null,
     noBid: rowData.noBidEvent?.args || null,
     bidderRequest: rowData.bidderRequest || null,
-    topics,
   };
 
   return (
@@ -368,7 +366,7 @@ const GanttChartComponent = ({ auctionEndEvent, auctionEndEvents, mode = 'single
 
   return (
     <Grid size={{ xs: 12 }} sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      <Paper sx={{ p: 1.5, pb: 2, flex: 1, display: 'flex', flexDirection: 'column', border: '1px solid', borderColor: 'divider', minHeight: 'calc(100vh - 165px)' }} elevation={0}>
+      <Paper sx={{ p: 1.5, pb: 2, flex: 1, display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 165px)' }}>
         <Box sx={{ width: '100%', flex: 1, display: 'flex', flexDirection: 'column', overflowX: 'auto' }}>
           <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} preserveAspectRatio="xMinYMin meet" style={{ width: '100%', height: '100%', maxWidth: '1000px', minWidth: '600px', display: 'block' }}>
             {/* Background Grid Lines & Header Ticks */}

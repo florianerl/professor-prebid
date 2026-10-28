@@ -1,16 +1,18 @@
 export const decycle = (obj: any) => {
-  const cache = new WeakSet();
-  return JSON.stringify(obj, (key, value) => {
-    if (typeof value === 'object' && !Array.isArray(value) && value !== null) {
-      if (value['location']) {
-        return;
-      }
-      if (cache.has(value)) {
-        return;
-      }
-
-      cache.add(value);
+  // Track only the current ancestor chain, so a shared (non-circular) object is kept every time it appears and only true cycles are dropped.
+  const ancestors: any[] = [];
+  return JSON.stringify(obj, function (key, value) {
+    if (typeof value !== 'object' || value === null) return value;
+    if (!Array.isArray(value) && value['location']) {
+      return;
     }
+    while (ancestors.length > 0 && ancestors[ancestors.length - 1] !== this) {
+      ancestors.pop();
+    }
+    if (ancestors.includes(value)) {
+      return;
+    }
+    ancestors.push(value);
     return value;
   });
 };
@@ -93,7 +95,7 @@ export const createRangeArray = (start: number, end: number, step: number, offse
   if (endValueIndex === -1) {
     arr1.push(end);
   }
-  return arr1.sort();
+  return arr1.sort((a, b) => a - b);
 };
 
 export const getMinAndMaxNumber = (timestampArray: number[]): { min: number; max: number } => {
@@ -119,7 +121,8 @@ export const reloadPage = async () => {
 
 export const sendChromeTabsMessage = async (type: string, payload: object | string): Promise<void> => {
   const tabId = await getTabId();
-  chrome.tabs.sendMessage(tabId, { type, payload });
+  if (tabId === undefined) return;
+  chrome.tabs?.sendMessage(tabId, { type, payload })?.catch?.(() => {});
 };
 
 export const detectIframe = (): boolean => {

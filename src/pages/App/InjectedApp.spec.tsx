@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
-import InjectedApp, { findAdContainer } from './InjectedApp';
+import InjectedApp, { findAdContainer, containsCode } from './InjectedApp';
 import { EVENTS, CONSOLE_TOGGLE, SAVE_MASKS } from '../Shared/constants';
 import { EventBus } from '../Shared/utils';
 
@@ -9,7 +9,9 @@ vi.mock('./components/AdOverlayPortal', () => ({
   default: ({ mask, consoleState, container, pbjsNameSpace, onOpenPopover }: any) => (
     <div data-testid={`overlay-portal-${mask.elementId}`} data-console-state={consoleState} data-pbjs-namespace={pbjsNameSpace}>
       AdOverlayPortal: {mask.elementId} | CPM: {mask.winningCPM ?? 'none'} | Bidder: {mask.winningBidder ?? 'none'}
-      <button data-testid={`open-popover-${mask.elementId}`} onClick={onOpenPopover}>Open</button>
+      <button data-testid={`open-popover-${mask.elementId}`} onClick={onOpenPopover}>
+        Open
+      </button>
     </div>
   ),
 }));
@@ -19,7 +21,9 @@ vi.mock('./components/PopOverComponent', () => ({
     open ? (
       <div data-testid="injected-popover-dialog" data-element-id={elementId} data-cpm={winningCPM}>
         Popover: {elementId} | CPM: {winningCPM}
-        <button data-testid="close-popover-btn" onClick={onClose}>Close</button>
+        <button data-testid="close-popover-btn" onClick={onClose}>
+          Close
+        </button>
       </div>
     ) : null,
 }));
@@ -107,6 +111,74 @@ describe('InjectedApp Component', () => {
     expect(screen.getByTestId('overlay-portal-div-gpt-ad-1')).toBeTruthy();
     expect(screen.getByText(/CPM: 2.46/)).toBeTruthy();
     expect(screen.getByText(/Bidder: rubicon/)).toBeTruthy();
+  });
+
+  it('does not give an ad unit the winning bid of another ad unit whose code starts the same', () => {
+    ['div-gpt-ad-1', 'div-gpt-ad-12'].forEach((id) => {
+      const div = document.createElement('div');
+      div.id = id;
+      document.body.appendChild(div);
+    });
+    (window as any).pbjs = {
+      getEvents: () => [
+        { eventType: 'auctionEnd', args: { adUnitCodes: ['div-gpt-ad-1', 'div-gpt-ad-12'] } },
+        { eventType: 'bidWon', args: { adUnitCode: 'div-gpt-ad-1', cpm: 1, bidder: 'rubicon', responseTimestamp: 100 } },
+        { eventType: 'bidWon', args: { adUnitCode: 'div-gpt-ad-12', cpm: 9, bidder: 'appnexus', responseTimestamp: 200 } },
+      ],
+    };
+
+    render(<InjectedApp />);
+    act(() => {
+      document.dispatchEvent(new CustomEvent(CONSOLE_TOGGLE, { detail: true }));
+    });
+    act(() => {
+      document.dispatchEvent(new CustomEvent(SAVE_MASKS, { detail: 'pbjs' }));
+    });
+
+    expect(screen.getByTestId('overlay-portal-div-gpt-ad-1').textContent).toContain('Bidder: rubicon');
+    expect(screen.getByTestId('overlay-portal-div-gpt-ad-12').textContent).toContain('Bidder: appnexus');
+  });
+
+  it('draws one overlay, under the Prebid code, for a slot whose Prebid code is its GAM ad unit path', () => {
+    const div = document.createElement('div');
+    div.id = 'div-gpt-top';
+    document.body.appendChild(div);
+    const slot = { getSlotElementId: () => 'div-gpt-top', getAdUnitPath: () => '/1234/site/top' };
+    (window as any).googletag = { pubads: () => ({ getSlots: () => [slot] }) };
+    (window as any).pbjs = {
+      getEvents: () => [{ eventType: 'bidWon', args: { adUnitCode: '/1234/site/top', cpm: 3, bidder: 'ix', responseTimestamp: 100 } }],
+    };
+
+    try {
+      render(<InjectedApp />);
+      act(() => {
+        document.dispatchEvent(new CustomEvent(CONSOLE_TOGGLE, { detail: true }));
+      });
+      act(() => {
+        document.dispatchEvent(new CustomEvent(SAVE_MASKS, { detail: 'pbjs' }));
+      });
+
+      expect(screen.getAllByTestId(/^overlay-portal-/)).toHaveLength(1);
+      expect(screen.getByTestId('overlay-portal-/1234/site/top').textContent).toContain('Bidder: ix');
+    } finally {
+      delete (window as any).googletag;
+    }
+  });
+
+  it('draws overlays when SAVE_MASKS follows CONSOLE_TOGGLE in the same tick', () => {
+    const div = document.createElement('div');
+    div.id = 'div-gpt-ad-1';
+    document.body.appendChild(div);
+    (window as any).pbjs = { getEvents: () => [{ eventType: 'auctionEnd', args: { adUnitCodes: ['div-gpt-ad-1'] } }] };
+
+    render(<InjectedApp />);
+    // The content script dispatches both events back to back, with no render in between.
+    act(() => {
+      document.dispatchEvent(new CustomEvent(CONSOLE_TOGGLE, { detail: true }));
+      document.dispatchEvent(new CustomEvent(SAVE_MASKS, { detail: 'pbjs' }));
+    });
+
+    expect(screen.getByTestId('overlay-portal-div-gpt-ad-1')).toBeTruthy();
   });
 
   it('ignores SAVE_MASKS event if detail is missing or consoleState is false', () => {
@@ -450,6 +522,40 @@ describe('findAdContainer', () => {
     document.body.append(root, mask, script, target);
 
     expect(findAdContainer('slot-a')).toBe(target);
+  });
+
+  it('does not match an element whose id only starts with the ad unit code', () => {
+    const el = document.createElement('div');
+    el.id = 'div-gpt-ad-12';
+    document.body.appendChild(el);
+
+    expect(findAdContainer('div-gpt-ad-1')).toBeNull();
+    expect(findAdContainer('div-gpt-ad-12')).toBe(el);
+  });
+
+  it('prefers the GAM slot whose path ends with the ad unit code over one that only shares a prefix', () => {
+    const wrong = document.createElement('div');
+    wrong.id = 'gpt-a';
+    const right = document.createElement('div');
+    right.id = 'gpt-b';
+    document.body.append(wrong, right);
+    const slots = [
+      { getSlotElementId: () => 'gpt-a', getAdUnitPath: () => '/1/top-sticky' },
+      { getSlotElementId: () => 'gpt-b', getAdUnitPath: () => '/1/top' },
+    ];
+    (window as any).googletag = { pubads: () => ({ getSlots: () => slots }) };
+    try {
+      expect(findAdContainer('top')).toBe(right);
+    } finally {
+      delete (window as any).googletag;
+    }
+  });
+
+  it('containsCode only matches whole tokens', () => {
+    expect(containsCode('wrap-div-gpt-ad-1_0', 'div-gpt-ad-1')).toBe(true);
+    expect(containsCode('div-gpt-ad-12', 'div-gpt-ad-1')).toBe(false);
+    expect(containsCode('div-gpt-ad-12-div-gpt-ad-1', 'div-gpt-ad-1')).toBe(true);
+    expect(containsCode('', 'x')).toBe(false);
   });
 
   it('returns null instead of throwing when nothing matches', () => {

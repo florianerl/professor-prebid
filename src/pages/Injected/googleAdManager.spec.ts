@@ -24,7 +24,7 @@ describe('GoogleAdManager', () => {
       cmd: [] as Function[],
       pubads: () => mockPubads,
       getEventLog: () => ({
-        getAllEvents: () => [],
+        getAllEvents: (): unknown[] => [],
       }),
     };
 
@@ -45,6 +45,13 @@ describe('GoogleAdManager', () => {
       gam.init();
       expect(gam.googletag).toBeDefined();
       expect(Array.isArray(gam.googletag.cmd)).toBe(true);
+    });
+
+    it('queues the listener hook on the shared window.googletag so GPT runs it when it loads', () => {
+      delete (window as any).googletag;
+      gam.init();
+      expect((window as any).googletag).toBe(gam.googletag);
+      expect((window as any).googletag.cmd).toHaveLength(1);
     });
 
     it('initializes cmd array if googletag exists but cmd is not an array', () => {
@@ -115,14 +122,14 @@ describe('GoogleAdManager', () => {
       gam.googletag = undefined;
       expect(gam.getRequestMode()).toBe(false);
 
-      gam.googletag = { pubads: () => null };
+      gam.googletag = { pubads: (): null => null };
       expect(gam.getRequestMode()).toBe(false);
     });
   });
 
   describe('getFetchBeforeRefresh', () => {
     it('returns false when no events or getEventLog missing or returns null', () => {
-      gam.googletag = { getEventLog: () => null };
+      gam.googletag = { getEventLog: (): null => null };
       expect(gam.getFetchBeforeRefresh()).toBe(false);
     });
 
@@ -147,7 +154,7 @@ describe('GoogleAdManager', () => {
     it('handles events without getMessage method', () => {
       gam.googletag = {
         getEventLog: () => ({
-          getAllEvents: () => [null, {}, { getMessage: () => null }, { getMessage: () => ({ getMessageId: () => null }) }],
+          getAllEvents: (): unknown[] => [null, {}, { getMessage: (): null => null }, { getMessage: () => ({ getMessageId: (): null => null }) }],
         }),
       };
       expect(gam.getFetchBeforeRefresh()).toBe(false);
@@ -156,7 +163,7 @@ describe('GoogleAdManager', () => {
 
   describe('getFetchBeforeKeyValue', () => {
     it('returns false when no events or getEventLog missing or returns null', () => {
-      gam.googletag = { getEventLog: () => null };
+      gam.googletag = { getEventLog: (): null => null };
       expect(gam.getFetchBeforeKeyValue()).toBe(false);
     });
 
@@ -181,7 +188,7 @@ describe('GoogleAdManager', () => {
     it('handles events without getMessage method', () => {
       gam.googletag = {
         getEventLog: () => ({
-          getAllEvents: () => [null, {}, { getMessage: () => null }, { getMessage: () => ({ getMessageId: () => null }) }],
+          getAllEvents: (): unknown[] => [null, {}, { getMessage: (): null => null }, { getMessage: () => ({ getMessageId: (): null => null }) }],
         }),
       };
       expect(gam.getFetchBeforeKeyValue()).toBe(false);
@@ -190,7 +197,7 @@ describe('GoogleAdManager', () => {
 
   describe('getRenderMode', () => {
     it('defaults to async (true) when no events or getEventLog missing or returns null', () => {
-      gam.googletag = { getEventLog: () => null };
+      gam.googletag = { getEventLog: (): null => null };
       expect(gam.getRenderMode()).toBe(true);
     });
 
@@ -227,7 +234,7 @@ describe('GoogleAdManager', () => {
       const mockSlot1 = {
         getSlotElementId: () => 'slot-1',
         getAdUnitPath: () => '/1234/unit1',
-        getConfig: () => ({ targeting: { kv1: ['v1', 'v2'], kv2: null, kv3: 'single' } }),
+        getConfig: () => ({ targeting: { kv1: ['v1', 'v2'], kv2: null as string[], kv3: 'single' } }),
         getTargetingMap: deprecatedGetter,
         getTargetingKeys: deprecatedGetter,
         getTargeting: deprecatedGetter,
@@ -237,9 +244,9 @@ describe('GoogleAdManager', () => {
       const mockSlot2 = {
         getSlotElementId: () => 'slot-2',
         getAdUnitPath: () => '/1234/unit2',
-        getTargetingKeys: () => [],
-        getTargeting: () => [],
-        getSizes: (w?: number) => {
+        getTargetingKeys: (): string[] => [],
+        getTargeting: (): string[] => [],
+        getSizes: (w?: number): null => {
           if (w !== undefined) return null;
           return null;
         },
@@ -296,7 +303,7 @@ describe('GoogleAdManager', () => {
         cmd: [],
         pubads: () => mockPubads,
         getEventLog: () => ({
-          getAllEvents: () => [],
+          getAllEvents: (): unknown[] => [],
         }),
       };
 
@@ -327,8 +334,8 @@ describe('GoogleAdManager', () => {
     it('deduplicates sendDetailsToContentScript messages when content is unchanged', () => {
       gam.lastMessage = undefined;
       gam.googletag = {
-        pubads: () => ({ getSlots: () => [], isSRA: () => false }),
-        getEventLog: () => ({ getAllEvents: () => [] }),
+        pubads: () => ({ getSlots: (): unknown[] => [], isSRA: () => false }),
+        getEventLog: () => ({ getAllEvents: (): unknown[] => [] }),
       };
 
       gam.sendDetailsToContentScript();

@@ -1,7 +1,7 @@
 import { useContext, useDeferredValue, useMemo, useState } from 'react';
 import StateContext from '../../contexts/appStateContext';
 import { IPrebidEvent } from '../../../Injected/prebid';
-import { createQueryEngine} from '../autocomplete/utils';
+import { createQueryEngine } from '../autocomplete/utils';
 
 export const EVENT_FIELD_MAP = {
   eventtype: (e: any) => e?.eventType,
@@ -43,10 +43,10 @@ const EventsState = () => {
   const isPending = query !== deferredQuery;
 
   const { prebid } = useContext(StateContext);
-  const events = prebid.events as IPrebidEvent[];
+  const events = useMemo(() => (prebid?.events || []) as IPrebidEvent[], [prebid?.events]);
 
-  const warningEvents = useMemo(() => events?.filter(({ eventType, args: { type } }) => eventType === 'auctionDebug' && type === 'WARNING'), [events]);
-  const errorEvents = useMemo(() => events?.filter(({ eventType, args: { type } }) => eventType === 'auctionDebug' && type === 'ERROR'), [events]);
+  const warningEvents = useMemo(() => events.filter(({ eventType, args }) => eventType === 'auctionDebug' && args?.type === 'WARNING'), [events]);
+  const errorEvents = useMemo(() => events.filter(({ eventType, args }) => eventType === 'auctionDebug' && args?.type === 'ERROR'), [events]);
 
   const counts = useMemo(
     () => ({

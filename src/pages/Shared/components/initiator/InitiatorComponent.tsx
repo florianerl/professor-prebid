@@ -1,16 +1,9 @@
 import React, { useContext, useMemo, useState } from 'react';
-import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
-import Tooltip from '@mui/material/Tooltip';
-import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import CodeIcon from '@mui/icons-material/Code';
-import DownloadIcon from '@mui/icons-material/Download';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import TableRowsIcon from '@mui/icons-material/TableRows';
@@ -20,10 +13,10 @@ import SecurityIcon from '@mui/icons-material/Security';
 import InspectedPageContext from '../../contexts/inspectedPageContext';
 import AppStateContext from '../../contexts/appStateContext';
 import JSONViewerComponent from '../JSONViewerComponent';
-import { GridCell } from '../bids/BidsComponent';
-import { AutoComplete } from '../autocomplete/AutoComplete';
+import { TabToolbar, ToolbarButton } from '../TabToolbar';
+import { DownloadButton } from '../DownloadButton';
 import { createQueryEngine, distinct } from '../autocomplete/utils';
-import { download, getTabId } from '../../utils';
+import { getTabId } from '../../utils';
 import { preAuctionHarKey } from '../../constants';
 
 import { classifyRequest, IClassifiedNetworkEntry, NetworkCategory } from './networkClassifier';
@@ -32,16 +25,35 @@ import { NetworkCascadeView } from './NetworkCascadeView';
 import { NetworkPrivacyAuditView } from './NetworkPrivacyAuditView';
 import { NetworkDetailDrawer } from './NetworkDetailDrawer';
 import { decompressPayload } from './payloadDecompressor';
+import { JsonViewToggle } from '../JsonViewToggle';
+
+// Query terms are split on whitespace, so provider names are matched without it ('Magnite / Rubicon' -> 'magnite/rubicon').
+const providerKey = (providerName: string) => providerName.toLowerCase().replace(/\s+/g, '');
 
 export const NETWORK_FIELD_MAP = {
   category: (entry: IClassifiedNetworkEntry) => entry.category,
-  bidder: (entry: IClassifiedNetworkEntry) => entry.providerName.toLowerCase(),
+  bidder: (entry: IClassifiedNetworkEntry) => providerKey(entry.providerName),
   status: (entry: IClassifiedNetworkEntry) => String(entry.entry.status),
   method: (entry: IClassifiedNetworkEntry) => entry.entry.method.toLowerCase(),
   domain: (entry: IClassifiedNetworkEntry) => entry.entry.host.toLowerCase(),
   privacy: (entry: IClassifiedNetworkEntry) => entry.privacy.verdict,
   url: (entry: IClassifiedNetworkEntry) => entry.entry.url.toLowerCase(),
 } as const;
+
+const VIEW_MODES = [
+  { label: 'Waterfall', Icon: TableRowsIcon },
+  { label: 'Initiator Cascade', Icon: AccountTreeIcon },
+  { label: 'Privacy Audit', Icon: SecurityIcon },
+];
+
+const CATEGORY_TABS: { category: NetworkCategory | 'all'; label: string; tooltip: string }[] = [
+  { category: 'all', label: 'All', tooltip: 'View all captured network requests' },
+  { category: 'bid', label: 'Bids', tooltip: 'Filter by Bid Requests (OpenRTB, PBS, Bidders)' },
+  { category: 'sync', label: 'Syncs', tooltip: 'Filter by SSP User Sync Pixels and ID Syncs' },
+  { category: 'userId', label: 'User IDs', tooltip: 'Filter by User ID Modules (ID5, LiveRamp, SharedID)' },
+  { category: 'rtd', label: 'RTD', tooltip: 'Filter by Real-Time Data (RTD) modules' },
+  { category: 'analytics', label: 'Analytics', tooltip: 'Filter by Prebid Analytics Beacons' },
+];
 
 const networkQueryEngine = createQueryEngine<IClassifiedNetworkEntry>(NETWORK_FIELD_MAP);
 
@@ -63,7 +75,7 @@ const buildSearchSuggestions = (entries: IClassifiedNetworkEntry[]): string[] =>
     'privacy:warning',
     'status:200',
     'status:302',
-    ...entries.map((e) => `bidder:${e.providerName.toLowerCase().replace(/\s+/g, '')}`),
+    ...entries.map((e) => `bidder:${providerKey(e.providerName)}`),
     ...entries.map((e) => `domain:${e.entry.host}`),
   ]).sort();
 };
@@ -111,7 +123,7 @@ const InitiatorComponent = (): JSX.Element => {
     return () => {
       active = false;
     };
-  }, [harLog]);
+  }, [harLog, decompressedMap]);
 
   // Classify all incoming HAR entries
   const classifiedEntries: IClassifiedNetworkEntry[] = useMemo(() => {
@@ -169,194 +181,52 @@ const InitiatorComponent = (): JSX.Element => {
     chrome.devtools?.inspectedWindow?.reload({ ignoreCache: true });
   };
 
-  const handleExportJson = () => {
-    const dataToExport = filteredEntries.map((c) => c.entry);
-    download(dataToExport, `network_log_${Date.now()}`);
-  };
-
   return (
     <Box
       sx={{
         width: '100%',
-        p: 1,
+        p: 0.5,
         display: 'flex',
         flexDirection: 'column',
-        gap: 1,
-        height: 'calc(100vh - 48px)',
+        gap: 0.5,
+        height: 'calc(100vh - 42px)', // below the 42px navbar
         boxSizing: 'border-box',
         overflow: 'hidden',
       }}
     >
-      {/* Category Metric Badges Header */}
-      <Grid container spacing={0.75} sx={{ width: '100%', flexShrink: 0 }}>
-        <GridCell
-          cols={2}
-          variant="h2"
-          sx={{
-            cursor: 'pointer',
-            userSelect: 'none',
-            border: '1px solid',
-            borderColor: selectedCategory === 'all' ? 'primary.main' : 'divider',
-            backgroundColor: selectedCategory === 'all' ? 'action.selected' : 'background.paper',
-            '&:hover': { borderColor: 'primary.main' },
-          }}
-          onClick={() => setSelectedCategory('all')}
-        >
-          <Tooltip title="View all captured network requests" arrow>
-            <Typography variant="h2" component="span" sx={{ fontSize: '0.8rem', fontWeight: 700, color: selectedCategory === 'all' ? 'primary.main' : 'text.secondary' }}>
-              All: {counts.all}
-            </Typography>
-          </Tooltip>
-        </GridCell>
-
-        <GridCell
-          cols={2}
-          variant="h2"
-          sx={{
-            cursor: 'pointer',
-            userSelect: 'none',
-            border: '1px solid',
-            borderColor: selectedCategory === 'bid' ? 'primary.main' : 'divider',
-            backgroundColor: selectedCategory === 'bid' ? 'action.selected' : 'background.paper',
-            '&:hover': { borderColor: 'primary.main' },
-          }}
-          onClick={() => setSelectedCategory(selectedCategory === 'bid' ? 'all' : 'bid')}
-        >
-          <Tooltip title="Filter by Bid Requests (OpenRTB, PBS, Bidders)" arrow>
-            <Typography variant="h2" component="span" sx={{ fontSize: '0.8rem', fontWeight: 700, color: selectedCategory === 'bid' ? 'primary.main' : 'text.secondary' }}>
-              Bids: {counts.bid}
-            </Typography>
-          </Tooltip>
-        </GridCell>
-
-        <GridCell
-          cols={2}
-          variant="h2"
-          sx={{
-            cursor: 'pointer',
-            userSelect: 'none',
-            border: '1px solid',
-            borderColor: selectedCategory === 'sync' ? 'primary.main' : 'divider',
-            backgroundColor: selectedCategory === 'sync' ? 'action.selected' : 'background.paper',
-            '&:hover': { borderColor: 'primary.main' },
-          }}
-          onClick={() => setSelectedCategory(selectedCategory === 'sync' ? 'all' : 'sync')}
-        >
-          <Tooltip title="Filter by SSP User Sync Pixels and ID Syncs" arrow>
-            <Typography variant="h2" component="span" sx={{ fontSize: '0.8rem', fontWeight: 700, color: selectedCategory === 'sync' ? 'primary.main' : 'text.secondary' }}>
-              Syncs: {counts.sync}
-            </Typography>
-          </Tooltip>
-        </GridCell>
-
-        <GridCell
-          cols={2}
-          variant="h2"
-          sx={{
-            cursor: 'pointer',
-            userSelect: 'none',
-            border: '1px solid',
-            borderColor: selectedCategory === 'userId' ? 'primary.main' : 'divider',
-            backgroundColor: selectedCategory === 'userId' ? 'action.selected' : 'background.paper',
-            '&:hover': { borderColor: 'primary.main' },
-          }}
-          onClick={() => setSelectedCategory(selectedCategory === 'userId' ? 'all' : 'userId')}
-        >
-          <Tooltip title="Filter by User ID Modules (ID5, LiveRamp, SharedID)" arrow>
-            <Typography variant="h2" component="span" sx={{ fontSize: '0.8rem', fontWeight: 700, color: selectedCategory === 'userId' ? 'primary.main' : 'text.secondary' }}>
-              User IDs: {counts.userId}
-            </Typography>
-          </Tooltip>
-        </GridCell>
-
-        <GridCell
-          cols={2}
-          variant="h2"
-          sx={{
-            cursor: 'pointer',
-            userSelect: 'none',
-            border: '1px solid',
-            borderColor: selectedCategory === 'rtd' ? 'primary.main' : 'divider',
-            backgroundColor: selectedCategory === 'rtd' ? 'action.selected' : 'background.paper',
-            '&:hover': { borderColor: 'primary.main' },
-          }}
-          onClick={() => setSelectedCategory(selectedCategory === 'rtd' ? 'all' : 'rtd')}
-        >
-          <Tooltip title="Filter by Real-Time Data (RTD) modules" arrow>
-            <Typography variant="h2" component="span" sx={{ fontSize: '0.8rem', fontWeight: 700, color: selectedCategory === 'rtd' ? 'primary.main' : 'text.secondary' }}>
-              RTD: {counts.rtd}
-            </Typography>
-          </Tooltip>
-        </GridCell>
-
-        <GridCell
-          cols={2}
-          variant="h2"
-          sx={{
-            cursor: 'pointer',
-            userSelect: 'none',
-            border: '1px solid',
-            borderColor: selectedCategory === 'analytics' ? 'primary.main' : 'divider',
-            backgroundColor: selectedCategory === 'analytics' ? 'action.selected' : 'background.paper',
-            '&:hover': { borderColor: 'primary.main' },
-          }}
-          onClick={() => setSelectedCategory(selectedCategory === 'analytics' ? 'all' : 'analytics')}
-        >
-          <Tooltip title="Filter by Prebid Analytics Beacons" arrow>
-            <Typography variant="h2" component="span" sx={{ fontSize: '0.8rem', fontWeight: 700, color: selectedCategory === 'analytics' ? 'primary.main' : 'text.secondary' }}>
-              Analytics: {counts.analytics}
-            </Typography>
-          </Tooltip>
-        </GridCell>
-      </Grid>
-
-      {/* Toolbar: Search, View Mode Tabs, Action Buttons */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, mt: 0.5, flexShrink: 0 }}>
-        {/* Search Bar */}
-        <Box sx={{ flex: 1, minWidth: 260 }}>
-          <AutoComplete query={query} onQueryChange={setQuery} options={suggestions} fieldKeys={['category', 'bidder', 'status', 'domain', 'privacy']} placeholder="Filter requests (e.g. bidder:rubicon category:sync privacy:valid)..." />
-        </Box>
-
-        {/* View Switcher Tabs */}
-        <Tabs value={viewMode} onChange={(_, v) => setViewMode(v)} sx={{ minHeight: 36, '& .MuiTab-root': { minHeight: 36, py: 0.5, px: 1.5, fontSize: '0.75rem' } }}>
-          <Tab icon={<TableRowsIcon fontSize="small" />} iconPosition="start" label="Waterfall" />
-          <Tab icon={<AccountTreeIcon fontSize="small" />} iconPosition="start" label="Initiator Cascade" />
-          <Tab icon={<SecurityIcon fontSize="small" />} iconPosition="start" label="Privacy Audit" />
-        </Tabs>
-
-        {/* Actions */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Tooltip title="Reload Inspected Page" arrow>
-            <IconButton size="small" onClick={handleReloadPage} color="default">
-              <RefreshIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Export Filtered Network Requests as JSON" arrow>
-            <IconButton size="small" onClick={handleExportJson} color="default">
-              <DownloadIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={showRawJson ? 'Switch to Table view' : 'Switch to Raw JSON view'} arrow>
-            <IconButton size="small" onClick={() => setShowRawJson(!showRawJson)} color={showRawJson ? 'primary' : 'default'}>
-              <CodeIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Clear Captured Network Log" arrow>
-            <IconButton size="small" onClick={handleClearLog} color="default">
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      </Box>
+      <TabToolbar
+        stats={CATEGORY_TABS.map(({ category, label, tooltip }) => ({
+          label: `${label}: ${counts[category]}`,
+          tooltip,
+          selected: selectedCategory === category,
+          onClick: () => setSelectedCategory(selectedCategory === category ? 'all' : category),
+        }))}
+        search={{ query, onQueryChange: setQuery, options: suggestions, fieldKeys: ['category', 'bidder', 'status', 'domain', 'privacy'], placeholder: 'Filter requests (e.g. bidder:rubicon category:sync privacy:valid)...' }}
+        extra={
+          <Paper sx={{ display: 'flex', alignItems: 'center', px: 0.25 }}>
+            {VIEW_MODES.map(({ label, Icon }, mode) => (
+              <ToolbarButton key={label} tooltip={label} onClick={() => setViewMode(mode)} icon={<Icon fontSize="inherit" />} color={viewMode === mode ? 'primary' : 'default'} pressed={viewMode === mode} />
+            ))}
+          </Paper>
+        }
+        actions={
+          <>
+            <ToolbarButton tooltip="Reload Inspected Page" onClick={handleReloadPage} icon={<RefreshIcon fontSize="inherit" />} />
+            <DownloadButton data={() => filteredEntries.map((c) => c.entry)} fileName="network-log" tooltip="Export Filtered Network Requests as JSON" />
+            <JsonViewToggle active={showRawJson} onToggle={() => setShowRawJson(!showRawJson)} formattedView="table view" toolbar />
+            <ToolbarButton tooltip="Clear Captured Network Log" onClick={handleClearLog} icon={<DeleteOutlineIcon fontSize="inherit" />} />
+          </>
+        }
+      />
 
       {/* Main View Area */}
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {showRawJson ? (
-          <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, p: 1.5, overflowY: 'auto' }}>
+          <Paper sx={{ flex: 1, minHeight: 0, p: 1.5, overflowY: 'auto' }}>
             <JSONViewerComponent src={filteredEntries.map((c) => c.entry)} collapsed={2} />
           </Paper>
         ) : classifiedEntries.length === 0 ? (
-          <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', my: 2 }}>
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
               No Network Activity Recorded Yet
             </Typography>

@@ -16,6 +16,11 @@ describe('MessageHandler', () => {
       getTabInfo: vi.fn().mockResolvedValue({}),
       saveTabInfo: vi.fn().mockResolvedValue(undefined),
     };
+    mockTabContextService.updateTabInfo = vi.fn(async (tabId: number, mutate: (tabInfo: any) => void) => {
+      const tabInfo = await mockTabContextService.getTabInfo(tabId);
+      mutate(tabInfo);
+      await mockTabContextService.saveTabInfo(tabId, tabInfo);
+    });
     mockUpdateBadge = vi.fn();
     handler = new MessageHandler(mockTabContextService, mockUpdateBadge);
   });
@@ -63,16 +68,46 @@ describe('MessageHandler', () => {
     expect(mockUpdateBadge).toHaveBeenCalledWith(2);
   });
 
-  it('handles SEND_TCF_DETAILS_TO_BACKGROUND', async () => {
-    const payload = { tcf: { cmpId: 10, cmpVersion: 2 } };
-    mockTabContextService.getTabInfo.mockResolvedValue({});
+  it('stores TCF v2 details, in the shape tcf.ts sends, on the top window', async () => {
+    const payload = { v2: { cmpLoaded: true, gdprApplies: true, consentData: 'CPXxRfAPXxRfAAfKABENB-CgAAAAAAAAAAYgAAAAAAAA' } };
+    mockTabContextService.getTabInfo.mockResolvedValue({ 'top-window': { url: 'https://example.com' } });
 
     await handler.handle({ type: EVENTS.SEND_TCF_DETAILS_TO_BACKGROUND, payload: payload as any }, { tab: { id: 3 } } as any);
 
     expect(mockTabContextService.saveTabInfo).toHaveBeenCalledWith(3, {
-      tcf: payload,
+      'top-window': { url: 'https://example.com', tcf: payload },
     });
     expect(mockUpdateBadge).toHaveBeenCalledWith(3);
+  });
+
+  it('stores TCF v1 details', async () => {
+    const payload = { v1: { cmpLoaded: true, gdprApplies: false, consentData: 'BOxyz' } };
+
+    await handler.handle({ type: EVENTS.SEND_TCF_DETAILS_TO_BACKGROUND, payload: payload as any }, { tab: { id: 3 } } as any);
+
+    expect(mockTabContextService.saveTabInfo.mock.calls[0][1]['top-window'].tcf).toEqual(payload);
+  });
+
+  it('ignores GAM and TCF details sent from a subframe', async () => {
+    await handler.handle({ type: EVENTS.SEND_GAM_DETAILS_TO_BACKGROUND, payload: { slots: [] } as any }, { tab: { id: 4 }, frameId: 7 } as any);
+    await handler.handle({ type: EVENTS.SEND_TCF_DETAILS_TO_BACKGROUND, payload: { v2: { cmpLoaded: true } } as any }, { tab: { id: 4 }, frameId: 7 } as any);
+
+    expect(mockTabContextService.saveTabInfo).not.toHaveBeenCalled();
+  });
+
+  it('still stores Prebid details sent from a subframe under their own frame id', async () => {
+    const payload = { frameId: 'https://widget.example/-abc', namespace: 'pbjs' };
+    mockTabContextService.getTabInfo.mockResolvedValue({});
+
+    await handler.handle({ type: EVENTS.SEND_PREBID_DETAILS_TO_BACKGROUND, payload: payload as any }, { tab: { id: 4 }, frameId: 7 } as any);
+
+    expect(mockTabContextService.saveTabInfo).toHaveBeenCalledWith(4, { [payload.frameId]: { prebids: { pbjs: payload } } });
+  });
+
+  it('ignores TCF messages that have neither v1 nor v2 details', async () => {
+    await handler.handle({ type: EVENTS.SEND_TCF_DETAILS_TO_BACKGROUND, payload: { other: {} } as any }, { tab: { id: 3 } } as any);
+
+    expect(mockTabContextService.saveTabInfo).toHaveBeenCalledWith(3, {});
   });
 
   it('preserves existing tab data when adding new data', async () => {

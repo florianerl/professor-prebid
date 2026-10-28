@@ -2,29 +2,32 @@ import React, { useEffect, useRef, useState } from 'react';
 import AdOverlayComponent, { AdOverlayComponentProps } from './AdOverlayComponent';
 import { createPortal } from 'react-dom';
 import { findAdContainer, isContainerVisible, getParentGamPubAds } from '../InjectedApp';
-
-export const getMaxZIndex = () => 999999;
+import { OVERLAY_Z_INDEX } from './zIndex';
 
 const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, mask, consoleState, pbjsNameSpace, onOpenPopover }) => {
   const { elementId, winningCPM, winningBidder, currency, timeToRespond } = mask;
   const element = useRef<HTMLDivElement>(document.createElement('div'));
   const [shadowRoot, setShadowRoot] = useState<ShadowRoot | null>(null);
   const [attachVersion, setAttachVersion] = useState<number>(0);
+  // Set by the close button; stays closed until overlays are switched off and on again, so the periodic re-sync cannot reopen it.
+  const closed = useRef<boolean>(false);
 
   useEffect(() => {
-    if (!element.current.shadowRoot) {
-      setShadowRoot(element.current.attachShadow({ mode: 'open' }));
+    const el = element.current;
+    if (!el.shadowRoot) {
+      setShadowRoot(el.attachShadow({ mode: 'open' }));
     } else {
-      setShadowRoot(element.current.shadowRoot);
+      setShadowRoot(el.shadowRoot);
     }
     return () => {
-      if (element.current.parentNode) {
-        element.current.parentNode.removeChild(element.current);
+      if (el.parentNode) {
+        el.parentNode.removeChild(el);
       }
     };
   }, []);
 
   const closePortal = () => {
+    closed.current = true;
     const el = document.getElementById(`prpb-mask--container-${mask.elementId}`);
     if (el) {
       el.style.display = 'none';
@@ -33,6 +36,7 @@ const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, m
 
   useEffect(() => {
     if (!consoleState) {
+      closed.current = false;
       if (element.current.parentNode) {
         element.current.parentNode.removeChild(element.current);
       }
@@ -42,7 +46,8 @@ const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, m
     const expectedId = `prpb-mask--container-${mask.elementId}`;
     element.current.id = expectedId;
 
-    const existingElements = document.querySelectorAll(`[id="${expectedId}"]`);
+    // Compared in JS rather than via [id="..."] so ad unit codes with quotes or backslashes cannot break the selector.
+    const existingElements = Array.from(document.querySelectorAll('[id^="prpb-mask--container-"]')).filter((el) => el.id === expectedId);
     existingElements.forEach((el) => {
       if (el !== element.current && el.parentNode) {
         el.parentNode.removeChild(el);
@@ -61,6 +66,10 @@ const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, m
     };
 
     const attachAndSync = () => {
+      if (closed.current) {
+        element.current.style.display = 'none';
+        return;
+      }
       const activeTarget = getValidTarget();
       if (!activeTarget || !isContainerVisible(activeTarget)) {
         return;
@@ -72,7 +81,7 @@ const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, m
           staleEmotionStyles.forEach((s) => s.remove());
         }
 
-        element.current.style.zIndex = `${getMaxZIndex() + 1}`;
+        element.current.style.zIndex = `${OVERLAY_Z_INDEX}`;
         element.current.style.position = 'absolute';
         element.current.style.wordBreak = 'break-all';
         element.current.style.pointerEvents = 'none';
@@ -126,16 +135,16 @@ const AdOverlayPortal: React.FC<AdOverlayPortalComponentProps> = ({ container, m
     const timeouts: number[] = [];
     const pubads = getParentGamPubAds();
     if (pubads) {
-        gamHandler = (event: any) => {
-          const slotElementId = event?.slot?.getSlotElementId ? event.slot.getSlotElementId() : null;
-          const slotAdUnitPath = event?.slot?.getAdUnitPath ? event.slot.getAdUnitPath() : null;
-          if (slotElementId === mask.elementId || slotAdUnitPath === mask.elementId || mask.elementId.includes(slotElementId) || (slotElementId && slotElementId.includes(mask.elementId))) {
-            timeouts.push(window.setTimeout(attachAndSync, 50));
-            timeouts.push(window.setTimeout(attachAndSync, 300));
-          }
-        };
-        pubads.addEventListener('slotRenderEnded', gamHandler);
-        pubads.addEventListener('slotResponseReceived', gamHandler);
+      gamHandler = (event: any) => {
+        const slotElementId = event?.slot?.getSlotElementId ? event.slot.getSlotElementId() : null;
+        const slotAdUnitPath = event?.slot?.getAdUnitPath ? event.slot.getAdUnitPath() : null;
+        if (slotElementId === mask.elementId || slotAdUnitPath === mask.elementId || mask.elementId.includes(slotElementId) || (slotElementId && slotElementId.includes(mask.elementId))) {
+          timeouts.push(window.setTimeout(attachAndSync, 50));
+          timeouts.push(window.setTimeout(attachAndSync, 300));
+        }
+      };
+      pubads.addEventListener('slotRenderEnded', gamHandler);
+      pubads.addEventListener('slotResponseReceived', gamHandler);
     }
 
     // 3. Periodic safeguard sync

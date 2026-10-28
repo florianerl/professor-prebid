@@ -14,7 +14,10 @@ class GoogleAdManager {
   postAuctionEndTimestamp: number = null;
   googletag: typeof googletag;
   init() {
-    this.googletag = window.googletag || ({} as typeof googletag);
+    // At document_start GPT usually has not loaded yet: create the shared stub on window
+    // so GPT finds the queued hook and runs it once it loads.
+    window.googletag = window.googletag || ({} as typeof googletag);
+    this.googletag = window.googletag;
     if (!Array.isArray(this.googletag.cmd)) {
       (this.googletag as any).cmd = [];
     }
@@ -108,7 +111,6 @@ class GoogleAdManager {
     const events = gpt?.getEventLog()?.getAllEvents() || [];
 
     let isFetchBeforeKeyvalue = false;
-    let refreshIndex = null;
     let fetchslotIndex = null;
     let keyvalueIndex = null;
 
@@ -117,11 +119,7 @@ class GoogleAdManager {
       const message = typeof event?.getMessage === 'function' ? event?.getMessage() : null;
       const messageId = typeof message?.getMessageId === 'function' ? message?.getMessageId() : null;
 
-      if (messageId == 70) {
-        if (refreshIndex == null) {
-          refreshIndex = e;
-        }
-      } else if (messageId == 3) {
+      if (messageId == 3) {
         if (fetchslotIndex == null) {
           fetchslotIndex = e;
         }
@@ -146,8 +144,8 @@ class GoogleAdManager {
     for (const event of events) {
       const message = event?.getMessage ? event.getMessage() : null;
       const messageId = message ? message.getMessageId() : null;
-      const messageArgs = message ? message.getMessageArgs() : null;
-      if (messageId == 63 && messageArgs[0] == 'synchronous rendering') {
+      const messageArgs = typeof message?.getMessageArgs === 'function' ? message.getMessageArgs() : null;
+      if (messageId == 63 && messageArgs?.[0] == 'synchronous rendering') {
         asyncRendermode = false;
       }
     }

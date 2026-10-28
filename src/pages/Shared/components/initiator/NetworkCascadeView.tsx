@@ -10,19 +10,13 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import Tooltip from '@mui/material/Tooltip';
 import { IClassifiedNetworkEntry } from './networkClassifier';
 import { buildNetworkTree, INetworkTreeNode } from './initiatorTree';
+import { EmptyNetworkView, statusColor } from './networkTableParts';
 
 export interface NetworkCascadeViewProps {
   entries: IClassifiedNetworkEntry[];
   selectedEntry: IClassifiedNetworkEntry | null;
   onSelectEntry: (entry: IClassifiedNetworkEntry) => void;
 }
-
-const getStatusColor = (status: number): 'success' | 'info' | 'error' | 'default' => {
-  if (status >= 200 && status < 300) return 'success';
-  if (status >= 300 && status < 400) return 'info';
-  if (status >= 400) return 'error';
-  return 'default';
-};
 
 interface TreeNodeRowProps {
   node: INetworkTreeNode;
@@ -79,7 +73,7 @@ const TreeNodeRow = ({ node, selectedEntry, onSelectEntry }: TreeNodeRowProps): 
 
         {relationChip}
 
-        <Chip label={node.entry.entry.status || '0'} size="small" color={getStatusColor(node.entry.entry.status)} sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }} />
+        <Chip label={node.entry.entry.status || '0'} size="small" color={statusColor(node.entry.entry.status)} sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }} />
 
         <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700 }}>
           {node.entry.entry.method}
@@ -131,20 +125,16 @@ export const NetworkCascadeView = ({ entries, selectedEntry, onSelectEntry }: Ne
   const treeNodes = buildNetworkTree(entries, rootFilter);
 
   return (
-    <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 1, overflow: 'hidden' }}>
+    <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 0.5, overflow: 'hidden' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
         <TextField size="small" placeholder="Filter tree cascade by Root URL, Domain or Provider (e.g. adnxs.com or /getuid)..." value={rootFilter} onChange={(e) => setRootFilter(e.target.value)} sx={{ flex: 1 }} />
         {rootFilter && <Chip label="Clear Filter" size="small" onClick={() => setRootFilter('')} sx={{ cursor: 'pointer' }} />}
       </Box>
 
       {treeNodes.length === 0 ? (
-        <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', mt: 1 }}>
-          <Typography variant="body1" color="text.secondary">
-            No initiator or redirect chains match the filter.
-          </Typography>
-        </Paper>
+        <EmptyNetworkView>No initiator or redirect chains match the filter.</EmptyNetworkView>
       ) : (
-        <Paper variant="outlined" sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+        <Paper sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
           {treeNodes.map((node) => (
             <TreeNodeRow key={node.id} node={node} selectedEntry={selectedEntry} onSelectEntry={onSelectEntry} />
           ))}

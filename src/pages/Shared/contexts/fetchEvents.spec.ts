@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fetchEvents } from './fetchEvents';
 import { DOWNLOAD_FAILED } from '../constants';
-import { sendChromeTabsMessage } from '../../Shared/utils';
+import { getTabId, sendChromeTabsMessage } from '../../Shared/utils';
 
 vi.mock('../../Shared/utils', () => ({
   getTabId: vi.fn(),
@@ -14,32 +14,30 @@ describe('fetchEvents', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getTabId).mockResolvedValue(7);
     global.chrome = {
       tabs: {
-        query: vi.fn((queryInfo, cb) => cb([{ url: 'https://example.com/page' }])),
-      },
-      windows: {
-        WINDOW_ID_CURRENT: 1,
+        get: vi.fn((tabId, cb) => cb({ id: tabId, url: 'https://example.com/page' })),
       },
     } as any;
   });
 
   it('returns empty object when tabInfo is null or undefined', async () => {
-    expect(await fetchEvents(null as any, setDownloading, setSyncInfo, [])).toEqual({});
-    expect(await fetchEvents(undefined as any, setDownloading, setSyncInfo, [])).toEqual({});
+    expect(await fetchEvents(null as any, setDownloading, setSyncInfo)).toEqual({});
+    expect(await fetchEvents(undefined as any, setDownloading, setSyncInfo)).toEqual({});
   });
 
   it('skips frame if frame has no prebids', async () => {
     const tabInfo: any = {
       'top-window': {},
     };
-    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo, []);
+    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo);
     expect(result).toEqual({ 'top-window': {} });
     expect(setDownloading).not.toHaveBeenCalled();
   });
 
   it('keeps a Prebid instance without an eventsUrl and does not fetch', async () => {
-    (global.chrome.tabs.query as any).mockImplementation((queryInfo: any, cb: any) => cb([{}]));
+    (global.chrome.tabs.get as any).mockImplementation((tabId: number, cb: any) => cb({}));
     global.fetch = vi.fn();
     const tabInfo: any = {
       'top-window': {
@@ -49,7 +47,7 @@ describe('fetchEvents', () => {
       },
     };
 
-    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo, []);
+    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo);
     expect(global.fetch).not.toHaveBeenCalled();
     expect(result['top-window'].prebids.pbjs).toEqual({ eventsUrl: '', events: [], version: '11.29.0' });
   });
@@ -70,11 +68,23 @@ describe('fetchEvents', () => {
       json: vi.fn().mockResolvedValue(mockEvents),
     });
 
-    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo, []);
+    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo);
     expect(result['top-window'].prebids.pbjs.events).toEqual(mockEvents);
     expect(setDownloading).toHaveBeenCalledWith('true');
     expect(setDownloading).toHaveBeenCalledWith('false');
     expect(setSyncInfo).toHaveBeenCalledWith(null);
+  });
+
+  it("matches the events URL against the inspected tab, not the window's active tab", async () => {
+    // In the DevTools panel getTabId returns the inspected tab; the active tab may be another site.
+    vi.mocked(getTabId).mockResolvedValue(42);
+    (global.chrome.tabs.get as any).mockImplementation((tabId: number, cb: any) => cb({ id: tabId, url: tabId === 42 ? 'https://example.com/page' : 'https://other.com/' }));
+    global.fetch = vi.fn().mockResolvedValue({ json: vi.fn().mockResolvedValue([]) });
+
+    await fetchEvents({ 'top-window': { prebids: { pbjs: { eventsUrl: 'blob:https://example.com/123' } } } } as any, setDownloading, setSyncInfo);
+
+    expect(global.chrome.tabs.get).toHaveBeenCalledWith(42, expect.any(Function));
+    expect(global.fetch).toHaveBeenCalledWith('blob:https://example.com/123');
   });
 
   it('handles non-top-window frameId domain matching', async () => {
@@ -93,7 +103,7 @@ describe('fetchEvents', () => {
       json: vi.fn().mockResolvedValue(mockEvents),
     });
 
-    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo, []);
+    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo);
     expect(result['https://sub.example.com/iframe.html'].prebids.pbjs.events).toEqual(mockEvents);
   });
 
@@ -108,27 +118,8 @@ describe('fetchEvents', () => {
       },
     };
 
-    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo, []);
+    await fetchEvents(tabInfo, setDownloading, setSyncInfo);
     expect(setDownloading).not.toHaveBeenCalled();
-  });
-
-  it('skips download if url is already in downloadingUrls array', async () => {
-    const eventsUrl = 'https://example.com/events.json';
-    const tabInfo: any = {
-      'top-window': {
-        prebids: {
-          pbjs: {
-            eventsUrl,
-          },
-        },
-      },
-    };
-
-    const downloadingUrls: any = [eventsUrl];
-    downloadingUrls[eventsUrl] = true;
-
-    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo, downloadingUrls);
-    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('handles download failure gracefully and removes frame when no prebids remain', async () => {
@@ -144,7 +135,7 @@ describe('fetchEvents', () => {
 
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
-    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo, []);
+    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo);
     expect(sendChromeTabsMessage).toHaveBeenCalledWith(DOWNLOAD_FAILED, { eventsUrl: 'https://example.com/events.json' });
     expect(setDownloading).toHaveBeenCalledWith('error');
     expect(result['top-window']).toBeUndefined();
@@ -166,7 +157,7 @@ describe('fetchEvents', () => {
 
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
-    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo, []);
+    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo);
     expect(result['top-window']).toBeDefined();
     expect(result['top-window'].prebids.failingPbjs).toBeUndefined();
     expect(result['top-window'].prebids.workingPbjs).toBeDefined();
@@ -175,10 +166,7 @@ describe('fetchEvents', () => {
   it('handles invalid URLs safely in safelyConstructURL and getCurrentTabURL', async () => {
     global.chrome = {
       tabs: {
-        query: vi.fn((queryInfo, cb) => cb([{}])),
-      },
-      windows: {
-        WINDOW_ID_CURRENT: 1,
+        get: vi.fn((tabId, cb) => cb({})),
       },
     } as any;
 
@@ -194,7 +182,7 @@ describe('fetchEvents', () => {
 
     global.fetch = vi.fn().mockRejectedValue(new Error('Invalid URL'));
 
-    const result = await fetchEvents(tabInfo, setDownloading, setSyncInfo, []);
+    await fetchEvents(tabInfo, setDownloading, setSyncInfo);
     expect(setDownloading).toHaveBeenCalledWith('true');
     expect(setDownloading).toHaveBeenCalledWith('error');
   });

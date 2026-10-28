@@ -12,8 +12,8 @@ describe('AdOverlayComponent', () => {
           {
             getSlotElementId: () => 'div-gpt-ad-1234567-0',
             getAdUnitPath: () => '/12345/ad-unit',
-            getTargetingKeys: () => [],
-            getResponseInformation: () => null,
+            getTargetingKeys: (): string[] => [],
+            getResponseInformation: (): null => null,
           },
         ]),
         refresh: vi.fn(),
@@ -27,7 +27,7 @@ describe('AdOverlayComponent', () => {
   });
 
   it('renders correctly with default props', () => {
-    const { container } = render(<AdOverlayComponent elementId="div-gpt-ad-1234567-0" winningBidder="rubicon" winningCPM={1.5} currency="USD" timeToRespond={250} closePortal={vi.fn()} />);
+    render(<AdOverlayComponent elementId="div-gpt-ad-1234567-0" winningBidder="rubicon" winningCPM={1.5} currency="USD" timeToRespond={250} closePortal={vi.fn()} />);
     expect(screen.getAllByText('div-gpt-ad-1234567-0')).toBeDefined();
     expect(screen.getByText('rubicon')).toBeDefined();
     expect(screen.getByText('1.5 USD')).toBeDefined();
@@ -60,6 +60,18 @@ describe('AdOverlayComponent', () => {
     const buttons = container.querySelectorAll('button');
     fireEvent.click(buttons[2]);
     expect((window.parent as any).googletag.pubads().refresh).toHaveBeenCalled();
+  });
+
+  it('refreshes the GAM slot when the overlay is keyed by the ad unit path', () => {
+    render(<AdOverlayComponent elementId="/12345/ad-unit" winningBidder="rubicon" winningCPM={1.5} currency="USD" timeToRespond={250} />);
+    fireEvent.click(screen.getByTitle('Refresh Slot'));
+    const pubads = (window.parent as any).googletag.pubads();
+    expect(pubads.refresh).toHaveBeenCalledWith([expect.objectContaining({ getAdUnitPath: expect.any(Function) })]);
+  });
+
+  it('hides the refresh button when no GAM slot matches the overlay', () => {
+    render(<AdOverlayComponent elementId="no-such-slot" winningBidder="rubicon" winningCPM={1.5} currency="USD" timeToRespond={250} />);
+    expect(screen.queryByTitle('Refresh Slot')).toBeNull();
   });
 
   it('calls openInPopOver when popover button is clicked', () => {

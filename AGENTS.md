@@ -15,11 +15,14 @@ This document defines conventions and operational guidelines for AI agents worki
 - **Build**:
   - Development / Fast build: `npm run build:fast`
   - Production build: `npm run build`
+- **Type checking**: `npm run typecheck` (the extension, and separately the unit specs and e2e code via `tsconfig.spec.json`)
 - **Testing**:
   - Unit / Component tests: `npm test` (or `npx vitest run`)
   - Watch mode: `npm run test:watch`
   - Coverage: `npm run test:coverage`
-  - End-to-End tests: `npm run test:e2e` (Playwright)
+  - End-to-End tests: `npm run test:e2e` (Playwright against mock pages; loads `./build`, so run `npm run build` first)
+  - Live-site End-to-End tests: `npm run test:e2e:live` (tests tagged `@live`; need network access and depend on the publishers' setups)
+  - Performance benchmark: `npm run test:perf` (live A/B benchmark, over an hour; not part of `test:e2e`)
 - **Formatting & Style**:
-  - Code formatting is managed with Prettier (configured in `package.json` / `.prettierrc`).
+  - Code formatting is managed with Prettier (configured in `package.json`).
   - Follow existing TypeScript and React functional component patterns.

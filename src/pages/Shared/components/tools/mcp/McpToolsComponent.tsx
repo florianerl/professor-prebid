@@ -1,6 +1,5 @@
 import React, { useContext, useState } from 'react';
 import Box from '@mui/material/Box';
-import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
@@ -15,22 +14,22 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import AppStateContext from '../../../contexts/appStateContext';
 import { getTabId } from '../../../../Shared/utils';
 import { MCP_BRIDGE_ENABLE } from '../../../constants';
+import { SectionCard } from '../../Section';
 
 export const injectDevtoolsMcpScript = async (): Promise<boolean> => {
   try {
     const tabId = await getTabId();
-    await chrome.scripting.executeScript({
+    const [injection] = await chrome.scripting.executeScript({
       target: { tabId },
       world: 'MAIN',
       args: [MCP_BRIDGE_ENABLE],
-      func: (bridgeEnableEvent: string) => {
+      func: (bridgeEnableEvent: string): boolean => {
         document.dispatchEvent(new CustomEvent(bridgeEnableEvent));
         const win = window as any;
         if (win.__PREBID_DEVTOOLS_MCP_INITIALIZED__) {
           console.info('[Professor Prebid] DevTools MCP is already active on this page.');
-          return;
+          return true;
         }
-        win.__PREBID_DEVTOOLS_MCP_INITIALIZED__ = true;
 
         const pbjs = win.pbjs || (win._pbjsGlobals && win[win._pbjsGlobals[0]]);
         const events: any[] = [];
@@ -66,7 +65,7 @@ export const injectDevtoolsMcpScript = async (): Promise<boolean> => {
           }
         };
 
-        const attachPbjs = (instance: any) => {
+        const attachNow = (instance: any) => {
           if (!instance || typeof instance.onEvent !== 'function') return;
           ['auctionInit', 'auctionEnd', 'bidRequested', 'bidResponse', 'noBid', 'bidWon', 'bidTimeout', 'setTargeting'].forEach((evt) => {
             try {
@@ -75,15 +74,30 @@ export const injectDevtoolsMcpScript = async (): Promise<boolean> => {
               // Ignored
             }
           });
-          if (Array.isArray(instance.installedModules) && !instance.installedModules.includes('devtoolsMcp')) {
-            instance.installedModules.push('devtoolsMcp');
-          }
         };
 
-        if (pbjs) attachPbjs(pbjs);
-        if (win._pbjsGlobals && Array.isArray(win._pbjsGlobals)) {
-          win._pbjsGlobals.forEach((g: string) => attachPbjs(win[g]));
+        // Before Prebid.js loads, the global is only the publisher's { que: [] } stub: queue the attachment, Prebid runs it once loaded.
+        const attachPbjs = (instance: any): boolean => {
+          if (typeof instance?.onEvent === 'function') {
+            attachNow(instance);
+            return true;
+          }
+          if (typeof instance?.que?.push === 'function') {
+            instance.que.push(() => attachNow(instance));
+            return true;
+          }
+          return false;
+        };
+
+        // window.pbjs is usually also listed in _pbjsGlobals; attach to each instance once so events are not recorded twice.
+        const instances = new Set<any>([pbjs, ...(Array.isArray(win._pbjsGlobals) ? win._pbjsGlobals.map((g: string) => win[g]) : [])]);
+        const attached = Array.from(instances).filter(attachPbjs).length > 0;
+        if (!attached) {
+          // Leave the flag unset so a later click, once Prebid.js is on the page, can still attach.
+          console.warn('[Professor Prebid] DevTools MCP found no Prebid.js instance on this page.');
+          return false;
         }
+        win.__PREBID_DEVTOOLS_MCP_INITIALIZED__ = true;
 
         win.__PREBID_DEVTOOLS_MCP__ = {
           version: '1.0.0',
@@ -92,21 +106,22 @@ export const injectDevtoolsMcpScript = async (): Promise<boolean> => {
         };
 
         console.info('[Professor Prebid] DevTools MCP Module successfully attached to Prebid.js.');
+        return true;
       },
     });
-    return true;
+    return injection?.result === true;
   } catch (error) {
     console.error('Failed to inject DevTools MCP standalone script:', error);
     return false;
   }
 };
 
-export const generateMcpAiPrompt = (prebid: any, prebids: any): string => {
+export const generateMcpAiPrompt = (prebid: any, prebids: any, mcpInjected = false): string => {
   const version = prebid?.version || 'unknown';
   const modules = prebid?.installedModules || [];
   const eventsUrl = prebid?.eventsUrl || '';
   const domain = eventsUrl ? eventsUrl.split('//')[1]?.split('/')[0] : 'inspected-page';
-  const hasDevtoolsMcp = modules.includes('devtoolsMcp');
+  const hasDevtoolsMcp = modules.includes('devtoolsMcp') || mcpInjected;
 
   let prompt = `## Prebid.js & AdTech Diagnostic Snapshot\n`;
   prompt += `**Domain:** \`${domain}\` | **Prebid Version:** \`${version}\` | **DevTools MCP Active:** \`${hasDevtoolsMcp ? 'Yes' : 'No'}\`\n`;
@@ -155,7 +170,7 @@ export const McpToolsComponent: React.FC = () => {
   };
 
   const handleCopySnapshot = async () => {
-    const promptText = generateMcpAiPrompt(prebid, prebids);
+    const promptText = generateMcpAiPrompt(prebid, prebids, injected);
     try {
       await navigator.clipboard.writeText(promptText);
       setSnackbarMessage('AI Diagnostic Snapshot copied to clipboard!');
@@ -186,14 +201,10 @@ export const McpToolsComponent: React.FC = () => {
   };
 
   return (
-    <Paper elevation={1} sx={{ p: 1.25, border: '1px solid', borderColor: 'divider' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap', gap: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <SmartToyIcon color="primary" sx={{ fontSize: '1.1rem' }} />
-          <Typography variant="h3" sx={{ fontSize: '0.8rem', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Model Context Protocol (MCP) & AI Diagnostics
-          </Typography>
-        </Box>
+    <SectionCard
+      icon={<SmartToyIcon color="primary" sx={{ fontSize: '1.1rem' }} />}
+      title="Model Context Protocol (MCP) & AI Diagnostics"
+      actions={
         <Chip
           icon={isMcpActive ? <CheckCircleOutlineIcon /> : undefined}
           label={isMcpActive ? 'DevTools MCP Active' : 'MCP Standalone Inactive'}
@@ -202,8 +213,8 @@ export const McpToolsComponent: React.FC = () => {
           variant="outlined"
           sx={{ height: 22, fontSize: '0.7rem', fontWeight: 600 }}
         />
-      </Box>
-
+      }
+    >
       <Typography variant="body2" sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 1.25 }}>
         Enables Chrome DevTools MCP (Prebid.js PR #15356) and autonomous AI coding agents (Gemini, Claude, Cursor) to query live auctions, bidder latency, and GAM targeting directly from the browser session.
       </Typography>
@@ -235,7 +246,7 @@ export const McpToolsComponent: React.FC = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </Paper>
+    </SectionCard>
   );
 };
 

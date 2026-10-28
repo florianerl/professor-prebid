@@ -1,6 +1,6 @@
 import type { AdUnit, AdUnitBid, Bid, BidderRequest, Config, EventRecord, EventPayload, PrebidJS } from 'prebid.js';
-import { POPUP_LOADED, EVENTS} from '../Shared/constants';
-import { EventBus} from '../Shared/utils';
+import { DOWNLOAD_FAILED, POPUP_LOADED, EVENTS } from '../Shared/constants';
+import { EventBus } from '../Shared/utils';
 
 export type { AdUnit, AdUnitBid, Bid, BidderRequest, Config, EventRecord, EventPayload, PrebidJS };
 
@@ -11,13 +11,14 @@ export class Prebid {
   lastTimeUpdateSentToContentScript: number = 0;
   updateTimeout: ReturnType<typeof setTimeout> | null = null;
   updateRateInterval: number = 2500;
-  sendToContentScriptPending: boolean = false;
   events: any[] = [];
   eventsApi: boolean = false;
   listenersAdded: boolean = false;
   hasQueuedListenerHook: boolean = false;
   lastEventsUrl: string | null = null;
   staleUrlRevokeDelay: number = 30000;
+  downloadFailedResends: number = 0;
+  maxDownloadFailedResends: number = 3;
 
   constructor(namespace: string, iframeId: string | null) {
     this.namespace = namespace;
@@ -95,25 +96,45 @@ export class Prebid {
       this.throttle(this.sendDetailsToBackground);
     });
 
+    EventBus.on(POPUP_LOADED, () => {
+      this.downloadFailedResends = 0;
+      this.sendDetailsToBackground();
+    });
+
+    EventBus.on(DOWNLOAD_FAILED, (payload) => this.handleDownloadFailed(payload?.eventsUrl));
+
     window.addEventListener(
       'message',
       (event) => {
         if (event.source !== window || event.origin !== window.origin) return;
-        if (!event.data.profPrebid) return;
+        if (!event.data?.profPrebid) return;
         if (event.data.type === POPUP_LOADED) {
+          this.downloadFailedResends = 0;
           this.sendDetailsToBackground();
+        } else if (event.data.type === DOWNLOAD_FAILED) {
+          this.handleDownloadFailed(event.data.payload?.eventsUrl);
         }
       },
       false
     );
   };
 
+  // Each resend creates a new events URL, which the panel downloads again, so a download that keeps
+  // failing would otherwise loop. Resend only for this instance's latest URL, a few times per popup open.
+  handleDownloadFailed = (eventsUrl?: string): void => {
+    if (eventsUrl && eventsUrl !== this.lastEventsUrl) return;
+    if (this.downloadFailedResends >= this.maxDownloadFailedResends) return;
+    this.downloadFailedResends++;
+    this.sendDetailsToBackground();
+  };
+
   getDebugConfig = () => {
-    const pbjsDebugString = window.sessionStorage.getItem('pbjs:debugging');
     try {
+      const pbjsDebugString = window.sessionStorage.getItem('pbjs:debugging');
+      if (!pbjsDebugString) return undefined;
       return JSON.parse(pbjsDebugString);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      return undefined;
     }
   };
 
@@ -199,7 +220,6 @@ export class Prebid {
         bidderSettings: this.globalPbjs?.bidderSettings,
       };
       EventBus.emit(EVENTS.SEND_PREBID_DETAILS_TO_BACKGROUND, prebidDetail);
-      this.sendToContentScriptPending = false;
     };
 
     if (this.globalPbjs?.que && typeof this.globalPbjs.que.push === 'function') {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { classifyRequest, decodeTcfString, auditPrivacy} from './networkClassifier';
-import { IHarLogEntry } from '../../../Devtools/harLog';
+import { classifyRequest, decodeTcfString, auditPrivacy } from './networkClassifier';
+import { IHarLogEntry, toLogEntry } from '../../../Devtools/harLog';
 
 describe('networkClassifier', () => {
   describe('decodeTcfString', () => {
@@ -84,11 +84,28 @@ describe('networkClassifier', () => {
       expect(['valid', 'warning']).toContain(audit.verdict);
     });
 
+    // A real TC string (CMP 31, vendor list 126).
+    const REAL_TC_STRING = 'CPXxRfAPXxRfAAfKABENB-CgAAAAAAAAAAYgAAAAAAAA';
+
     it('auto-detects TCF string in arbitrary query parameter key without known name', () => {
-      const audit = auditPrivacy({ custom_vendor_consent_param: 'CP12345AP12345ABAAENA9CAAP_AAH_AAAAAGVwBgAAA' }, {});
-      expect(audit.gdprConsent).toBe('CP12345AP12345ABAAENA9CAAP_AAH_AAAAAGVwBgAAA');
+      const audit = auditPrivacy({ custom_vendor_consent_param: REAL_TC_STRING }, {});
+      expect(audit.gdprConsent).toBe(REAL_TC_STRING);
       expect(audit.hasGdpr).toBe(true);
-      expect(['valid', 'warning']).toContain(audit.verdict);
+      expect(audit.verdict).toBe('valid');
+    });
+
+    it('does not take unrelated ids starting with C for a consent string', () => {
+      const query = { gclid: 'Cj0KCQjw2a6wBhCVARIsABPeH1sAbcdEFGhijkl', sig: 'CAESEJx3kq0Bn2Vt8sY9LmH5aQo' };
+      const audit = auditPrivacy(query, {}, '{"id":"CABCDEFGHIJKLMNOPQRSTUVWXYZ012345"}');
+      expect(audit.gdprConsent).toBeUndefined();
+      expect(audit.hasGdpr).toBe(false);
+      expect(audit.verdict).toBe('none');
+    });
+
+    it('finds a real consent string in a body after an unrelated C token', () => {
+      const audit = auditPrivacy({}, {}, `token=CABCDEFGHIJKLMNOPQRSTUVWXYZ012345&tc=${REAL_TC_STRING}`);
+      expect(audit.gdprConsent).toBe(REAL_TC_STRING);
+      expect(audit.verdict).toBe('valid');
     });
 
     it('returns warning verdict when consent string cannot be decoded as TCF', () => {
@@ -97,9 +114,50 @@ describe('networkClassifier', () => {
       expect(audit.verdict).toBe('warning');
       expect(audit.verdictReason).toContain('could not be parsed');
     });
+
+    it('still flags a malformed consent string when the page has a CMP', () => {
+      const cmp = 'CPXxRfAPXxRfAAfKABENB-CgAAAAAAAAAAYgAAAAAAAA';
+      const audit = auditPrivacy({ gdpr: '1', gdpr_consent: 'CiQwMTlmZGMxMi0wNjY5LTcxNDEtOWU1Ny02ZWY5M2M3MzVjZDYQBBocCTkEgPA' }, {}, undefined, undefined, cmp);
+      expect(audit.verdict).toBe('warning');
+    });
+
+    it('uses the CMP decode when the request carries a segment of the CMP string', () => {
+      const core = 'CPXxRfAPXxRfAAfKABENB-CgAAAAAAAAAAYgAAAAAAAA';
+      const segment = 'IFoEUQQgAIQwgIwQABAEAAAAOIAACAIAAAAQAIAgEAACEAAAAAgAQBAAAAAAAGBAAgAAAAAAAFAAECAAAgAAQARAEQAAAAAJAAIAAgAAAYQEAAAQmAgBC3ZAYzUw';
+      const audit = auditPrivacy({ gdpr: '1', gdprstring: segment }, {}, undefined, undefined, `${core}.${segment}`);
+      expect(audit.gdprConsent).toBe(segment);
+      expect(audit.verdict).toBe('valid');
+    });
   });
 
   describe('classifyRequest', () => {
+    // A Prebid Server auction body well over the 10,000 character storage limit, with the privacy fields at the end.
+    const largePbsRequest = (privacy: { regs?: any; user?: any }) =>
+      toLogEntry({
+        request: {
+          url: 'https://prebid-server.example.com/openrtb2/auction',
+          method: 'POST',
+          postData: { mimeType: 'application/json', text: JSON.stringify({ id: 'a1', imp: Array.from({ length: 200 }, (_, i) => ({ id: `imp-${i}`, banner: { format: [{ w: 300, h: 250 }] } })), ...privacy }) },
+        },
+        response: { status: 200 },
+      });
+
+    it('flags missing consent in a large, truncated OpenRTB body', () => {
+      const entry = largePbsRequest({ regs: { ext: { gdpr: 1 } } });
+      expect(entry.postData?.text?.length).toBeLessThan(10100);
+
+      const { privacy } = classifyRequest(entry);
+      expect(privacy.gdpr).toBe('1');
+      expect(privacy.verdict).toBe('missing');
+    });
+
+    it('reads the consent string from a large, truncated OpenRTB body', () => {
+      const consent = 'CP12345AP12345ABAAENA9CAAP_AAH_AAAAAGVwBgAAA';
+      const { privacy } = classifyRequest(largePbsRequest({ regs: { ext: { gdpr: 1 } }, user: { ext: { consent } } }));
+      expect(privacy.gdprConsent).toBe(consent);
+      expect(privacy.verdict).not.toBe('missing');
+    });
+
     it('classifies Google Ad Manager request', () => {
       const entry: IHarLogEntry = {
         id: '1',
@@ -116,6 +174,28 @@ describe('networkClassifier', () => {
       expect(classified.category).toBe('gam');
       expect(classified.providerName).toBe('Google Ad Manager');
       expect(classified.isPrebid).toBe(false);
+    });
+
+    it('attributes a cookie sync to its own host, not to a Google host in its redirect parameter', () => {
+      const entry: IHarLogEntry = {
+        id: 'r1',
+        url: 'https://pixel.rubiconproject.com/exchange/sync.php?p=pbs&redir=https%3A%2F%2Fcm.g.doubleclick.net%2Fpixel%3Fgoogle_nid%3Drubicon',
+        host: 'pixel.rubiconproject.com',
+        pathname: '/exchange/sync.php',
+        method: 'GET',
+        status: 200,
+        startedDateTime: Date.now(),
+        time: 40,
+      };
+
+      const classified = classifyRequest(entry);
+      expect(classified.providerName).not.toBe('Google Ad Manager');
+      expect(classified.category).toBe('sync');
+    });
+
+    it('does not match hosts that only end in a provider domain name', () => {
+      const entry: IHarLogEntry = { id: 'r2', url: 'https://cdn.extra9.com/x.js', host: 'cdn.extra9.com', pathname: '/x.js', method: 'GET', status: 200, startedDateTime: Date.now(), time: 5 };
+      expect(classifyRequest(entry).providerName).not.toBe('Amazon TAM / A9');
     });
 
     it('classifies User Sync request', () => {

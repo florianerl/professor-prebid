@@ -1,15 +1,10 @@
 import React, { useEffect, useState, useContext, useMemo } from 'react';
 import Grid from '@mui/material/Grid';
-import { Paper, Tooltip, IconButton } from '@mui/material';
-import DownloadIcon from '@mui/icons-material/Download';
+import { Paper } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import AppStateContext from '../../contexts/appStateContext';
 import JSONViewerComponent from '../JSONViewerComponent';
-import { GridCell } from '../bids/BidsComponent';
-import { AutoComplete } from '../autocomplete/AutoComplete';
-import { replaceLastToken } from '../autocomplete/utils';
-import { download } from '../../utils';
 
 import PriceGranularityComponent from './tiles/PriceGranularityComponent';
 import UserIdModule from './tiles/UserIdModule';
@@ -26,6 +21,8 @@ import FirstPartyDataComponent from './tiles/FirstPartyDataComponent';
 import CurrencyComponent from './tiles/CurrencyComponent';
 import RtdComponent from './tiles/RtdComponent';
 import OtherConfigsComponent from './tiles/OtherConfigsComponent';
+import { DownloadButton } from '../DownloadButton';
+import { TabToolbar } from '../TabToolbar';
 
 export const tileHeight = 255;
 
@@ -51,7 +48,7 @@ const ConfigComponent = (): JSX.Element => {
   const { prebid } = useContext(AppStateContext);
   const [query, setQuery] = useState('');
 
-  const fullConfig = (prebid?.config || {}) as Record<string, any>;
+  const fullConfig = useMemo(() => (prebid?.config || {}) as Record<string, any>, [prebid?.config]);
   const fieldKeys = useMemo(() => Object.keys(fullConfig), [fullConfig]);
   const options = useMemo(() => Object.keys(fullConfig).map((k) => `${k}:`), [fullConfig]);
 
@@ -63,13 +60,15 @@ const ConfigComponent = (): JSX.Element => {
     const colonIndex = q.indexOf(':');
     const targetKey = colonIndex >= 0 ? q.slice(0, colonIndex).trim() : '';
     const targetVal = colonIndex >= 0 ? q.slice(colonIndex + 1).trim() : '';
+    // Only `key:value` when the part before the colon names a config key: values such as URLs contain colons too.
+    const isKeyValue = colonIndex >= 0 && Object.keys(fullConfig).some((key) => key.toLowerCase().includes(targetKey));
 
     Object.keys(fullConfig).forEach((key) => {
       const lowerKey = key.toLowerCase();
       const val = fullConfig[key];
       const valStr = typeof val === 'object' ? JSON.stringify(val).toLowerCase() : String(val).toLowerCase();
 
-      if (colonIndex >= 0) {
+      if (isKeyValue) {
         const keyMatch = lowerKey.includes(targetKey);
         if (keyMatch && (!targetVal || valStr.includes(targetVal))) {
           result[key] = val;
@@ -84,18 +83,7 @@ const ConfigComponent = (): JSX.Element => {
 
   return (
     <Grid container alignItems="flex-start">
-      {/* Header Bar: Full-width search bar + download button */}
-      <Grid size={{ xs: 11.5 }} sx={{ display: 'flex', alignItems: 'center', border: 0, '& .MuiInputBase-input': { paddingLeft: '4px !important', paddingTop: '4px !important' } }}>
-        <AutoComplete query={query} fieldKeys={fieldKeys} options={options} onPick={(opt) => setQuery((cur) => replaceLastToken(cur, opt))} onQueryChange={setQuery} placeholder="Filter config..." />
-      </Grid>
-
-      <GridCell cols={0.5} sx={{ display: 'flex', alignItems: 'center', border: 0 }}>
-        <Tooltip title="Download Prebid config as JSON" arrow>
-          <IconButton size="small" onClick={() => download(fullConfig, 'prebid-config')} sx={{ p: 0.5, fontSize: '1.05rem', height: 'auto' }}>
-            <DownloadIcon fontSize="inherit" />
-          </IconButton>
-        </Tooltip>
-      </GridCell>
+      <TabToolbar search={{ query, onQueryChange: setQuery, options, fieldKeys, placeholder: 'Filter config...' }} actions={<DownloadButton data={fullConfig} fileName="prebid-config" tooltip="Download Prebid config as JSON" />} />
 
       {/* Content View Switcher */}
       {query.trim() !== '' ? (

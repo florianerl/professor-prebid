@@ -1,6 +1,5 @@
 import React from 'react';
 import type { PrebidJS, AdUnit, AdUnitDefinition, Bid } from 'prebid.js';
-import { getMaxZIndex } from './AdOverlayPortal';
 import { CacheProvider } from '@emotion/react';
 import { useState, useEffect } from 'react';
 import Grid from '@mui/material/Grid';
@@ -22,8 +21,9 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { ThemeProvider } from '@mui/material';
 import { theme } from '../../../theme/theme';
-import { getSlotTargeting } from '../../Shared/gptTargeting';
-
+import { useGamSlotDetails } from '../useGamSlotDetails';
+import { equivalentAdUnitCodes } from '../InjectedApp';
+import { POPOVER_Z_INDEX } from './zIndex';
 
 const ExpandableItem = ({ avatar, children, title, json }: { avatar: JSX.Element; title: string; children?: JSX.Element; json?: object }): JSX.Element => {
   const [expanded, setExpanded] = React.useState(true);
@@ -32,7 +32,9 @@ const ExpandableItem = ({ avatar, children, title, json }: { avatar: JSX.Element
       <Box sx={{ backgroundColor: '#fff', border: '1px solid', borderColor: 'primary.light', borderRadius: 2, overflow: 'hidden' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 1.5, cursor: 'pointer', '&:hover': { backgroundColor: 'info.main' } }} onClick={() => setExpanded(!expanded)}>
           <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>{avatar}</Avatar>
-          <Typography variant="subtitle1" sx={{ color: 'text.primary', fontWeight: 'bold', ml: 1, flexGrow: 1, display: 'flex', alignItems: 'center' }}>{title}</Typography>
+          <Typography variant="subtitle1" sx={{ color: 'text.primary', fontWeight: 'bold', ml: 1, flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+            {title}
+          </Typography>
           <ExpandMoreIcon
             sx={{
               color: 'text.secondary',
@@ -55,18 +57,20 @@ const ExpandableItem = ({ avatar, children, title, json }: { avatar: JSX.Element
 const MetricCard = ({ title, value, highlightColor = '#438ED9', icon = null }: any): JSX.Element => {
   return (
     <Grid size={{ xs: 12, sm: 4, md: 4 }}>
-      <Box sx={{
-        p: 1.5,
-        backgroundColor: '#fff',
-        borderRadius: 2,
-        border: '1px solid',
-        borderColor: `${highlightColor}80`,
-        boxShadow: `0 2px 8px ${highlightColor}20`,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        height: '100%',
-      }}>
+      <Box
+        sx={{
+          p: 1.5,
+          backgroundColor: '#fff',
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: `${highlightColor}80`,
+          boxShadow: `0 2px 8px ${highlightColor}20`,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          height: '100%',
+        }}
+      >
         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}>
           {title} {icon}
         </Typography>
@@ -84,18 +88,20 @@ const InfoCard = ({ title, value, linkUrl = null }: any): JSX.Element => {
   };
   return (
     <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-      <Box sx={{
-        p: 1.5,
-        backgroundColor: '#fff',
-        borderRadius: 2,
-        border: '1px solid',
-        borderColor: 'primary.light',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        height: '100%',
-        position: 'relative'
-      }}>
+      <Box
+        sx={{
+          p: 1.5,
+          backgroundColor: '#fff',
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'primary.light',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          height: '100%',
+          position: 'relative',
+        }}
+      >
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
           {title}
         </Typography>
@@ -146,66 +152,17 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
 
   useEffect(() => {
     if (!pbjs || !pbjs.getBidResponsesForAdUnitCode) return;
-    const { bids } = pbjs.getBidResponsesForAdUnitCode(elementId);
-    const bidsSorted = bids.sort((a: any, b: any) => b.cpm - a.cpm);
-    const { 0: winningBid } = pbjs.getAllWinningBids().filter(({ adUnitCode }) => adUnitCode === elementId);
-    setAdunit(pbjs.adUnits?.find((el) => el.code === elementId) || null);
-    setBidsSorted(bidsSorted);
+    // The mask may be keyed by the slot's div id while Prebid uses its GAM path (or the reverse), as for the overlay's CPM.
+    const codes = Array.from(equivalentAdUnitCodes(elementId));
+    const bids = codes.flatMap((code) => pbjs.getBidResponsesForAdUnitCode?.(code)?.bids || []).sort((a: any, b: any) => b.cpm - a.cpm);
+    const allWinningBids = pbjs.getAllWinningBids?.() || [];
+    const { 0: winningBid } = allWinningBids.filter(({ adUnitCode }) => codes.includes(adUnitCode));
+    setAdunit(pbjs.adUnits?.find((el) => codes.includes(el.code)) || null);
+    setBidsSorted(bids);
     setWinningBid(winningBid || null);
   }, [elementId, pbjs]);
 
-  // gam stuff
-  const [networktId, setNetworkId] = useState<string[]>(null);
-  const [slotElementId, setSlotElementId] = useState<string>(null);
-  const [creativeId, setCreativeId] = useState<number>(null);
-  const [queryId, setQueryId] = useState<string>(null);
-  const [lineItemId, setLineItemId] = useState<number>(null);
-  const [slotAdUnitPath, setSlotAdUnitPath] = useState<string>(null);
-  const [slotTargeting, setSlotTargeting] = useState<{ key: string; value: string[]; id: number }[]>(null);
-  const [slotResponseInfo, setSlotResponseInfo] = useState<googletag.ResponseInformation>(null);
-
-  useEffect(() => {
-    if (!isEffectiveOpen) return;
-    if (window.parent.googletag && typeof window.parent.googletag?.pubads === 'function') {
-      const pubads = window.parent.googletag.pubads();
-      const syncSlotData = () => {
-        const slots = pubads.getSlots ? pubads.getSlots() : [];
-        const slot = slots.find((s: any) => s.getSlotElementId() === elementId) || slots.find((s: any) => s.getAdUnitPath() === elementId);
-        if (slot) {
-          setSlotElementId(slot.getSlotElementId());
-          setSlotAdUnitPath(slot.getAdUnitPath());
-          setNetworkId(slot.getAdUnitPath()?.split('/')[1]?.split(','));
-          setSlotTargeting(Object.entries(getSlotTargeting(slot)).map(([key, value], id) => ({ key, value, id })));
-          const responseInfo = slot.getResponseInformation();
-          setSlotResponseInfo(responseInfo);
-          const queryIdAttr = document.getElementById(slot.getSlotElementId())?.getAttribute('data-google-query-id');
-          setQueryId(queryIdAttr || null);
-
-          if (responseInfo) {
-            const { creativeId, lineItemId, sourceAgnosticCreativeId, sourceAgnosticLineItemId } = responseInfo as any;
-            setCreativeId(creativeId || sourceAgnosticCreativeId);
-            setLineItemId(lineItemId || sourceAgnosticLineItemId);
-          }
-        }
-      };
-
-      syncSlotData();
-
-      const eventHandler = (event: googletag.events.SlotRenderEndedEvent | googletag.events.SlotResponseReceived) => {
-        const slotElId = event.slot?.getSlotElementId ? event.slot.getSlotElementId() : null;
-        const slotPath = event.slot?.getAdUnitPath ? event.slot.getAdUnitPath() : null;
-        if (slotElId === elementId || slotPath === elementId || (slotElId && elementId.includes(slotElId)) || (slotPath && elementId.includes(slotPath))) {
-          syncSlotData();
-        }
-      };
-      pubads.addEventListener('slotResponseReceived', eventHandler);
-      pubads.addEventListener('slotRenderEnded', eventHandler);
-      return () => {
-        pubads.removeEventListener('slotResponseReceived', eventHandler);
-        pubads.removeEventListener('slotRenderEnded', eventHandler);
-      };
-    }
-  }, [elementId, isEffectiveOpen]);
+  const { networkId, creativeId, queryId, lineItemId, slotAdUnitPath, slotTargeting, slotResponseInfo } = useGamSlotDetails(elementId, isEffectiveOpen);
 
   return (
     <CacheProvider value={cacheTopPage}>
@@ -217,7 +174,7 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
           maxWidth="lg"
           fullWidth
           sx={{
-            zIndex: 99999999,
+            zIndex: POPOVER_Z_INDEX,
             position: 'fixed !important',
             inset: '0 !important',
             '& .MuiBackdrop-root': {
@@ -251,7 +208,7 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
             .MuiDialog-root {
               position: fixed !important;
               inset: 0 !important;
-              z-index: 99999999 !important;
+              z-index: ${POPOVER_Z_INDEX} !important;
               display: flex !important;
               align-items: center !important;
               justify-content: center !important;
@@ -292,16 +249,18 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
             </Grid>
 
             <Grid container spacing={1.5}>
-              {lineItemId && <InfoCard title="LineItem-ID" value={lineItemId} linkUrl={networktId ? `https://admanager.google.com/${networktId[0]}#delivery/LineItemDetail/lineItemId=${lineItemId}` : null} />}
-              {creativeId && <InfoCard title="Creative-ID" value={creativeId} linkUrl={networktId ? `https://admanager.google.com/${networktId[0]}#delivery/CreativeDetail/creativeId=${creativeId}` : null} />}
-              {queryId && <InfoCard title="Query-ID" value={queryId} linkUrl={networktId ? `https://admanager.google.com/${networktId[0]}#troubleshooting/screenshot/query_id=${queryId}` : null} />}
+              {lineItemId && <InfoCard title="LineItem-ID" value={lineItemId} linkUrl={networkId ? `https://admanager.google.com/${networkId[0]}#delivery/LineItemDetail/lineItemId=${lineItemId}` : null} />}
+              {creativeId && <InfoCard title="Creative-ID" value={creativeId} linkUrl={networkId ? `https://admanager.google.com/${networkId[0]}#delivery/CreativeDetail/creativeId=${creativeId}` : null} />}
+              {queryId && <InfoCard title="Query-ID" value={queryId} linkUrl={networkId ? `https://admanager.google.com/${networkId[0]}#troubleshooting/screenshot/query_id=${queryId}` : null} />}
               {slotAdUnitPath && <InfoCard title="AdUnit Path" value={slotAdUnitPath} />}
               {pbjs?.version && <InfoCard title="Prebid Version" value={pbjs.version} />}
             </Grid>
 
             {/* JSON Trees */}
             <Box sx={{ mt: 1 }}>
-              <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1, textTransform: 'uppercase', fontSize: 10, letterSpacing: 1 }}>Details</Typography>
+              <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1, textTransform: 'uppercase', fontSize: 10, letterSpacing: 1 }}>
+                Details
+              </Typography>
               <Box sx={{ columnCount: { xs: 1, sm: 2, md: 3, lg: 3 }, columnGap: '16px', width: '100%' }}>
                 {adUnit && <ExpandableItem title="AdUnit Info" avatar={<SettingsOutlinedIcon />} json={adUnit} />}
                 {winningBid && <ExpandableItem title="Winning Bid" avatar={<GavelIcon />} json={winningBid} />}
@@ -314,15 +273,7 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
                     children={
                       winningBid.ad && (
                         <Box sx={{ backgroundColor: '#fff', p: 1, borderRadius: 1 }}>
-                          <iframe
-                            title="Creative Preview"
-                            data-testid="creative-preview-frame"
-                            sandbox="allow-scripts"
-                            srcDoc={winningBid.ad}
-                            width={winningBid.width || 300}
-                            height={winningBid.height || 250}
-                            style={{ border: 0, maxWidth: '100%' }}
-                          />
+                          <iframe title="Creative Preview" data-testid="creative-preview-frame" sandbox="allow-scripts" srcDoc={winningBid.ad} width={winningBid.width || 300} height={winningBid.height || 250} style={{ border: 0, maxWidth: '100%' }} />
                         </Box>
                       )
                     }
@@ -333,8 +284,12 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                       {slotTargeting.map((st) => (
                         <Box key={st.key} sx={{ display: 'flex', backgroundColor: 'primary.info', p: 0.75, borderRadius: 1 }}>
-                          <Typography variant="body2" sx={{ color: 'text.secondary', width: '30%', fontWeight: 'bold' }}>{st.key}</Typography>
-                          <Typography variant="body2" sx={{ color: 'text.primary', width: '70%', wordBreak: 'break-all' }}>{st.value.join(', ')}</Typography>
+                          <Typography variant="body2" sx={{ color: 'text.secondary', width: '30%', fontWeight: 'bold' }}>
+                            {st.key}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: 'text.primary', width: '70%', wordBreak: 'break-all' }}>
+                            {st.value.join(', ')}
+                          </Typography>
                         </Box>
                       ))}
                     </Box>
@@ -343,7 +298,6 @@ const PopOverComponent = ({ elementId, winningCPM, winningBidder, currency, time
                 {slotResponseInfo && <ExpandableItem title="Response Info" avatar={<HelpIcon />} json={slotResponseInfo} />}
               </Box>
             </Box>
-
           </Box>
         </Dialog>
       </ThemeProvider>
@@ -366,18 +320,3 @@ interface PopOverComponentProps {
 }
 
 export default PopOverComponent;
-export interface IGamDetailComponentProps {
-  elementId: string;
-  inPopOver: boolean;
-  truncate: boolean;
-}
-
-export interface IGamInfos {
-  slotAdUnitPath?: string;
-  slotName?: string;
-  slotResponseInfo?: googletag.ResponseInformation;
-  slotElementId?: string;
-  accountId?: string;
-  slotTargeting?: unknown[];
-  slotTargetingKeys?: string[];
-}

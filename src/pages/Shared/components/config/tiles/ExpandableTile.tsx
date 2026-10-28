@@ -9,7 +9,8 @@ import Typography from '@mui/material/Typography';
 
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
-
+import JSONViewerComponent from '../../JSONViewerComponent';
+import { JsonViewToggle } from '../../JsonViewToggle';
 
 interface ExpandableTileProps {
   icon: ReactNode;
@@ -20,10 +21,13 @@ interface ExpandableTileProps {
   children: ReactNode;
   collapsedSize?: number;
   headerAction?: ReactNode;
+  /** The config behind the tile; when given, the header gets a toggle that shows it as raw JSON instead of the children. */
+  json?: unknown;
 }
 
-export const ExpandableTile = ({ icon, title, subtitle = '', defaultMaxWidth = 4, expandedMaxWidth = 8, children, collapsedSize = 180, headerAction }: ExpandableTileProps): JSX.Element => {
+export const ExpandableTile = ({ icon, title, subtitle = '', defaultMaxWidth = 4, expandedMaxWidth = 8, children, collapsedSize = 180, headerAction, json }: ExpandableTileProps): JSX.Element => {
   const [expanded, setExpanded] = useState(false);
+  const [showJson, setShowJson] = useState(false);
   const [maxWidth, setMaxWidth] = useState<typeof defaultMaxWidth | typeof expandedMaxWidth>(defaultMaxWidth);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -45,7 +49,7 @@ export const ExpandableTile = ({ icon, title, subtitle = '', defaultMaxWidth = 4
         transition: 'all 0.3s ease-in-out',
         breakInside: 'avoid',
         columnSpan: expanded ? 'all' : 'none',
-        py: 0.25,
+        pb: 0.5,
       }}
     >
       <Card
@@ -63,6 +67,7 @@ export const ExpandableTile = ({ icon, title, subtitle = '', defaultMaxWidth = 4
           subheader={typeof subtitle === 'string' ? subtitle && <Typography variant="subtitle1">{subtitle}</Typography> : subtitle}
           action={
             <Box sx={{ display: 'flex', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+              {json !== undefined && <JsonViewToggle active={showJson} onToggle={() => setShowJson(!showJson)} />}
               {headerAction}
               <IconButton onClick={handleExpandClick} aria-expanded={expanded} aria-label="show more">
                 <ExpandMoreIcon
@@ -89,7 +94,13 @@ export const ExpandableTile = ({ icon, title, subtitle = '', defaultMaxWidth = 4
             }}
           >
             <Grid container spacing={1}>
-              {children}
+              {showJson ? (
+                <Grid size={{ xs: 12 }}>
+                  <JSONViewerComponent src={json} name="" collapsed={1} />
+                </Grid>
+              ) : (
+                children
+              )}
             </Grid>
           </Box>
         </CardContent>

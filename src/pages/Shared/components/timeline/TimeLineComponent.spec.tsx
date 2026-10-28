@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent} from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import TimeLineComponent from './TimeLineComponent';
-import AppStateContext from '../../contexts/appStateContext';
+import AppStateContext, { AppState } from '../../contexts/appStateContext';
 
 import * as utils from '../../utils';
 
@@ -126,12 +126,13 @@ describe('TimeLineComponent', () => {
     ];
 
     render(
-      <AppStateContext.Provider value={{ prebid: { events: eventsWithTiming }, auctionEndEvents: eventsWithTiming }}>
+      <AppStateContext.Provider value={{ prebid: { events: eventsWithTiming }, auctionEndEvents: eventsWithTiming } as AppState}>
         <TimeLineComponent />
       </AppStateContext.Provider>
     );
 
     const preAuctionBtn = screen.getByTestId('HourglassTopIcon').closest('button');
+    expect(preAuctionBtn).toBeTruthy();
     if (preAuctionBtn) {
       fireEvent.click(preAuctionBtn);
     }
@@ -148,7 +149,7 @@ describe('TimeLineComponent', () => {
     ];
 
     render(
-      <AppStateContext.Provider value={{ prebid: { events: invalidAuction }, auctionEndEvents: invalidAuction }}>
+      <AppStateContext.Provider value={{ prebid: { events: invalidAuction }, auctionEndEvents: invalidAuction } as AppState}>
         <TimeLineComponent />
       </AppStateContext.Provider>
     );

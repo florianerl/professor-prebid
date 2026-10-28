@@ -1,4 +1,4 @@
-import {  sendChromeTabsMessage } from '../../Shared/utils';
+import { getTabId, sendChromeTabsMessage } from '../../Shared/utils';
 import { DOWNLOAD_FAILED } from '../constants';
 
 const safelyConstructURL = (url: string) => {
@@ -10,23 +10,16 @@ const safelyConstructURL = (url: string) => {
   }
 };
 
+// The inspected tab in the DevTools panel, the active tab in the popup. In the panel the active tab of the
+// current window may be another tab, or none when DevTools is undocked.
 const getCurrentTabURL = async (): Promise<URL> => {
+  const tabId = await getTabId();
   return new Promise((resolve) => {
-    chrome.tabs.query(
-      {
-        active: true,
-        windowId: chrome.windows.WINDOW_ID_CURRENT,
-      },
-      (tabs) => {
-        const activeTab = tabs[0];
-        const urlObj = safelyConstructURL(activeTab?.url);
-        resolve(urlObj);
-      }
-    );
+    chrome.tabs.get(tabId, (tab) => resolve(safelyConstructURL(tab?.url)));
   });
 };
 
-export const fetchEvents = async (tabInfo: IFrameInfos, setDownloading: React.Dispatch<React.SetStateAction<'true' | 'false' | 'error'>>, setSyncInfo: React.Dispatch<React.SetStateAction<string | null>>, downloadingUrls: string[]) => {
+export const fetchEvents = async (tabInfo: IFrameInfos, setDownloading: React.Dispatch<React.SetStateAction<'true' | 'false' | 'error'>>, setSyncInfo: React.Dispatch<React.SetStateAction<string | null>>) => {
   if (!tabInfo) return {};
 
   for (const frameId of Object.keys(tabInfo)) {
@@ -41,17 +34,12 @@ export const fetchEvents = async (tabInfo: IFrameInfos, setDownloading: React.Di
       setSyncInfo(`try to download Events from ${prebid.eventsUrl}`);
       setDownloading('true');
       try {
-        if (prebid && prebid.eventsUrl in downloadingUrls) {
-          // skip download if already downloading or from another domain or prebid is undefined
-        } else {
-          setSyncInfo(`${namespace}: downloading ${prebid.eventsUrl}`);
-          const response = await fetch(prebid.eventsUrl);
-          setSyncInfo(`${namespace}: get JSON from response stream`);
-          prebid.events = prebid.events || [];
-          prebid.events = await response.json();
-          setDownloading('false');
-          setSyncInfo(null);
-        }
+        setSyncInfo(`${namespace}: downloading ${prebid.eventsUrl}`);
+        const response = await fetch(prebid.eventsUrl);
+        setSyncInfo(`${namespace}: get JSON from response stream`);
+        prebid.events = await response.json();
+        setDownloading('false');
+        setSyncInfo(null);
       } catch (error) {
         sendChromeTabsMessage(DOWNLOAD_FAILED, { eventsUrl: prebid.eventsUrl });
         setSyncInfo(`${namespace}: error during download of ${prebid.eventsUrl}`);

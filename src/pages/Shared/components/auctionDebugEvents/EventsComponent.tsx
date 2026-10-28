@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import EventsState from './EventsState';
 import Grid from '@mui/material/Grid';
-import { CircularProgress, IconButton, Paper, Tooltip, Chip, Typography, Box, Collapse, Card } from '@mui/material';
-import CodeIcon from '@mui/icons-material/Code';
-import DownloadIcon from '@mui/icons-material/Download';
+import { CircularProgress, IconButton, Paper, Chip, Typography, Box, Collapse, Card } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import { GridCell } from '../bids/BidsComponent';
 import JSONViewerComponent from '../JSONViewerComponent';
-import { AutoComplete } from '../autocomplete/AutoComplete';
-import { replaceLastToken } from '../autocomplete/utils';
-import { download, conditionalPluralization as cP } from '../../utils';
+import { conditionalPluralization as cP } from '../../utils';
 import { IPrebidEvent } from '../../../Injected/prebid';
+import { JsonViewToggle } from '../JsonViewToggle';
+import { DownloadButton } from '../DownloadButton';
+import { TabEmptyState, TabToolbar } from '../TabToolbar';
 
 const EventRowComponent = ({ event, index }: { event: IPrebidEvent; index: number }): JSX.Element => {
   const [expanded, setExpanded] = useState(false);
@@ -67,10 +66,10 @@ const EventRowComponent = ({ event, index }: { event: IPrebidEvent; index: numbe
 
   return (
     <Card
-      elevation={0}
+      elevation={1}
       sx={{
         border: '1px solid',
-        borderColor: expanded ? 'primary.main' : 'divider',
+        borderColor: expanded ? 'primary.main' : 'transparent',
         borderRadius: 1,
         mb: 0.5,
         transition: 'border-color 0.2s',
@@ -131,86 +130,29 @@ const EventRowComponent = ({ event, index }: { event: IPrebidEvent; index: numbe
   );
 };
 
+const WARNINGS_QUERY = 'eventtype:auctionDebug argstype:WARNING';
+const ERRORS_QUERY = 'eventtype:auctionDebug argstype:ERROR';
+
 const EventsComponent = (): JSX.Element => {
   const { query, setQuery, isPending, events, warningEvents, errorEvents, counts, suggestions, sortedEvents, EVENT_FIELD_MAP } = EventsState();
   const [showJson, setShowJson] = useState(false);
 
   return (
     <Grid container sx={{ width: '100%' }}>
-      {/* Counts Header */}
-      <GridCell
-        cols={1.5}
-        variant="h2"
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-          color: 'text.secondary',
-          border: 0,
-          cursor: 'pointer',
-        }}
-        onClick={() => setQuery('')}
-      >
-        Event{cP(events)}: {events?.length || 0}
-      </GridCell>
-
-      <GridCell
-        cols={1.5}
-        variant="h2"
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-          color: 'text.secondary',
-          border: 0,
-          cursor: 'pointer',
-        }}
-        onClick={() => setQuery('eventtype:auctionDebug argstype:WARNING')}
-      >
-        Warning{cP(warningEvents)}: {counts.warning}
-      </GridCell>
-
-      <GridCell
-        cols={1.5}
-        variant="h2"
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-          color: 'text.secondary',
-          border: 0,
-          cursor: 'pointer',
-        }}
-        onClick={() => setQuery('eventtype:auctionDebug argstype:ERROR')}
-      >
-        Error{cP(errorEvents)}: {counts.error}
-      </GridCell>
-
-      {/* Search Bar */}
-      <Grid size={{ xs: 6.5 }} sx={{ display: 'flex', alignItems: 'center', border: 0, '& .MuiInputBase-input': { paddingLeft: '4px !important', paddingTop: '4px !important' } }}>
-        <AutoComplete fieldKeys={Object.keys(EVENT_FIELD_MAP) as string[]} options={suggestions} onPick={(opt) => setQuery((cur) => replaceLastToken(cur, opt))} onQueryChange={setQuery} placeholder="Filter events..." query={query} />
-      </Grid>
-
-      {/* JSON Toggle Icon */}
-      <GridCell cols={0.5} sx={{ display: 'flex', alignItems: 'center', border: 0 }}>
-        <Tooltip title={showJson ? 'Switch to Event Stream view' : 'Switch to raw JSON view'} arrow>
-          <IconButton size="small" onClick={() => setShowJson(!showJson)} color={showJson ? 'primary' : 'default'} sx={{ p: 0.5, fontSize: '1.05rem', height: 'auto' }}>
-            <CodeIcon fontSize="inherit" />
-          </IconButton>
-        </Tooltip>
-      </GridCell>
-
-      {/* Download Icon */}
-      <GridCell cols={0.5} sx={{ display: 'flex', alignItems: 'center', border: 0 }}>
-        <Tooltip title="Download filtered events as JSON" arrow>
-          <IconButton size="small" onClick={() => download(sortedEvents, 'filtered-events')} sx={{ p: 0.5, fontSize: '1.05rem', height: 'auto' }}>
-            <DownloadIcon fontSize="inherit" />
-          </IconButton>
-        </Tooltip>
-      </GridCell>
+      <TabToolbar
+        stats={[
+          { label: `Event${cP(events)}: ${events?.length || 0}`, onClick: () => setQuery(''), selected: query === '' },
+          { label: `Warning${cP(warningEvents)}: ${counts.warning}`, onClick: () => setQuery(WARNINGS_QUERY), selected: query === WARNINGS_QUERY },
+          { label: `Error${cP(errorEvents)}: ${counts.error}`, onClick: () => setQuery(ERRORS_QUERY), selected: query === ERRORS_QUERY },
+        ]}
+        search={{ query, onQueryChange: setQuery, options: suggestions, fieldKeys: Object.keys(EVENT_FIELD_MAP), placeholder: 'Filter events...' }}
+        actions={
+          <>
+            <JsonViewToggle active={showJson} onToggle={() => setShowJson(!showJson)} formattedView="Event Stream view" toolbar />
+            <DownloadButton data={sortedEvents} fileName="filtered-events" tooltip="Download filtered events as JSON" />
+          </>
+        }
+      />
 
       {/* Content Stream or JSON */}
       {isPending ? (
@@ -220,11 +162,9 @@ const EventsComponent = (): JSX.Element => {
           </Paper>
         </Grid>
       ) : !sortedEvents || sortedEvents.length === 0 ? (
-        <Grid size={{ xs: 12 }}>
-          <Paper sx={{ p: 2, textAlign: 'center', mt: 0.5 }}>No matching events</Paper>
-        </Grid>
+        <TabEmptyState>No matching events</TabEmptyState>
       ) : showJson ? (
-        <GridCell variant="body2" cols={12} sx={{ '& .MuiTypography-root': { width: '100%', textAlign: 'left' }, mt: 0.5 }}>
+        <GridCell variant="body2" cols={12} sx={{ '& .MuiTypography-root': { width: '100%', textAlign: 'left' } }}>
           <JSONViewerComponent
             name={`${sortedEvents.length} Event${cP(sortedEvents)} `}
             src={sortedEvents}
@@ -239,7 +179,7 @@ const EventsComponent = (): JSX.Element => {
           />
         </GridCell>
       ) : (
-        <Grid size={{ xs: 12 }} sx={{ mt: 0.5 }}>
+        <Grid size={{ xs: 12 }}>
           {sortedEvents.map((event, index) => (
             <EventRowComponent key={`${event.eventType}-${event.elapsedTime}-${index}`} event={event} index={index} />
           ))}

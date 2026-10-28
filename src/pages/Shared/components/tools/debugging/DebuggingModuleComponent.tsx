@@ -5,7 +5,6 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
 import Chip from '@mui/material/Chip';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -24,6 +23,7 @@ import { IPrebidDebugModuleConfig, IPrebidDebugModuleConfigRule } from '../../..
 import { STORE_RULES_TOGGLE } from '../../../constants';
 import RuleComponent from './RuleComponent';
 import AppStateContext from '../../../contexts/appStateContext';
+import { SectionCard } from '../../Section';
 
 const get = (obj: any, path: string[] = []): any => {
   return path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), obj);
@@ -56,6 +56,28 @@ const PRESET_TEMPLATES: { label: string; rule: IPrebidDebugModuleConfigRule }[] 
   },
 ];
 
+const readStoreRulesToggle = () =>
+  new Promise<boolean>((resolve) => {
+    if (!chrome.storage?.local) return resolve(false);
+    chrome.storage.local.get(STORE_RULES_TOGGLE, (result) => resolve(result ? !!result[STORE_RULES_TOGGLE] : false));
+  });
+
+// Prebid's debugging module reads its rules from sessionStorage; localStorage is only the persisted copy.
+const writeToPageStorage = async (tabId: number, namespace: string, storageName: 'sessionStorage' | 'localStorage', input: IPrebidDebugModuleConfig) => {
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    func: (namespace: string, input: object, storageName: 'sessionStorage' | 'localStorage') => {
+      try {
+        const storage = window[storageName];
+        if (storage) {
+          storage.setItem(`__${namespace}_debugging__`, `${JSON.stringify(input)}`);
+        }
+      } catch (_) {}
+    },
+    args: [namespace, input, storageName],
+  });
+};
+
 const DebuggingModuleComponent = (): JSX.Element => {
   const { prebid, pbjsNamespace } = useContext(AppStateContext);
   const [debuggingModuleConfig, setDebuggingModuleConfig] = useState<IPrebidDebugModuleConfig>({ enabled: false, intercept: [] });
@@ -66,38 +88,27 @@ const DebuggingModuleComponent = (): JSX.Element => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    chrome.storage?.local.get(STORE_RULES_TOGGLE, (result) => {
-      const checked = result ? !!result[STORE_RULES_TOGGLE] : false;
-      setStoreRules(checked);
-    });
+    readStoreRulesToggle().then(setStoreRules);
   }, []);
+
+  const removePersistedRules = async (tabId: number) => {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      func: (namespace: string) => {
+        try {
+          localStorage.removeItem(`__${namespace}_debugging__`);
+        } catch (_) {}
+      },
+      args: [pbjsNamespace || 'pbjs'],
+    });
+  };
 
   const writeConfigToStorage = async (input: IPrebidDebugModuleConfig) => {
     setDebuggingModuleConfig(input);
     const tabId = await getTabId();
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      func: (namespace: string, input: object) => {
-        try {
-          if (typeof sessionStorage !== 'undefined') {
-            sessionStorage.setItem(`__${namespace}_debugging__`, `${JSON.stringify(input)}`);
-          }
-        } catch (_) {}
-      },
-      args: [pbjsNamespace || 'pbjs', input],
-    });
+    await writeToPageStorage(tabId, pbjsNamespace || 'pbjs', 'sessionStorage', input);
     if (!storeRules) return;
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      func: (namespace: string, input: object) => {
-        try {
-          if (typeof localStorage !== 'undefined') {
-            localStorage.setItem(`__${namespace}_debugging__`, `${JSON.stringify(input)}`);
-          }
-        } catch (_) {}
-      },
-      args: [pbjsNamespace || 'pbjs', input],
-    });
+    await writeToPageStorage(tabId, pbjsNamespace || 'pbjs', 'localStorage', input);
   };
 
   const toggleGlobalLogging = async (enabled: boolean) => {
@@ -105,6 +116,8 @@ const DebuggingModuleComponent = (): JSX.Element => {
     const tabId = await getTabId();
     await chrome.scripting.executeScript({
       target: { tabId },
+      // pbjs lives on the page's window, which only the MAIN world can see.
+      world: 'MAIN',
       func: (namespace: string, debugState: boolean) => {
         const globalPbjs = (window as any)[namespace || 'pbjs'];
         if (globalPbjs && typeof globalPbjs.setConfig === 'function') {
@@ -121,20 +134,29 @@ const DebuggingModuleComponent = (): JSX.Element => {
     const newFormValues = { ...debuggingModuleConfig };
     set(newFormValues, path, value);
     if (deletePath) {
-      const last = deletePath.pop();
-      const targetObj = get(newFormValues, deletePath);
+      const targetPath = [...deletePath];
+      const last = targetPath.pop();
+      const targetObj = get(newFormValues, targetPath);
       if (targetObj && last) delete targetObj[last];
     }
     setDebuggingModuleConfig(newFormValues);
     await writeConfigToStorage(newFormValues);
   };
 
-  const handleStoreRulesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleStoreRulesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const checked = event.target.checked;
     setStoreRules(checked);
     chrome.storage?.local.set({ [STORE_RULES_TOGGLE]: checked }, () => {
       sendChromeTabsMessage(STORE_RULES_TOGGLE, { consoleState: checked });
     });
+    // Drop the persisted copy, or a later session would load the old rules again.
+    if (!checked) {
+      try {
+        await removePersistedRules(await getTabId());
+      } catch (e) {
+        console.warn('Could not remove persisted debugging rules', e);
+      }
+    }
   };
 
   // Export rules to JSON file
@@ -194,16 +216,21 @@ const DebuggingModuleComponent = (): JSX.Element => {
           func: (namespace: string) => (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(`__${namespace}_debugging__`) : null),
           args: [pbjsNamespace || 'pbjs'],
         });
-        if (!first || !first.result) {
+        let fromLocalStorage = false;
+        // The localStorage copy only counts while "store rules" is on.
+        if ((!first || !first.result) && (await readStoreRulesToggle())) {
           [first] = await chrome.scripting.executeScript({
             target: { tabId },
             func: (namespace: string) => (typeof localStorage !== 'undefined' ? localStorage.getItem(`__${namespace}_debugging__`) : null),
             args: [pbjsNamespace || 'pbjs'],
           });
+          fromLocalStorage = true;
         }
         if (first && first.result) {
           const savedConfig: IPrebidDebugModuleConfig = JSON.parse(first.result);
           setDebuggingModuleConfig(savedConfig);
+          // A new session starts with empty sessionStorage: copy the persisted rules over so Prebid applies what the UI shows.
+          if (fromLocalStorage) await writeToPageStorage(tabId, pbjsNamespace || 'pbjs', 'sessionStorage', savedConfig);
         }
       } catch (e) {
         console.warn('Could not read debugging module state', e);
@@ -213,21 +240,12 @@ const DebuggingModuleComponent = (): JSX.Element => {
   }, [pbjsNamespace]);
 
   return (
-    <Paper elevation={1} sx={{ p: 1.25, border: '1px solid', borderColor: debuggingModuleConfig?.enabled ? 'primary.main' : 'divider' }}>
-      {/* Hidden File Input for Import */}
-      <input type="file" ref={fileInputRef} accept=".json" style={{ display: 'none' }} onChange={handleImportFile} />
-
-      {/* Header Title Bar */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap', gap: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <BugReportIcon color={debuggingModuleConfig?.enabled ? 'primary' : 'action'} />
-          <Typography variant="h3" sx={{ fontSize: '0.9rem', fontWeight: 700 }}>
-            Prebid.js Debugging Module (v7.3.0+)
-          </Typography>
-          <Chip label={debuggingModuleConfig?.enabled ? 'MODULE ENABLED' : 'DISABLED'} size="small" color={debuggingModuleConfig?.enabled ? 'primary' : 'default'} sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }} />
-        </Box>
-
-        {/* JSON Sharing Action Buttons */}
+    <SectionCard
+      highlighted={debuggingModuleConfig?.enabled}
+      icon={<BugReportIcon color={debuggingModuleConfig?.enabled ? 'primary' : 'action'} />}
+      title="Prebid.js Debugging Module (v7.3.0+)"
+      badge={<Chip label={debuggingModuleConfig?.enabled ? 'MODULE ENABLED' : 'DISABLED'} size="small" color={debuggingModuleConfig?.enabled ? 'primary' : 'default'} sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }} />}
+      actions={
         <Box sx={{ display: 'flex', gap: 0.75 }}>
           <Tooltip title="Export current rules to JSON file for sharing" arrow>
             <Button size="small" variant="outlined" startIcon={<DownloadIcon />} onClick={exportRulesJson} sx={{ fontSize: '0.725rem', textTransform: 'none', py: 0.25 }}>
@@ -247,7 +265,10 @@ const DebuggingModuleComponent = (): JSX.Element => {
             </Button>
           </Tooltip>
         </Box>
-      </Box>
+      }
+    >
+      {/* Hidden File Input for Import */}
+      <input type="file" ref={fileInputRef} accept=".json" style={{ display: 'none' }} onChange={handleImportFile} />
 
       {/* Master Toggles Row */}
       <Grid container spacing={0.75} sx={{ mb: 1, alignItems: 'center' }}>
@@ -339,7 +360,7 @@ const DebuggingModuleComponent = (): JSX.Element => {
           ))
         ) : (
           <Grid size={{ xs: 12 }}>
-            <Box sx={{ p: 1.5, textAlign: 'center', border: '1px stroke', borderColor: 'divider', borderRadius: 1, backgroundColor: 'action.hover' }}>
+            <Box sx={{ p: 1.5, textAlign: 'center', border: '1px solid', borderColor: 'divider', borderRadius: 1, backgroundColor: 'action.hover' }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
                 No active debug rules configured. Click <strong>Add Custom Intercept Rule</strong> or <strong>Insert Preset Template</strong> to start mocking bid responses.
               </Typography>
@@ -354,7 +375,7 @@ const DebuggingModuleComponent = (): JSX.Element => {
           {snackbarMsg}
         </Alert>
       </Snackbar>
-    </Paper>
+    </SectionCard>
   );
 };
 

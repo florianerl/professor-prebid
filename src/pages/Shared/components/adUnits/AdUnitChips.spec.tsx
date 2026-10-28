@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Ortb2ImpExtChipComponent, MediaTypeChipComponent, AdUnitChipComponent, BidChipComponent, InterstitialChipComponent } from './AdUnitChips';
 import AppStateContext from '../../contexts/appStateContext';
+import { AdUnit } from '../../../Injected/prebid';
 
 vi.mock('../../../Shared/utils', () => ({
   getTabId: vi.fn().mockResolvedValue(1),
@@ -82,7 +83,7 @@ describe('AdUnitChips components', () => {
     });
     expect(screen.getByText('slot-1')).toBeTruthy();
 
-    rerender(<AdUnitChipComponent adUnit={{ code: 'slot-2' }} />);
+    rerender(<AdUnitChipComponent adUnit={{ code: 'slot-2' } as AdUnit} />);
     expect(screen.getByText('slot-2')).toBeTruthy();
   });
 
@@ -114,7 +115,7 @@ describe('AdUnitChips components', () => {
 
   it('renders BidChipComponent with combinations of winner, rendered, and received status', () => {
     const mockBid: any = { bidder: 'rubicon', cpm: 2.5, currency: 'USD', adUnitCode: 'slot-1' };
-    const mockAppState: any = { topics: ['topic-1'] };
+    const mockAppState: any = {};
 
     const { rerender } = render(
       <AppStateContext.Provider value={mockAppState}>

@@ -20,7 +20,7 @@ export interface SimulatedAuctionOptions {
   gamSlotId?: string;
 }
 
-export const waitForMcpBridge = async function(page: Page, timeoutMs: number = 10000): Promise<void> {
+export const waitForMcpBridge = async function (page: Page, timeoutMs: number = 10000): Promise<void> {
   await page.waitForFunction(
     () => {
       const win = window as any;
@@ -31,9 +31,9 @@ export const waitForMcpBridge = async function(page: Page, timeoutMs: number = 1
     null,
     { timeout: timeoutMs }
   );
-}
+};
 
-export const simulatePrebidAuction = async function(page: Page, options: SimulatedAuctionOptions): Promise<void> {
+export const simulatePrebidAuction = async function (page: Page, options: SimulatedAuctionOptions): Promise<void> {
   const auctionId = options.auctionId || `auction-${Date.now()}`;
   const adUnitCode = options.adUnitCode || 'div-gpt-ad-leaderboard';
   const timeout = options.timeout || 1000;
@@ -154,13 +154,13 @@ export const simulatePrebidAuction = async function(page: Page, options: Simulat
       gamSlotId: options.gamSlotId,
     }
   );
-}
+};
 
 /**
  * Attaches AI diagnostic context to Playwright test report if a test failed.
  */
-export const attachAiDiagnosticOnFailure = async function(testInfo: TestInfo, page: Page): Promise<void> {
-  if (testInfo.status !== testInfo.expectedStatus) {
+export const attachAiDiagnosticOnFailure = async function (testInfo: TestInfo, page?: Page): Promise<void> {
+  if (testInfo.status !== testInfo.expectedStatus && page && !page.isClosed()) {
     try {
       const aiPrompt = await page.evaluate(() => {
         const win = window as any;
@@ -176,4 +176,4 @@ export const attachAiDiagnosticOnFailure = async function(testInfo: TestInfo, pa
       console.warn('Could not extract AI diagnostic context on test failure:', e);
     }
   }
-}
+};

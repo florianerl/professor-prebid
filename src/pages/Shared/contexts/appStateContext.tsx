@@ -5,13 +5,6 @@ import { IGoogleAdManagerDetails } from '../../Injected/googleAdManager';
 import { IPrebidDetails } from '../../Injected/prebid';
 import type { EventRecord, Config } from 'prebid.js';
 
-declare global {
-  interface Document {
-    featurePolicy: { [key: string]: any };
-    browsingTopics: () => Promise<string[]>;
-  }
-}
-
 const AppStateContext = React.createContext<AppState>({
   tcf: {} as Config['consentManagement'],
   googleAdManager: {} as IGoogleAdManagerDetails,
@@ -42,8 +35,6 @@ const AppStateContext = React.createContext<AppState>({
   setInitDataLoaded: () => {},
   prebidReleaseInfo: {},
   setPrebidReleaseInfo: () => {},
-  topics: [],
-  setTopics: () => {},
 });
 
 export const StateContextProvider = ({ children }: StateContextProviderProps) => {
@@ -72,7 +63,6 @@ export const StateContextProvider = ({ children }: StateContextProviderProps) =>
   const [isRefresh, setIsRefresh] = useState<boolean>(false);
   const [initDataLoaded, setInitDataLoaded] = useState<boolean>(false);
   const [prebidReleaseInfo, setPrebidReleaseInfo] = useState<any>({});
-  const [topics, setTopics] = useState<string[]>([]);
 
   useEffect(() => {
     setPbjsNamespaces(Object.keys(prebids).filter((key) => key !== 'tcf'));
@@ -113,20 +103,6 @@ export const StateContextProvider = ({ children }: StateContextProviderProps) =>
   }, [pbjsNamespace, pbjsNamespaces, setPbjsNamespace, frameId]);
 
   useEffect(() => {
-    const fetchTopics = async () => {
-      if ('browsingTopics' in document && document.featurePolicy.allowsFeature('browsing-topics')) {
-        try {
-          const topics = await document.browsingTopics();
-          setTopics(topics);
-        } catch (error) {
-          console.error('Error fetching topics', error);
-        }
-      }
-    };
-    fetchTopics();
-  }, [prebids]);
-
-  useEffect(() => {
     const prebid = prebids?.[pbjsNamespace] || ({} as IPrebidDetails);
     const events = Array.isArray(prebid.events) ? prebid.events : [];
     const allBidResponseEvents = (events?.filter(({ eventType }: { eventType: string }) => eventType === 'bidResponse') || []) as EventRecord<'bidResponse'>[];
@@ -137,15 +113,22 @@ export const StateContextProvider = ({ children }: StateContextProviderProps) =>
       new Set(
         events?.reduce((acc: string[], event: any) => {
           if (event.eventType === 'auctionInit') {
-            const adUnitCodes = (event as EventRecord<'auctionInit'>).args.adUnitCodes;
+            const adUnitCodes = (event as EventRecord<'auctionInit'>).args?.adUnitCodes || [];
             acc = [...acc, ...adUnitCodes];
           }
           return acc;
         }, [] as string[])
       )
     ) as string[];
-    const allBidderEventsBidders = Array.from(new Set([].concat(allBidResponseEvents, allNoBidEvents).map(({ args: { bidder } }) => bidder)));
-    const auctionInitEvents = (events?.filter(({ eventType }: { eventType: string }) => eventType === 'auctionInit') as EventRecord<'auctionInit'>[])?.sort(({ args: { timestamp: tsa } }, { args: { timestamp: tsb } }) => tsa - tsb);
+    const allBidderEventsBidders = Array.from(
+      new Set(
+        []
+          .concat(allBidResponseEvents, allNoBidEvents)
+          .map((event: any) => event?.args?.bidder)
+          .filter(Boolean)
+      )
+    );
+    const auctionInitEvents = (events?.filter(({ eventType }: { eventType: string }) => eventType === 'auctionInit') as EventRecord<'auctionInit'>[])?.sort((a, b) => (a?.args?.timestamp ?? 0) - (b?.args?.timestamp ?? 0));
     const auctionEndEvents = events?.filter(({ eventType }: { eventType: string }) => eventType === 'auctionEnd') as EventRecord<'auctionEnd'>[];
     const allWinningBids = events?.filter(({ eventType }: { eventType: string }) => eventType === 'bidWon') as EventRecord<'bidWon'>[];
     const adsRendered = events?.filter(({ eventType }: { eventType: string }) => eventType === 'adRenderSucceeded') as EventRecord<'adRenderSucceeded'>[];
@@ -194,8 +177,6 @@ export const StateContextProvider = ({ children }: StateContextProviderProps) =>
     setInitDataLoaded,
     prebidReleaseInfo,
     setPrebidReleaseInfo,
-    topics,
-    setTopics,
   };
 
   return <AppStateContext.Provider value={contextValue}>{children}</AppStateContext.Provider>;
@@ -203,7 +184,7 @@ export const StateContextProvider = ({ children }: StateContextProviderProps) =>
 
 export default AppStateContext;
 
-interface AppState {
+export interface AppState {
   tcf: Config['consentManagement'];
   googleAdManager: IGoogleAdManagerDetails;
   pbjsNamespace?: string;
@@ -245,8 +226,6 @@ interface AppState {
     releasesSinceInstalledVersion?: any[];
   };
   setPrebidReleaseInfo: React.Dispatch<React.SetStateAction<any>>;
-  topics: string[];
-  setTopics: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 interface StateContextProviderProps {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { EVENTS, CONSOLE_TOGGLE, SAVE_MASKS } from '../Shared/constants';
 import { EventBus } from '../Shared/utils';
 import AdOverlayPortal from './components/AdOverlayPortal';
@@ -23,6 +23,49 @@ export const getParentGamPubAds = () => {
   return null;
 };
 
+const isCodeChar = (c: string | undefined) => !!c && /[a-z0-9]/i.test(c);
+
+// True when `code` appears in `text` as a whole token, so 'div-gpt-ad-1' matches 'wrap-div-gpt-ad-1_0' but not 'div-gpt-ad-12'.
+export const containsCode = (text: string, code: string): boolean => {
+  if (!text || !code) return false;
+  for (let i = text.indexOf(code); i !== -1; i = text.indexOf(code, i + 1)) {
+    if (!isCodeChar(text[i - 1]) && !isCodeChar(text[i + code.length])) return true;
+  }
+  return false;
+};
+
+const slotPath = (slot: any): string => (slot?.getAdUnitPath ? slot.getAdUnitPath() : '') || '';
+const slotElementId = (slot: any): string => (slot?.getSlotElementId ? slot.getSlotElementId() : '') || '';
+
+// A GAM slot stands for an ad unit code when the code is its element id, its full ad unit path, or the last segment of that path.
+export const isSameGamSlot = (slot: any, adUnitCode: string): boolean => {
+  const path = slotPath(slot);
+  return slotElementId(slot) === adUnitCode || path === adUnitCode || (!!path && path.split('/').pop() === adUnitCode);
+};
+
+const getGamSlots = (): any[] => {
+  try {
+    if (window.googletag && typeof window.googletag.pubads === 'function') {
+      const pubads = window.googletag.pubads();
+      return pubads.getSlots ? pubads.getSlots() : [];
+    }
+  } catch (e) {
+    // Ignored
+  }
+  return [];
+};
+
+/** Every code that refers to the same ad slot as `adUnitCode`: the code itself plus the path and element id of its GAM slot. */
+export const equivalentAdUnitCodes = (adUnitCode: string): Set<string> => {
+  const codes = new Set<string>([adUnitCode]);
+  getGamSlots()
+    .filter((slot) => isSameGamSlot(slot, adUnitCode))
+    .forEach((slot) => {
+      if (slotPath(slot)) codes.add(slotPath(slot));
+      if (slotElementId(slot)) codes.add(slotElementId(slot));
+    });
+  return codes;
+};
 
 export const findAdContainer = (adUnitCode: string): HTMLElement | null => {
   if (!adUnitCode) return null;
@@ -33,23 +76,19 @@ export const findAdContainer = (adUnitCode: string): HTMLElement | null => {
     return el.tagName === 'IFRAME' ? el.parentElement : el;
   }
 
-  // 2. GAM Slot matching
-  if (window.googletag && typeof window.googletag.pubads === 'function') {
-    try {
-      const slots = window.googletag.pubads().getSlots ? window.googletag.pubads().getSlots() : [];
-      const matchedSlot = slots.find((s: any) => {
-        const path = s.getAdUnitPath ? s.getAdUnitPath() : '';
-        const elementId = s.getSlotElementId ? s.getSlotElementId() : '';
-        return (path && path.includes(adUnitCode)) || (elementId && elementId.includes(adUnitCode)) || (path && adUnitCode.includes(path)) || (elementId && adUnitCode.includes(elementId));
-      });
-      if (matchedSlot && matchedSlot.getSlotElementId) {
-        const slotEl = document.getElementById(matchedSlot.getSlotElementId());
-        if (slotEl) {
-          return slotEl.tagName === 'IFRAME' ? slotEl.parentElement : slotEl;
-        }
-      }
-    } catch (e) {
-      // Ignored
+  // 2. GAM Slot matching: exact first, then whole-token matches
+  const slots = getGamSlots();
+  const matchedSlot =
+    slots.find((s: any) => isSameGamSlot(s, adUnitCode)) ||
+    slots.find((s: any) => {
+      const path = slotPath(s);
+      const elementId = slotElementId(s);
+      return containsCode(path, adUnitCode) || containsCode(elementId, adUnitCode) || containsCode(adUnitCode, path) || containsCode(adUnitCode, elementId);
+    });
+  if (matchedSlot) {
+    const slotEl = document.getElementById(slotElementId(matchedSlot));
+    if (slotEl) {
+      return slotEl.tagName === 'IFRAME' ? slotEl.parentElement : slotEl;
     }
   }
 
@@ -57,7 +96,7 @@ export const findAdContainer = (adUnitCode: string): HTMLElement | null => {
   // Matched in JS rather than via an [id*="..."] selector so ad unit codes with quotes or backslashes cannot break the query.
   const extensionRoot = document.getElementById('professor_prebid-root');
   const candidate = Array.from(document.querySelectorAll<HTMLElement>('[id]')).find(
-    (el) => el.id.includes(adUnitCode) && !el.id.startsWith('prpb-mask--container-') && el.tagName !== 'SCRIPT' && el.tagName !== 'STYLE' && !(extensionRoot && extensionRoot !== el && extensionRoot.contains(el))
+    (el) => containsCode(el.id, adUnitCode) && !el.id.startsWith('prpb-mask--container-') && el.tagName !== 'SCRIPT' && el.tagName !== 'STYLE' && !(extensionRoot && extensionRoot !== el && extensionRoot.contains(el))
   );
   if (candidate) {
     return candidate.tagName === 'IFRAME' ? candidate.parentElement : candidate;
@@ -102,11 +141,13 @@ const InjectedApp = (): JSX.Element => {
   const pendingNamespaceRef = useRef<string | null>(null);
 
   const handleConsoleStateChange = (event: Event) => {
-    const checked = (event as CustomEvent).detail;
+    const checked = !!(event as CustomEvent).detail;
+    // Update the ref now, not after the next render: the content script sends SAVE_MASKS right after this event, in the same tick.
+    consoleStateRef.current = checked;
     setConsoleState(checked);
   };
 
-  const updateMasksFromPbjs = (pbjsNameSpace: string) => {
+  const updateMasksFromPbjs = useCallback((pbjsNameSpace: string) => {
     setPbjsNameSpace(pbjsNameSpace);
     const pbsjsEvents = (window[pbjsNameSpace]?.getEvents ? window[pbjsNameSpace].getEvents() : []) as unknown[];
     const adUnitCodesSet = new Set<string>();
@@ -164,15 +205,19 @@ const InjectedApp = (): JSX.Element => {
     }
 
     const allAdunitCodes = Array.from(adUnitCodesSet);
+    // One mask per container: a Prebid code that is a GAM path and the slot's div id (step 5) resolve to the same element.
+    // Prebid codes are added first, so they win over the div id.
+    const maskedContainers = new Set<HTMLElement>();
     const masks = allAdunitCodes
       .filter((adUnitCode) => {
         const container = findAdContainer(adUnitCode);
-        return isContainerVisible(container);
+        if (!isContainerVisible(container) || maskedContainers.has(container)) return false;
+        maskedContainers.add(container);
+        return true;
       })
       .map((adUnitCode) => {
-        const slotsBidWonEvent = (pbsjsEvents as IPrebidBidWonEventData[])
-          .filter((event) => event.eventType === 'bidWon' && (event.args.adUnitCode === adUnitCode || adUnitCode.includes(event.args.adUnitCode) || event.args.adUnitCode.includes(adUnitCode)))
-          .sort((a, b) => (a.args.responseTimestamp < b.args.responseTimestamp ? 1 : -1))[0];
+        const codes = equivalentAdUnitCodes(adUnitCode);
+        const slotsBidWonEvent = (pbsjsEvents as IPrebidBidWonEventData[]).filter((event) => event.eventType === 'bidWon' && codes.has(event.args?.adUnitCode)).sort((a, b) => (a.args.responseTimestamp < b.args.responseTimestamp ? 1 : -1))[0];
 
         return {
           elementId: adUnitCode,
@@ -188,46 +233,49 @@ const InjectedApp = (): JSX.Element => {
       const updated = masks.find((m) => m.elementId === current.elementId);
       return updated ? { ...current, ...updated } : current;
     });
-  };
+  }, []);
 
-  const handleNewMasks = (event: Event) => {
-    const customEvent = event as CustomEvent;
-    const pbjsNameSpace: string = customEvent.detail;
+  const handleNewMasks = useCallback(
+    (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const pbjsNameSpace: string = customEvent.detail;
 
-    if (!pbjsNameSpace || !consoleStateRef.current) {
-      return;
-    }
-
-    pendingNamespaceRef.current = pbjsNameSpace;
-
-    const now = Date.now();
-    const interval = 1000;
-    const last = lastGetEventsRef.current;
-
-    if (!last || now - last >= interval) {
-      lastGetEventsRef.current = now;
-      const ns = pendingNamespaceRef.current;
-      pendingNamespaceRef.current = null;
-      if (ns) {
-        updateMasksFromPbjs(ns);
+      if (!pbjsNameSpace || !consoleStateRef.current) {
+        return;
       }
-      return;
-    }
 
-    if (getEventsTimeoutRef.current == null) {
-      const remaining = interval - (now - last);
-      getEventsTimeoutRef.current = window.setTimeout(() => {
-        lastGetEventsRef.current = Date.now();
+      pendingNamespaceRef.current = pbjsNameSpace;
+
+      const now = Date.now();
+      const interval = 1000;
+      const last = lastGetEventsRef.current;
+
+      if (!last || now - last >= interval) {
+        lastGetEventsRef.current = now;
         const ns = pendingNamespaceRef.current;
         pendingNamespaceRef.current = null;
-        getEventsTimeoutRef.current = null;
-
-        if (ns && consoleStateRef.current) {
+        if (ns) {
           updateMasksFromPbjs(ns);
         }
-      }, remaining);
-    }
-  };
+        return;
+      }
+
+      if (getEventsTimeoutRef.current == null) {
+        const remaining = interval - (now - last);
+        getEventsTimeoutRef.current = window.setTimeout(() => {
+          lastGetEventsRef.current = Date.now();
+          const ns = pendingNamespaceRef.current;
+          pendingNamespaceRef.current = null;
+          getEventsTimeoutRef.current = null;
+
+          if (ns && consoleStateRef.current) {
+            updateMasksFromPbjs(ns);
+          }
+        }, remaining);
+      }
+    },
+    [updateMasksFromPbjs]
+  );
 
   useEffect(() => {
     consoleStateRef.current = consoleState;
@@ -245,21 +293,12 @@ const InjectedApp = (): JSX.Element => {
         getEventsTimeoutRef.current = null;
       }
     };
-  }, []);
+  }, [handleNewMasks]);
 
   return (
     <React.Fragment>
       {masks.map((mask) => {
-        return (
-          <AdOverlayPortal
-            key={mask.elementId}
-            mask={mask}
-            consoleState={consoleState}
-            container={undefined as any}
-            pbjsNameSpace={pbjsNameSpace}
-            onOpenPopover={() => setActiveModalUnit(mask)}
-          />
-        );
+        return <AdOverlayPortal key={mask.elementId} mask={mask} consoleState={consoleState} container={undefined as any} pbjsNameSpace={pbjsNameSpace} onOpenPopover={() => setActiveModalUnit(mask)} />;
       })}
       {activeModalUnit && (
         <PopOverComponent

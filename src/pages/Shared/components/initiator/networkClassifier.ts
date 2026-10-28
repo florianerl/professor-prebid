@@ -147,8 +147,10 @@ export const EXTERNAL_PROVIDERS: Array<{
   hostPattern: RegExp;
   category: NetworkCategory;
 }> = [
-  { name: 'Google Ad Manager', hostPattern: /googlesyndication\.com|doubleclick\.net|googleadservices\.com/i, category: 'gam' },
-  { name: 'Amazon TAM / A9', hostPattern: /amazon-adsystem\.com|a9\.com/i, category: 'bid' },
+  // Anchored to a domain suffix and tested against the host only: sync chains carry other
+  // providers' hosts in their query string (e.g. redir=https%3A%2F%2Fcm.g.doubleclick.net...).
+  { name: 'Google Ad Manager', hostPattern: /(^|\.)(googlesyndication\.com|doubleclick\.net|googleadservices\.com)$/i, category: 'gam' },
+  { name: 'Amazon TAM / A9', hostPattern: /(^|\.)(amazon-adsystem\.com|a9\.com)$/i, category: 'bid' },
 ];
 
 export const KNOWN_PROVIDERS = EXTERNAL_PROVIDERS;
@@ -197,6 +199,12 @@ export const decodeTcfString = (consentString?: string): IDecodedTcf | undefined
   } catch {
     return undefined;
   }
+};
+
+// A guessed value must decode with the fields every CMP-issued string carries.
+const decodeGuessedTcfString = (value: string): IDecodedTcf | undefined => {
+  const decoded = decodeTcfString(value);
+  return decoded && Number(decoded.cmpId) > 0 && Number(decoded.vendorListVersion) > 0 ? decoded : undefined;
 };
 
 const mapHeaders = (headers?: Array<{ name: string; value: string }>): { [key: string]: string } => {
@@ -261,12 +269,15 @@ export const auditPrivacy = (queryParams: { [key: string]: string }, requestHead
     } catch {}
   }
 
+  // Values outside known consent fields are only taken as a consent string when they decode as one:
+  // plenty of unrelated ids (gclids, Google 'CAESE...' tokens) also start with 'C'.
   if (!gdprConsent) {
     for (const [, val] of Object.entries(queryParams)) {
-      if (val && typeof val === 'string' && val.length >= 15) {
-        if (/^C[A-Za-z0-9\-_]{15,}/.test(val)) {
+      if (val && typeof val === 'string' && /^C[A-Za-z0-9\-_]{15,}/.test(val)) {
+        const decoded = decodeGuessedTcfString(val);
+        if (decoded) {
           gdprConsent = val;
-          decodedTcf = decodeTcfString(val);
+          decodedTcf = decoded;
           break;
         }
       }
@@ -275,10 +286,13 @@ export const auditPrivacy = (queryParams: { [key: string]: string }, requestHead
 
   if (!gdprConsent && textToParse) {
     const tcfRegex = /\b(C[A-Za-z0-9\-_]{20,}(?:\.[A-Za-z0-9\-_]+)*)\b/g;
-    const matches = textToParse.match(tcfRegex);
-    if (matches && matches.length > 0) {
-      gdprConsent = matches[0];
-      decodedTcf = decodeTcfString(matches[0]);
+    for (const match of textToParse.match(tcfRegex) || []) {
+      const decoded = decodeGuessedTcfString(match);
+      if (decoded) {
+        gdprConsent = match;
+        decodedTcf = decoded;
+        break;
+      }
     }
   }
 
@@ -289,8 +303,9 @@ export const auditPrivacy = (queryParams: { [key: string]: string }, requestHead
     if (fullTarget.includes(cmpConsentString) || (cmpCore.length > 15 && fullTarget.includes(cmpCore))) {
       if (!gdprConsent) gdprConsent = cmpConsentString;
       if (!decodedTcf) decodedTcf = decodeTcfString(cmpConsentString) || decodeTcfString(cmpCore);
-    } else if (gdprConsent && !decodedTcf) {
-      // If request has a consent param (e.g. Criteo vendor segment gdprString) and CMP is known, use CMP decode
+    } else if (gdprConsent && !decodedTcf && cmpConsentString.includes(gdprConsent)) {
+      // The request carries only a segment of the CMP string (e.g. Criteo's vendor segment gdprString): use the CMP decode.
+      // A different string that does not decode stays unparsed, so the audit still flags it.
       decodedTcf = decodeTcfString(cmpConsentString);
     }
   }
@@ -343,7 +358,9 @@ export const classifyRequest = (entry: IHarLogEntry, decompressedPostText?: stri
   const queryParamsMap = mapQueryParams(entry.queryString);
   const requestHeadersMap = mapHeaders(entry.requestHeaders);
   const responseHeadersMap = mapHeaders(entry.responseHeaders);
-  const privacy = auditPrivacy(queryParamsMap, requestHeadersMap, entry.postData?.text, decompressedPostText, cmpConsentString, url);
+  // A truncated body no longer parses; audit the privacy fields saved from the full body instead.
+  const postText = entry.postData?.privacyFields ? JSON.stringify(entry.postData.privacyFields) : entry.postData?.text;
+  const privacy = auditPrivacy(queryParamsMap, requestHeadersMap, postText, decompressedPostText, cmpConsentString, url);
 
   // Match Provider
   let providerName = '';
@@ -351,7 +368,7 @@ export const classifyRequest = (entry: IHarLogEntry, decompressedPostText?: stri
 
   // 1. Match Provider against curated KNOWN_PROVIDERS
   for (const provider of KNOWN_PROVIDERS) {
-    if (provider.hostPattern.test(host) || provider.hostPattern.test(url)) {
+    if (provider.hostPattern.test(host)) {
       providerName = provider.name;
       if (provider.category) matchedCategory = provider.category;
       break;

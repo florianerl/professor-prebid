@@ -5,6 +5,7 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import JSONViewerComponent from '../../Shared/components/JSONViewerComponent';
+import { getSlotTargeting } from '../../Shared/gptTargeting';
 
 const GamDetailsComponent = ({ elementId, inPopOver, truncate }: IGamDetailComponentProps): JSX.Element => {
   const { networkId, slotElementId, creativeId, queryId, lineItemId, slotAdUnitPath, slotTargeting, slotResponseInfo } = useGamSlotDetails(elementId);

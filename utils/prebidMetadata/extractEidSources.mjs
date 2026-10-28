@@ -19,7 +19,6 @@ const OUT = path.resolve(process.cwd(), 'src/pages/Shared/components/preAuction/
 const MANUAL = {
   id5Id: ['id5-sync.com', 'true-link-id5-sync.com'],
   merkleId: ['merkleinc.com'],
-  parrableId: ['parrable.com'],
 };
 
 const readSafe = (file) => {
@@ -56,6 +55,7 @@ const collectSources = (file, depth = 2, seen = new Set()) => {
 };
 
 const result = {};
+const shipped = new Set();
 
 for (const metaFile of fs.readdirSync(META).filter((f) => f.endsWith('.json'))) {
   const meta = JSON.parse(readSafe(path.join(META, metaFile)) || '{}');
@@ -69,12 +69,18 @@ for (const metaFile of fs.readdirSync(META).filter((f) => f.endsWith('.json'))) 
   const all = new Set(collectSources(moduleFile));
 
   for (const component of userIdComponents) {
+    shipped.add(component.componentName);
     const sources = Array.from(all).filter((s) => s.includes('.'));
     if (sources.length) result[component.componentName] = sources.sort();
   }
 }
 
+// Only for modules prebid still ships: an entry for a removed module would attribute its source to nothing.
 for (const [moduleName, sources] of Object.entries(MANUAL)) {
+  if (!shipped.has(moduleName)) {
+    console.warn(`MANUAL lists ${moduleName}, which this prebid.js no longer ships - remove it from MANUAL`);
+    continue;
+  }
   result[moduleName] = Array.from(new Set([...(result[moduleName] || []), ...sources])).sort();
 }
 

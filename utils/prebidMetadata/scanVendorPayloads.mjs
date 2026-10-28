@@ -63,6 +63,11 @@ const modules = payloadUrls();
 console.log(`${modules.length} RTD modules load a vendor payload from a hardcoded url\n`);
 
 for (const { name, url } of modules) {
+  // Some modules carry a development url; fetching it would hit whatever runs on this machine.
+  if (/^https?:\/\/(localhost|127\.|0\.0\.0\.0|\[::1\])/i.test(url)) {
+    console.log(`${name.padEnd(16)} ${url}\n  skipped: local development address\n`);
+    continue;
+  }
   let body = '';
   try {
     const response = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(25000) });
@@ -84,4 +89,4 @@ for (const { name, url } of modules) {
 }
 
 console.log('These are candidates, not facts: a payload can also build a path dynamically, and this only');
-console.log('sees literals. Only an auction proves what landed. See step 5 of the prebid-upgrade skill.');
+console.log('sees literals. Only an auction proves what landed. See "Validating against a live page" in the prebid-metadata skill.');

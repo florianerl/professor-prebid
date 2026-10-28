@@ -5,12 +5,14 @@ ortb2 enrichment to the prebid module that produced them. All read `node_modules
 network access.
 
 Re-run them after bumping the `prebid.js` dependency. Each writes its `.ts` file directly and is
-idempotent — running twice produces identical output:
+idempotent — running twice produces identical output. They write long lines, so run Prettier on the
+three files afterwards (last line below); with an unchanged prebid.js the diff is then empty:
 
 ```sh
 node utils/prebidMetadata/extractEidSources.mjs      # -> src/pages/Shared/components/preAuction/eidSources.ts
 node utils/prebidMetadata/extractProviderHosts.mjs   # -> src/pages/Shared/components/preAuction/providerHosts.ts
 node utils/prebidMetadata/extractProviderSignals.mjs # -> src/pages/Shared/components/preAuction/providerSignals.ts
+npx prettier --write src/pages/Shared/components/preAuction/{eidSources,providerHosts,providerSignals}.ts
 ```
 
 ## How they work

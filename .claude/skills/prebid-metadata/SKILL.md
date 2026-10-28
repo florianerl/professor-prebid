@@ -19,10 +19,13 @@ throws when prebid moves — a lost entry just downgrades a finding to a shrug.
 node utils/prebidMetadata/extractEidSources.mjs
 node utils/prebidMetadata/extractProviderHosts.mjs
 node utils/prebidMetadata/extractProviderSignals.mjs
+npx prettier --write src/pages/Shared/components/preAuction/{eidSources,providerHosts,providerSignals}.ts
 ```
 
-Idempotent and offline. Diff the output and account for every change — **check for lost entries, not
-just added ones**. A module vanishing is usually correct but must be confirmed.
+Idempotent and offline. The scripts write long lines, so run Prettier before diffing; with an unchanged
+prebid.js the diff is then empty. Diff the output and account for every change — **check for lost
+entries, not just added ones**. A module vanishing is usually correct but must be confirmed. Keep the
+generated header comments; they say how each file is rebuilt.
 
 ## Why `providerSignals.ts` carries the most weight
 
@@ -78,7 +81,8 @@ delivers reports `unknown`, suspect a new one.**
 **EID sources declared via a constant** are invisible to the `source: '...'` scan and vanish with no
 error. Known cases live in the `MANUAL` map in `extractEidSources.mjs`. Confirm those still hold, and
 for any configured identity module that ends up with no sources, grep it for `source:` and follow the
-constant.
+constant. The script skips, and warns about, `MANUAL` entries for modules prebid no longer ships;
+remove those entries when it does.
 
 **Endpoints** come from two mechanisms, so a gap in one is often covered: the static map, and
 `hostsInConfig()` in `providerDiagnostics.ts`, which reads the live publisher config at runtime for
@@ -101,7 +105,8 @@ survive minification even where the surrounding code is unreadable — expect a 
 key. A payload that builds its path dynamically yields nothing; that is the `MANUAL_ORTB2` case.
 
 Network access, third-party code, and results change without notice. Run by hand, never in the build.
-It prints suggestions only, writes no file, and never executes what it downloads.
+It prints suggestions only, writes no file, never executes what it downloads, and skips urls on the
+local machine (some modules carry a development url such as `localhost`).
 
 ## Validating against a live page
 
@@ -155,14 +160,13 @@ different alias will not match, and the provider reports `unknown` however good 
 ## Verify
 
 ```sh
-npx tsc --noEmit 2>&1 | grep -cE "error TS"   # must not exceed the pre-existing baseline
-npx vitest run
+npm run typecheck
+npm test
 npm run build
 ```
 
-The repo carries pre-existing type errors — establish the baseline first (`git stash` → count →
-restore) and report the count rather than claiming clean. `npm run build` does not typecheck, so a
-green build is not evidence the panel works.
+All three must pass. `npm run build` does not typecheck, so a green build alone is not evidence the
+panel works.
 
 A green test suite with a stale `providerSignals.ts` looks identical to a correct one. Only the live
 page distinguishes them.

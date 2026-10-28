@@ -25,7 +25,8 @@ const ORTB2_CONTAINERS = new Set(['', 'site', 'device', 'user', 'app', 'site.ext
 
 /**
  * Global ortb2 paths that cannot be read from prebid's source, because the vendor payload decides the
- * key. Observed on a live auction (step 5 of the prebid-upgrade skill) and re-confirmed the same way.
+ * key. Observed on a live auction ("Validating against a live page" in the prebid-metadata skill)
+ * and re-confirmed the same way.
  * Same contract as the MANUAL map in extractEidSources.mjs: add only what has actually been seen.
  */
 const MANUAL_ORTB2 = {
@@ -277,16 +278,16 @@ const file = `/**
  * auction rather than inferring it from the module name.
  *
  * GENERATED - do not edit by hand.
- * Run \\\`node utils/prebidMetadata/extractProviderSignals.mjs\\\` after bumping prebid.js.
+ * Run \`node utils/prebidMetadata/extractProviderSignals.mjs\` after bumping prebid.js.
  *
- * Keys are \\\`<componentType>:<componentName>\\\`, matching \\\`realTimeData.dataProviders[].name\\\`.
- * Paths come from the module source, from its \\\`.md\\\`, and from a small curated map.
- * \\\`ortb2Imp\\\` paths are relative to a bid's \\\`ortb2Imp\\\`. Container paths are excluded.
+ * Keys are \`<componentType>:<componentName>\`, matching \`realTimeData.dataProviders[].name\`.
+ * Paths come from the module source, from its \`.md\`, and from a small curated map.
+ * \`ortb2Imp\` paths are relative to a bid's \`ortb2Imp\`. Container paths are excluded.
  */
 export interface IProviderSignal {
-  /** Paths within a bid's \\\`ortb2Imp\\\` that this module writes. */
+  /** Paths within a bid's \`ortb2Imp\` that this module writes. */
   ortb2Imp: string[];
-  /** Paths within the bidder request's \\\`ortb2\\\` that this module writes. */
+  /** Paths within the bidder request's \`ortb2\` that this module writes. */
   ortb2: string[];
   /** ortb2 data segment names, matched exactly rather than by token. */
   segments: string[];
